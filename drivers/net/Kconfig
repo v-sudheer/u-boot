@@ -46,6 +46,11 @@ menuconfig NETDEVICES
 
 if NETDEVICES
 
+config FTGMAC100
+	bool "ASPEED Ethernet MAC support"
+	depends on ARCH_ASPEED
+	select PHYLIB
+
 config AG7XXX
 	bool "Atheros AG7xxx Ethernet MAC support"
 	depends on DM_ETH && ARCH_ATH79

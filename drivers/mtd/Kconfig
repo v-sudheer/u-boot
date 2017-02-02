@@ -35,6 +35,10 @@ config FLASH_PIC32
 	  This enables access to Microchip PIC32 internal non-CFI flash
 	  chips through PIC32 Non-Volatile-Memory Controller.
 
+config AST_SPI_NOR
+	bool "AST SPI NOR Flash driver"
+	depends on ARCH_ASPEED
+	
 endmenu
 
 source "drivers/mtd/nand/Kconfig"

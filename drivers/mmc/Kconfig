@@ -146,6 +146,11 @@ config MMC_SDHCI_SDMA
 	  This enables support for the SDMA (Single Operation DMA) defined
 	  in the SD Host Controller Standard Specification Version 1.00 .
 
+config AST_SDHCI
+        bool "Aspeed SDHCI controller"
+        depends on ARCH_ASPEED
+	depends on MMC_SDHCI 
+
 config MMC_SDHCI_BCM2835
 	tristate "SDHCI support for the BCM2835 SD/MMC Controller"
 	depends on ARCH_BCM283X

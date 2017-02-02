@@ -21,6 +21,10 @@ config ALTERA_PIO
 	  Select this to enable PIO for Altera devices. Please find
 	  details on the "Embedded Peripherals IP User Guide" of Altera.
 
+config AST_GPIO
+	bool "Aspeed GPIO driver"
+	depends on ARCH_ASPEED
+
 config DWAPB_GPIO
 	bool "DWAPB GPIO driver"
 	depends on DM && DM_GPIO

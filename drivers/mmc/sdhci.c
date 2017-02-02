@@ -362,10 +362,16 @@ static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 	if (host->set_clock)
 		host->set_clock(host->index, div);
 
+#if 0
 	clk |= (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
 	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
 		<< SDHCI_DIVIDER_HI_SHIFT;
 	clk |= SDHCI_CLOCK_INT_EN;
+#else
+	clk = div << SDHCI_DIVIDER_SHIFT;
+	clk |= SDHCI_CLOCK_INT_EN;
+#endif
+	
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
 	/* Wait max 20 ms */
@@ -438,6 +444,7 @@ static void sdhci_set_ios(struct mmc *mmc)
 
 	/* Set bus width */
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
+#if 0	
 	if (mmc->bus_width == 8) {
 		ctrl &= ~SDHCI_CTRL_4BITBUS;
 		if ((SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) ||
@@ -452,7 +459,18 @@ static void sdhci_set_ios(struct mmc *mmc)
 		else
 			ctrl &= ~SDHCI_CTRL_4BITBUS;
 	}
+#else
+	if (mmc->bus_width == 8) {
+		writel( (1 << 24) | readl(AST_SDHC_BASE), AST_SDHC_BASE);
+	} else {
+		writel( ~(1 << 24) & readl(AST_SDHC_BASE), AST_SDHC_BASE);
+	}
 
+	if (mmc->bus_width == 4)
+		ctrl |= SDHCI_CTRL_4BITBUS;
+	else
+		ctrl &= ~SDHCI_CTRL_4BITBUS;	
+#endif
 	if (mmc->clock > 26000000)
 		ctrl |= SDHCI_CTRL_HISPD;
 	else

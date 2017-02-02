@@ -58,6 +58,10 @@ config DM_I2C_GPIO
 	  bindings are supported.
 	  Binding info: doc/device-tree-bindings/i2c/i2c-gpio.txt
 
+config AST_I2C
+	bool "Aspeed I2C driver"
+	depends on ARCH_ASPEED
+
 config SYS_I2C_AT91
 	bool "Atmel I2C driver"
 	depends on DM_I2C && ARCH_AT91

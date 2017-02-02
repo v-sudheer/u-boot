@@ -162,6 +162,9 @@ choice
 config ARCH_AT91
 	bool "Atmel AT91"
 
+config ARCH_ASPEED
+	bool "Support ASPEED SoCs"
+
 config TARGET_EDB93XX
 	bool "Support edb93xx"
 	select CPU_ARM920T
@@ -921,6 +924,8 @@ endchoice
 
 source "arch/arm/mach-at91/Kconfig"
 
+source "arch/arm/mach-aspeed/Kconfig"
+
 source "arch/arm/mach-bcm283x/Kconfig"
 
 source "arch/arm/mach-davinci/Kconfig"
@@ -1066,6 +1071,7 @@ source "board/vscom/baltos/Kconfig"
 source "board/woodburn/Kconfig"
 source "board/work-microwave/work_92105/Kconfig"
 source "board/zipitz2/Kconfig"
+source "board/aspeed/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 

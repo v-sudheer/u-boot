@@ -36,6 +36,9 @@ menuconfig USB_GADGET
 
 if USB_GADGET
 
+config AST_UDC
+	bool "AST UDC"
+	
 config USB_GADGET_ATMEL_USBA
 	bool "Atmel USBA"
 	select USB_GADGET_DUALSPEED

@@ -15,6 +15,8 @@ obj-y += spi.o
 obj-$(CONFIG_SOFT_SPI) += soft_spi_legacy.o
 endif
 
+obj-$(CONFIG_AST_SPI) += ast_spi.o
+obj-$(CONFIG_FMC_SPI) += fmc_spi.o
 obj-$(CONFIG_ALTERA_SPI) += altera_spi.o
 obj-$(CONFIG_ATH79_SPI) += ath79_spi.o
 obj-$(CONFIG_ATMEL_DATAFLASH_SPI) += atmel_dataflash_spi.o

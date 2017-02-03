@@ -547,8 +547,16 @@ struct urb *usbd_alloc_urb (struct usb_device_instance *device,
 	memset (urb, 0, sizeof (struct urb));
 	urb->endpoint = endpoint;
 	urb->device = device;
+#if 0	
 	urb->buffer = (u8 *) urb->buffer_data;
 	urb->buffer_length = sizeof (urb->buffer_data);
+#else
+	//modify for AST USB 64 align 
+//	printf("0 urb->buffer_data %x \n", urb->buffer_data);
+	urb->buffer = (u8 *) (((u32)urb->buffer_data + 64 - 1) & ~(64 - 1));
+//	printf("1 urb->buffer %x \n", urb->buffer);
+	urb->buffer_length = 512;
+#endif
 
 	urb_link_init (&urb->link);
 

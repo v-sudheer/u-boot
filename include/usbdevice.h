@@ -463,7 +463,8 @@ typedef struct urb_link {
  */
 
 /* in linux we'd malloc this, but in u-boot we prefer static data */
-#define URB_BUF_SIZE 512
+//#define URB_BUF_SIZE 512
+#define URB_BUF_SIZE 576
 
 struct urb {
 

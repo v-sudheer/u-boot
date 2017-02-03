@@ -1328,11 +1328,13 @@ unsigned long flash_init (void)
 		flash_info[i].flash_id = FLASH_UNKNOWN;
 		flash_info[i].CE = i;
 		switch(i) {
-			case 0:
+			case 0:				
 				size += flash_info[i].size = flash_get_size(AST_FMC_CS0_BASE, &flash_info[i]);
+				printf("CS0 %x: %dMB", AST_FMC_CS0_BASE, flash_info[i].size/1024/1024);
 				break;
 			case 1:
 				size += flash_info[i].size = flash_get_size(AST_FMC_CS1_BASE, &flash_info[i]);
+				printf(", CS1 %x: %dMB, ", AST_FMC_CS1_BASE, flash_info[i].size/1024/1024);
 				break;
 			default:
 				printf("TODO ~~~~ \n");
@@ -1389,27 +1391,29 @@ unsigned long flash_init (void)
 
 void memmove_dma(void * dest,const void *src,size_t count)
 {
-	ulong count_align, poll_time, data;
+	ulong data;
 
-	count_align = (count + 3) & 0xFFFFFFFC;	/* 4-bytes align */
-        poll_time = 100;			/* set 100 us as default */
-
-        /* force end of burst read */
+	/* 4-bytes align */
+	if(count % 4)
+		count += 4 - (count%4);	
+	
+      /* force end of burst read */
 	*(volatile ulong *) (AST_FMC_BASE + CS0_CTRL) |= CE_HIGH;
 	*(volatile ulong *) (AST_FMC_BASE + CS0_CTRL) &= ~CE_HIGH;
 
 	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_CONTROL) = (ulong) (~FLASH_DMA_ENABLE);
 	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_FLASH_BASE) = (ulong) (src);
 	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_DRAM_BASE) = (ulong) (dest);
-	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_LENGTH) = (ulong) (count_align);
+	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_LENGTH) = (ulong) (count);
 	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_CONTROL) = (ulong) (FLASH_DMA_ENABLE);
 
 	/* wait poll */
 	do {
-		udelay(poll_time);
+		udelay(100);
 		data = *(ulong *) (AST_FMC_BASE + REG_FLASH_INTERRUPT_STATUS);
 	} while (!(data & FLASH_STATUS_DMA_READY));
 
+	*(ulong *) (AST_FMC_BASE + REG_FLASH_DMA_CONTROL) &= ~(FLASH_DMA_ENABLE);
 	/* clear status */
 	*(ulong *) (AST_FMC_BASE + REG_FLASH_INTERRUPT_STATUS) |= FLASH_STATUS_DMA_CLEAR;
 }

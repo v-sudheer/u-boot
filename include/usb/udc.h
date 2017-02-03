@@ -12,15 +12,15 @@
 #define EP_MAX_PACKET_SIZE	64
 #endif
 
-#if !defined(CONFIG_PPC)
+#if !(defined(CONFIG_PPC) || defined(CONFIG_ARCH_ASPEED))
 /* mpc8xx_udc.h will set these values */
 #define UDC_OUT_PACKET_SIZE     EP_MAX_PACKET_SIZE
 #define UDC_IN_PACKET_SIZE      EP_MAX_PACKET_SIZE
 #define UDC_INT_PACKET_SIZE     EP_MAX_PACKET_SIZE
 #define UDC_BULK_PACKET_SIZE    EP_MAX_PACKET_SIZE
+#define UDC_BULK_HS_PACKET_SIZE	512
 #endif
 
-#define UDC_BULK_HS_PACKET_SIZE	512
 
 #ifndef UDC_INT_ENDPOINT
 #define UDC_INT_ENDPOINT	1

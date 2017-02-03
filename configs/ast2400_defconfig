@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2016.11 Configuration
+# U-Boot 2017.01 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -36,11 +36,12 @@ CONFIG_SYS_CACHELINE_SIZE=32
 # CONFIG_SEMIHOSTING is not set
 # CONFIG_SYS_L2CACHE_OFF is not set
 # CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK is not set
+# CONFIG_USE_ARCH_MEMCPY is not set
+# CONFIG_USE_ARCH_MEMSET is not set
+# CONFIG_ARM64_SUPPORT_AARCH32 is not set
 # CONFIG_ARCH_AT91 is not set
 CONFIG_ARCH_ASPEED=y
 # CONFIG_TARGET_EDB93XX is not set
-# CONFIG_TARGET_VCMA9 is not set
-# CONFIG_TARGET_SMDK2410 is not set
 # CONFIG_TARGET_ASPENITE is not set
 # CONFIG_TARGET_GPLUGD is not set
 # CONFIG_ARCH_DAVINCI is not set
@@ -118,6 +119,7 @@ CONFIG_ARCH_ASPEED=y
 # CONFIG_ARCH_SOCFPGA is not set
 # CONFIG_TARGET_CM_T43 is not set
 # CONFIG_ARCH_SUNXI is not set
+# CONFIG_TARGET_TS4600 is not set
 # CONFIG_TARGET_TS4800 is not set
 # CONFIG_TARGET_VF610TWR is not set
 # CONFIG_TARGET_COLIBRI_VF is not set
@@ -140,6 +142,7 @@ CONFIG_ARCH_ASPEED=y
 # CONFIG_TARGET_LS1012AFRDM is not set
 # CONFIG_TARGET_LS1021AQDS is not set
 # CONFIG_TARGET_LS1021ATWR is not set
+# CONFIG_TARGET_LS1021AIOT is not set
 # CONFIG_TARGET_LS1043AQDS is not set
 # CONFIG_TARGET_LS1043ARDB is not set
 # CONFIG_TARGET_LS1046AQDS is not set
@@ -166,6 +169,7 @@ CONFIG_ARCH_AST2400=y
 # CONFIG_AST_SCU_LOCK is not set
 CONFIG_IDENT_STRING=""
 # CONFIG_PRE_CONSOLE_BUFFER is not set
+CONFIG_MMC=y
 # CONFIG_VIDEO is not set
 
 #
@@ -191,8 +195,7 @@ CONFIG_SYS_MALLOC_CLEAR_ON_INIT=y
 #
 # CONFIG_FIT is not set
 CONFIG_SYS_EXTRA_OPTIONS=""
-# CONFIG_SPL_DFU_SUPPORT is not set
-CONFIG_ARCH_FIXUP_FDT=y
+CONFIG_ARCH_FIXUP_FDT_MEMORY=y
 
 #
 # Boot timing
@@ -233,9 +236,6 @@ CONFIG_DISPLAY_BOARDINFO=y
 #
 # SPL / TPL
 #
-CONFIG_SUPPORT_SPL=y
-# CONFIG_SPL is not set
-# CONFIG_SPL_USB_SUPPORT is not set
 
 #
 # Command line interface
@@ -273,6 +273,7 @@ CONFIG_CMD_CONSOLE=y
 CONFIG_CMD_BOOTD=y
 CONFIG_CMD_BOOTM=y
 # CONFIG_CMD_BOOTZ is not set
+# CONFIG_CMD_BOOTMENU is not set
 CONFIG_CMD_ELF=y
 CONFIG_CMD_GO=y
 CONFIG_CMD_RUN=y
@@ -335,6 +336,7 @@ CONFIG_CMD_NET=y
 # CONFIG_CMD_TFTPSRV is not set
 # CONFIG_CMD_RARP is not set
 CONFIG_CMD_DHCP=y
+# CONFIG_CMD_PXE is not set
 CONFIG_CMD_NFS=y
 # CONFIG_CMD_MII is not set
 CONFIG_CMD_PING=y
@@ -346,6 +348,7 @@ CONFIG_CMD_PING=y
 #
 # Misc commands
 #
+# CONFIG_CMD_BKOPS_ENABLE is not set
 # CONFIG_CMD_CACHE is not set
 # CONFIG_CMD_TIME is not set
 CONFIG_CMD_MISC=y
@@ -399,6 +402,10 @@ CONFIG_BOOTP_VCI_STRING="U-Boot.arm"
 # CONFIG_BLOCK_CACHE is not set
 
 #
+# SATA/SCSI device support
+#
+
+#
 # Clock
 #
 # CONFIG_CPU is not set
@@ -407,6 +414,8 @@ CONFIG_BOOTP_VCI_STRING="U-Boot.arm"
 # Hardware crypto devices
 #
 # CONFIG_FSL_CAAM is not set
+# CONFIG_SYS_FSL_SEC_BE is not set
+# CONFIG_SYS_FSL_SEC_LE is not set
 
 #
 # Demo for driver model
@@ -424,6 +433,7 @@ CONFIG_BOOTP_VCI_STRING="U-Boot.arm"
 #
 # FPGA support
 #
+# CONFIG_FPGA_ALTERA is not set
 # CONFIG_FPGA_XILINX is not set
 
 #
@@ -465,7 +475,13 @@ CONFIG_AST_SDMC=y
 #
 # MMC Host controller Support
 #
+# CONFIG_SPL_MMC_TINY is not set
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_SDMA=y
 CONFIG_AST_SDHCI=y
+# CONFIG_MMC_SDHCI_KONA is not set
+# CONFIG_MMC_SDHCI_S5P is not set
+# CONFIG_MMC_SDHCI_SPEAR is not set
 
 #
 # MTD Support
@@ -479,6 +495,7 @@ CONFIG_AST_SPI_NOR=y
 # CONFIG_NAND_VF610_NFC is not set
 # CONFIG_NAND_PXA3XX is not set
 # CONFIG_NAND_ARASAN is not set
+# CONFIG_NAND_ZYNQ is not set
 
 #
 # Generic NAND options
@@ -549,6 +566,7 @@ CONFIG_FTGMAC100=y
 # CONFIG_FSL_LPUART is not set
 # CONFIG_MVEBU_A3700_UART is not set
 CONFIG_SYS_NS16550=y
+# CONFIG_PXA_SERIAL is not set
 
 #
 # Sound support

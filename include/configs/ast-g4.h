@@ -22,15 +22,8 @@
 #define __CONFIG_H
 
 /*#define DEBUG 1*/
-#define CONFIG_EXTRA_ENV_SETTINGS AST2500_ENV_SETTINGS
 
-/*
- * High Level Configuration Options
- * (easy to change)
- */
-#define CONFIG_ARCH_CPU_INIT
 #define CONFIG_MACH_TYPE		MACH_TYPE_ASPEED
-
 
 #include <asm/arch/platform.h>
 
@@ -58,16 +51,11 @@
 
 #define CONFIG_SYS_TEXT_BASE            0
 #define CONFIG_SYS_UBOOT_BASE		CONFIG_SYS_TEXT_BASE
-/*
- * Memory Info
- */
+
+/* Memory Info  */
 #define CONFIG_SYS_MALLOC_LEN   	(0x1000 + 4*1024*1024) /* malloc() len */
 
-
-
-/*
- * NS16550 Configuration
- */
+/* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE		(-4)
 #define CONFIG_SYS_NS16550_CLK			24000000
@@ -77,9 +65,7 @@
 #define CONFIG_CONS_INDEX				1
 #define CONFIG_BAUDRATE					115200
 
-/*
- * BOOTP options
- */
+/* BOOTP options  */
 #define CONFIG_BOOTP_BOOTFILESIZE
 #define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_GATEWAY
@@ -91,41 +77,15 @@
  */
 
 #define CONFIG_BOOTFILE		"all.bin"
-#if 0
-/* SPL */
-#define CONFIG_SPL_FRAMEWORK
-#define CONFIG_SPL_TEXT_BASE		0x0
-#define CONFIG_SPL_MAX_SIZE		(64*1024)
 
-#define CONFIG_SPL_STACK			0x1e728000	/* 32 kb : 0x8000 */
-#define CONFIG_SPL_BSS_START_ADDR	0x1e720000
-#define CONFIG_SPL_BSS_MAX_SIZE	(0x4000)
-
-
-#define CONFIG_SPL_LDSCRIPT		arch/arm/cpu/arm1176/u-boot-spl.lds
-/* SPL for MMC */
-#define CONFIG_SPL_SAVEENV
-#define CONFIG_SPL_OS_BOOT
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	 1 
-
-#define CONFIG_SYS_SPL_ARGS_ADDR       0x83000000
-
-/*#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
-#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"u-boot.img"
-*/
-
-#define CONFIG_SPL_BOARD_INIT
-#define CONFIG_SYS_MONITOR_LEN		(512 << 10)
-
-#define CONFIG_FIXED_SDHCI_ALIGNED_BUFFER		0x88000000
-#endif
+/*#define CONFIG_USBD_VENDORID		0x1A03*/
 
 #define CONFIG_USB_DEVICE
 #define CONFIG_USB_TTY
 
 #define CONFIG_USBD_HS
 #define CONFIG_USBD_PRODUCT_NAME	 "AST"
-#define CONFIG_USBD_MANUFACTURER	 "CAM360"
+#define CONFIG_USBD_MANUFACTURER	 "ASPEED"
 
 
 #define EP0_MAX_PACKET_SIZE			64 /* MUSB_EP0_FIFOSIZE */
@@ -152,16 +112,18 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS4,115200n8 root=/dev/ram rw"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw"
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"verify=yes\0"	\
+	"initrd_high=81000000\0" \
+	"spi_dma=yes\0" \
+	""
 
 /* ------------------------------------------------------------------------- */
 /* SD/MMC definition */
 #ifdef CONFIG_AST_SDHCI
-#define CONFIG_SDHCI
-#define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
-/* -- SDMA -- */
-#define CONFIG_MMC_SDMA
 #endif
 
 /* I2C definition */
@@ -197,14 +159,11 @@
 
 
 #ifdef CONFIG_AST_SPI_NOR
-
-#define CONFIG_FMC_CS			1
-
+#define CONFIG_FMC_CS			2
 #define CONFIG_SYS_MAX_FLASH_BANKS 	(CONFIG_FMC_CS)
 #define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
 #define CONFIG_ENV_IS_IN_FLASH		1
 #define CONFIG_ENV_ADDR				(AST_FMC_CS0_BASE + 0x60000)
-
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -214,23 +173,7 @@
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20300000"
 #define CONFIG_ENV_OVERWRITE
 
-
-#define AST2500_ENV_SETTINGS \
-	"verify=yes\0"	\
-	"spi_dma=yes\0" \
-	""
-
 /* ------------------------------------------------------------------------- */
-
-/* Ethernet */
-#if 0 
-#define CONFIG_MII			1
-#define CONFIG_PHY_GIGE
-#define CONFIG_PHYLIB
-#define CONFIG_PHY_ADDR			0
-#define CONFIG_PHY_REALTEK
-#endif
-
 #define CONFIG_GATEWAYIP		192.168.0.1
 #define CONFIG_NETMASK			255.255.255.0
 #define CONFIG_IPADDR			192.168.0.45

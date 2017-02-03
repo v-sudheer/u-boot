@@ -20,6 +20,7 @@
 #include <linux/ctype.h>
 #include <malloc.h>
 
+#include <common.h>
 
 /**
  * strncasecmp - Case insensitive, length-limited string comparison
@@ -507,6 +508,38 @@ void * memcpy(void *dest, const void *src, size_t count)
  */
 void * memmove(void * dest,const void *src,size_t count)
 {
+#ifdef CONFIG_AST_SPI_NOR			
+		char *tmp, *s;
+		if (src == dest)
+			return dest;
+
+		if(((s = getenv("spi_dma")) != NULL) && (strcmp(s, "yes") == 0)) {
+			if(((u32)src >= AST_FMC_CS0_BASE) && ((u32)src < (AST_FMC_CS0_BASE + 0x10000000))) {
+//				printf("dma dest %x, src %x, len %d\n", dest, src, count);
+				memmove_dma((void *)dest, (void *)src, count);
+				return dest;
+			} else {
+				goto cpu_cp;
+			}
+		} 
+cpu_cp:
+//		printf("cpu dest %x, src %x, len %d\n", dest, src, count);
+		
+		if (dest <= src) {
+			tmp = (char *) dest;
+			s = (char *) src;
+			while (count--)
+				*tmp++ = *s++;
+			}
+		else {
+			tmp = (char *) dest + count;
+			s = (char *) src + count;
+			while (count--)
+				*--tmp = *--s;
+			}
+
+		return dest;		
+#else
 	char *tmp, *s;
 
 	if (src == dest)
@@ -526,6 +559,7 @@ void * memmove(void * dest,const void *src,size_t count)
 		}
 
 	return dest;
+#endif	
 }
 #endif
 

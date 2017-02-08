@@ -56,7 +56,9 @@
 
 #define CFI_MFR_MACRONIX		0x00C2
 #define CFI_MFR_MICRON			0x0020
-#define CFI_MFR_WINBOND         	0x00DA
+#define CFI_MFR_WINBOND		0x00DA
+#define CFI_MFR_CYPRESS		0x0001
+
 
 flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];		/* FLASH chips info */
 
@@ -664,6 +666,7 @@ void flash_print_info (flash_info_t * info)
 		case CFI_MFR_MACRONIX: 	printf ("MACRONIX ");		break;
 		case CFI_MFR_MICRON: 	printf ("MICRON ");		break;
 		case CFI_MFR_WINBOND: 	printf ("WINBOND ");		break;
+		case CFI_MFR_CYPRESS:	printf ("CYPRESS ");		break;
 		default:		printf ("Unknown Vendor %lx", info->flash_id); break;
 	}
 

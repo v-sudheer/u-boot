@@ -120,7 +120,7 @@
 	"spi_dma=yes\0" \
 	"update=tftp 80800000 ast2500.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc mem=80M\0" \
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \	
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \
 	""
 
 /* ------------------------------------------------------------------------- */

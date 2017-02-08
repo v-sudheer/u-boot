@@ -47,7 +47,7 @@ typedef struct {
 #ifdef CONFIG_MTD
 	struct mtd_info *mtd;
 #endif
-#ifdef CONFIG_AST_SPI_NOR
+#ifdef CONFIG_AST_FMC_NOR
 	ulong 	reg_base;
         ulong   readcmd;
         ulong   dualport;
@@ -114,7 +114,7 @@ extern void flash_protect (int flag, ulong from, ulong to, flash_info_t *info);
 extern int flash_write (char *, ulong, ulong);
 extern flash_info_t *addr2info (ulong);
 extern int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt);
-#ifdef CONFIG_AST_SPI_NOR
+#ifdef CONFIG_AST_FMC_NOR
 extern void memmove_dma(void * dest,const void *src,size_t count);
 #endif
 

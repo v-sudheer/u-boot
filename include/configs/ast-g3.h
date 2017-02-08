@@ -160,8 +160,7 @@
 #define CONFIG_CMD_PART
 
 
-#ifdef CONFIG_AST_SPI_NOR
-#define CONFIG_FMC_CS			2
+#ifdef CONFIG_AST_FMC_NOR
 #define CONFIG_SYS_MAX_FLASH_BANKS 	(CONFIG_FMC_CS)
 #define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
 #define CONFIG_ENV_IS_IN_FLASH		1

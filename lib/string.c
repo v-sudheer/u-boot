@@ -508,7 +508,7 @@ void * memcpy(void *dest, const void *src, size_t count)
  */
 void * memmove(void * dest,const void *src,size_t count)
 {
-#ifdef CONFIG_AST_SPI_NOR			
+#ifdef CONFIG_AST_FMC_NOR			
 		char *tmp, *s;
 		if (src == dest)
 			return dest;

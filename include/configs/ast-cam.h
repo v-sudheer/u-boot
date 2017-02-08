@@ -118,6 +118,9 @@
 	"verify=yes\0"	\
 	"initrd_high=81000000\0" \
 	"spi_dma=yes\0" \
+	"update=tftp 80800000 ast2500.scr; so 80800000\0" \
+	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc mem=80M\0" \
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \	
 	""
 
 /* ------------------------------------------------------------------------- */
@@ -158,11 +161,10 @@
 #define CONFIG_CMD_PART
 
 
-#ifdef CONFIG_AST_SPI_NOR
-#define CONFIG_FMC_CS			1
+#ifdef CONFIG_AST_FMC_NOR
 #define CONFIG_SYS_MAX_FLASH_BANKS 	(CONFIG_FMC_CS)
 #define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
-#define CONFIG_ENV_IS_IN_FLASH		1
+#define CONFIG_ENV_IS_IN_FLASH			1
 #define CONFIG_ENV_ADDR				(AST_FMC_CS0_BASE + 0x60000)
 #endif
 

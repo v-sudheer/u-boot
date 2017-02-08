@@ -60,6 +60,7 @@
 
 flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];		/* FLASH chips info */
 
+
 /* Support Flash ID */
 #define STM25P64		0x172020
 #define STM25P128		0x182020
@@ -1321,6 +1322,7 @@ unsigned long flash_init (void)
 	*((volatile ulong*) AST_FMC_BASE) |= 0x800f0000;	/* enable Flash Write */
 
 	/* Init: FMC  */
+	printf("\nFMC : ");
 	/* BANK 0 : FMC CS0 , 1: FMC CS1, */
 	for (i = 0; i < CONFIG_FMC_CS; ++i) {
 		flash_info[i].sysspi = 0;
@@ -1347,7 +1349,8 @@ unsigned long flash_init (void)
 	}
 
 	/* BANK 2:SYSSPI CS0 */
-#ifdef CONFIG_SPI0_CS
+#ifdef CONFIG_AST_SPI_NOR
+	printf("\nSPI : ");
 	//pin switch by trap[13:12]	-- [0:1] Enable SPI Master
 	ast_scu_spi_master(1);	/* enable SPI master */
 	*((volatile ulong*) AST_FMC_SPI0_BASE) |= 0x10000;	/* enable Flash Write */
@@ -1360,6 +1363,7 @@ unsigned long flash_init (void)
 		printf ("## Unknown FLASH on Bank 2 SYS SPI - Size = 0x%08lx = %ld MB\n",
 			flash_info[CONFIG_FMC_CS].size, flash_info[CONFIG_FMC_CS].size << 20);
 	}
+	printf("CS0 %x: %dMB, ", AST_SPI0_CS0_BASE, (int) (flash_info[CONFIG_FMC_CS].size/1024/1024));
 #endif
 
 	/* Monitor protection ON by default */

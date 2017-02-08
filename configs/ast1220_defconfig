@@ -484,7 +484,9 @@ CONFIG_AST_SDHCI=y
 #
 # MTD Support
 #
-CONFIG_AST_SPI_NOR=y
+CONFIG_AST_FMC_NOR=y
+CONFIG_FMC_CS=1
+# CONFIG_AST_SPI_NOR is not set
 
 #
 # NAND Device Support

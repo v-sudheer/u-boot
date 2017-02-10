@@ -112,7 +112,7 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc "
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\

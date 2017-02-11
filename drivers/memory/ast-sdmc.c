@@ -49,14 +49,14 @@
 //#define AST_SDMC_DEBUG
 
 #ifdef AST_SDMC_DEBUG
-#define SDMCDBUG(fmt, args...) printk("%s() " fmt, __FUNCTION__, ## args)
+#define SDMCDBUG(fmt, args...) printf("%s() " fmt, __FUNCTION__, ## args)
 #else
 #define SDMCDBUG(fmt, args...)
 #endif
 
-#define SDMCMSG(fmt, args...) printk(fmt, ## args)
+#define SDMCMSG(fmt, args...) printf(fmt, ## args)
 
-void __iomem	*ast_sdmc_base = 0;
+static u32 ast_sdmc_base = AST_SDMC_BASE;
 
 static inline u32 
 ast_sdmc_read(u32 reg)
@@ -146,11 +146,14 @@ ast_sdmc_get_mem_size(void)
 extern u8
 ast_sdmc_get_ecc(void)
 {
-	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
-	if(conf & SDMC_CONFIG_EEC_EN)
+	printf("ast_sdmc_get_ecc \n");
+	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_EEC_EN) {
+		printf("ast_sdmc_get_ecc 1\n");
 		return 1;
-	else
+	} else {
+		printf("ast_sdmc_get_ecc 0\n");
 		return 0;
+	}
 }
 
 extern u8

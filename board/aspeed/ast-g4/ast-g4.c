@@ -11,6 +11,7 @@
 #include <asm/arch/ast-sdmc.h>
 #include <asm/arch/regs-ahbc.h>
 #include <asm/arch/regs-scu.h>
+#include <asm/arch/ast-scu.h>
 #include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;

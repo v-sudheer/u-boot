@@ -78,27 +78,6 @@
 
 #define CONFIG_BOOTFILE		"all.bin"
 
-/*#define CONFIG_USBD_VENDORID		0x1A03*/
-
-#define CONFIG_USB_DEVICE
-#define CONFIG_USB_TTY
-
-#define CONFIG_USBD_HS
-#define CONFIG_USBD_PRODUCT_NAME	 "AST"
-#define CONFIG_USBD_MANUFACTURER	 "ASPEED"
-
-
-#define EP0_MAX_PACKET_SIZE			64 /* MUSB_EP0_FIFOSIZE */
-
-#define UDC_INT_ENDPOINT			3
-#define UDC_INT_PACKET_SIZE			64
-#define UDC_OUT_ENDPOINT			2
-#define UDC_OUT_PACKET_SIZE			1024
-#define UDC_IN_ENDPOINT				1
-#define UDC_IN_PACKET_SIZE			1024
-#define UDC_BULK_PACKET_SIZE		1024
-#define UDC_BULK_HS_PACKET_SIZE		1024
-
 /*
  * Miscellaneous configurable options
  */
@@ -112,7 +91,7 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc "
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
@@ -120,15 +99,10 @@
 	"spi_dma=yes\0" \
 	"update=tftp 80800000 ast2500.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc mem=80M\0" \
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \	
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \
 	""
 
 /* ------------------------------------------------------------------------- */
-/* SD/MMC definition */
-#ifdef CONFIG_AST_SDHCI
-#define CONFIG_GENERIC_MMC
-#endif
-
 /* I2C definition */
 #ifdef CONFIG_CMD_I2C
 #define CONFIG_HARD_I2C		1		/* To enable I2C support	*/
@@ -162,11 +136,7 @@
 
 
 #ifdef CONFIG_AST_FMC_NOR
-#ifdef CONFIG_AST_SPI_NOR
-#define CONFIG_SYS_MAX_FLASH_BANKS		(CONFIG_FMC_CS + 1)
-#else
 #define CONFIG_SYS_MAX_FLASH_BANKS		(CONFIG_FMC_CS)
-#endif
 #define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
 #define CONFIG_ENV_IS_IN_FLASH		1
 #define CONFIG_ENV_ADDR				(AST_FMC_CS0_BASE + 0x60000)

@@ -1335,7 +1335,7 @@ unsigned long flash_init (void)
 		switch(i) {
 			case 0:				
 				size += flash_info[i].size = flash_get_size(AST_FMC_CS0_BASE, &flash_info[i]);
-				printf("CS0 %x: %dMB", AST_FMC_CS0_BASE, (int) (flash_info[i].size/1024/1024));
+				printf("CS0 %x: %dMB ", AST_FMC_CS0_BASE, (int) (flash_info[i].size/1024/1024));
 				break;
 			case 1:
 				size += flash_info[i].size = flash_get_size(AST_FMC_CS1_BASE, &flash_info[i]);

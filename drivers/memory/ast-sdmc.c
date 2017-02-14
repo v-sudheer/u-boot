@@ -146,14 +146,10 @@ ast_sdmc_get_mem_size(void)
 extern u8
 ast_sdmc_get_ecc(void)
 {
-	printf("ast_sdmc_get_ecc \n");
-	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_EEC_EN) {
-		printf("ast_sdmc_get_ecc 1\n");
+	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_EEC_EN)
 		return 1;
-	} else {
-		printf("ast_sdmc_get_ecc 0\n");
+	else
 		return 0;
-	}
 }
 
 extern u8

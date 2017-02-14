@@ -168,7 +168,7 @@ CONFIG_ARCH_AST1220=y
 # CONFIG_AST_SCU_LOCK is not set
 CONFIG_IDENT_STRING=""
 # CONFIG_PRE_CONSOLE_BUFFER is not set
-CONFIG_MMC=y
+# CONFIG_MMC is not set
 # CONFIG_VIDEO is not set
 
 #
@@ -193,6 +193,9 @@ CONFIG_SYS_MALLOC_CLEAR_ON_INIT=y
 # Boot images
 #
 # CONFIG_FIT is not set
+# CONFIG_OF_BOARD_SETUP is not set
+# CONFIG_OF_SYSTEM_SETUP is not set
+# CONFIG_OF_STDOUT_VIA_ALIAS is not set
 CONFIG_SYS_EXTRA_OPTIONS=""
 CONFIG_ARCH_FIXUP_FDT_MEMORY=y
 
@@ -274,6 +277,7 @@ CONFIG_CMD_BOOTM=y
 # CONFIG_CMD_BOOTZ is not set
 # CONFIG_CMD_BOOTMENU is not set
 CONFIG_CMD_ELF=y
+CONFIG_CMD_FDT=y
 CONFIG_CMD_GO=y
 CONFIG_CMD_RUN=y
 CONFIG_CMD_IMI=y
@@ -308,7 +312,7 @@ CONFIG_CMD_LOADB=y
 CONFIG_CMD_LOADS=y
 CONFIG_CMD_FLASH=y
 # CONFIG_CMD_ARMFLASH is not set
-CONFIG_CMD_MMC=y
+# CONFIG_CMD_MMC is not set
 # CONFIG_CMD_NAND is not set
 # CONFIG_CMD_SF is not set
 # CONFIG_CMD_SPI is not set
@@ -347,7 +351,6 @@ CONFIG_CMD_PING=y
 #
 # Misc commands
 #
-# CONFIG_CMD_BKOPS_ENABLE is not set
 # CONFIG_CMD_CACHE is not set
 # CONFIG_CMD_TIME is not set
 CONFIG_CMD_MISC=y
@@ -443,7 +446,7 @@ CONFIG_AST_GPIO=y
 #
 # I2C support
 #
-CONFIG_AST_I2C=y
+# CONFIG_AST_I2C is not set
 # CONFIG_SYS_I2C_DW is not set
 # CONFIG_CROS_EC_KEYB is not set
 
@@ -473,13 +476,6 @@ CONFIG_AST_CAM_SDMC=y
 #
 # MMC Host controller Support
 #
-# CONFIG_SPL_MMC_TINY is not set
-CONFIG_MMC_SDHCI=y
-CONFIG_MMC_SDHCI_SDMA=y
-CONFIG_AST_SDHCI=y
-# CONFIG_MMC_SDHCI_KONA is not set
-# CONFIG_MMC_SDHCI_S5P is not set
-# CONFIG_MMC_SDHCI_SPEAR is not set
 
 #
 # MTD Support
@@ -589,41 +585,7 @@ CONFIG_SYS_NS16550=y
 #
 # TPM support
 #
-CONFIG_USB=y
-
-#
-# USB Host Controller Drivers
-#
-# CONFIG_USB_XHCI_HCD is not set
-# CONFIG_USB_EHCI_HCD is not set
-# CONFIG_USB_EHCI is not set
-# CONFIG_USB_OHCI_HCD is not set
-# CONFIG_USB_UHCI_HCD is not set
-# CONFIG_USB_DWC3 is not set
-
-#
-# MUSB Controller Driver
-#
-# CONFIG_USB_MUSB_HOST is not set
-# CONFIG_USB_MUSB_GADGET is not set
-
-#
-# ULPI drivers
-#
-
-#
-# USB peripherals
-#
-# CONFIG_USB_STORAGE is not set
-# CONFIG_USB_KEYBOARD is not set
-CONFIG_USB_GADGET=y
-CONFIG_AST_UDC=y
-# CONFIG_USB_GADGET_ATMEL_USBA is not set
-# CONFIG_USB_GADGET_BCM_UDC_OTG_PHY is not set
-# CONFIG_USB_GADGET_DWC2_OTG is not set
-# CONFIG_CI_UDC is not set
-CONFIG_USB_GADGET_VBUS_DRAW=2
-# CONFIG_USB_GADGET_DOWNLOAD is not set
+# CONFIG_USB is not set
 
 #
 # Graphics support
@@ -668,11 +630,13 @@ CONFIG_REGEX=y
 #
 # CONFIG_LZ4 is not set
 # CONFIG_ERRNO_STR is not set
-# CONFIG_OF_LIBFDT is not set
+CONFIG_OF_LIBFDT=y
 # CONFIG_OF_LIBFDT_OVERLAY is not set
 # CONFIG_SPL_OF_LIBFDT is not set
+# CONFIG_FDT_FIXUP_PARTITIONS is not set
 
 #
 # System tables
 #
+# CONFIG_EFI_LOADER is not set
 # CONFIG_UNIT_TEST is not set

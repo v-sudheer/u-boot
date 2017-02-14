@@ -41,6 +41,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+extern int ast_sdhi_init(u32 regbase, u32 max_clk, u32 min_clk);
+
 #if defined(CONFIG_SHOW_BOOT_PROGRESS)
 void show_boot_progress(int progress)
 {
@@ -93,9 +95,7 @@ int misc_init_r (void)
 int dram_init(void)
 {
 	/* dram_init must store complete ramsize in gd->ram_size */
-	u32 vga = ast_scu_get_vga_memsize();
-	u32 dram = ast_sdmc_get_mem_size();
-	gd->ram_size = (dram - vga);
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 
 	return 0;
 }
@@ -104,6 +104,8 @@ int board_eth_init(bd_t *bd)
 {
 #ifdef CONFIG_FTGMAC100
 	return ftgmac100_initialize(bd);
+#else
+	return 0;
 #endif
 }
 
@@ -115,7 +117,7 @@ int board_eth_init(bd_t *bd)
 int board_mmc_init(bd_t *bis)
 {
 	ulong mmc_base_address[CONFIG_SYS_MMC_NUM] = CONFIG_SYS_MMC_BASE;
-	u8 i, data;
+	u8 i;
 
 	ast_scu_init_sdhci();
 	ast_scu_multi_func_sdhc_slot(3);

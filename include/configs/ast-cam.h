@@ -77,7 +77,7 @@
  */
 
 #define CONFIG_BOOTFILE		"all.bin"
-
+#if 0
 /*#define CONFIG_USBD_VENDORID		0x1A03*/
 
 #define CONFIG_USB_DEVICE
@@ -98,7 +98,7 @@
 #define UDC_IN_PACKET_SIZE			1024
 #define UDC_BULK_PACKET_SIZE		1024
 #define UDC_BULK_HS_PACKET_SIZE		1024
-
+#endif
 /*
  * Miscellaneous configurable options
  */
@@ -112,15 +112,16 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS4,115200n8 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_SYS_SDRAM_SIZE (192*1024*1024)		/* 192MB */
+
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
-	"initrd_high=81000000\0" \
 	"spi_dma=yes\0" \
 	"update=tftp 80800000 ast2500.scr; so 80800000\0" \
-	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc mem=80M\0" \
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc mem=80M\0" \
+	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 /* ------------------------------------------------------------------------- */
@@ -172,7 +173,7 @@
 #define CONFIG_ENV_OFFSET		0x60000	/* environment starts here  */
 #define CONFIG_ENV_SIZE			0x20000	/* Total Size of Environment Sector */
 
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 20300000"
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
 #define CONFIG_ENV_OVERWRITE
 
 /* ------------------------------------------------------------------------- */

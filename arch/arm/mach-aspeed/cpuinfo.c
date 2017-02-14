@@ -13,6 +13,9 @@
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
 {
+#ifdef AST_SOC_CAM
+	printf("AST1220 \n");
+#else
 	char buf[32];
 	ulong size = 0;
 
@@ -30,11 +33,6 @@ int print_cpuinfo(void)
 	       strmhz(buf, ast_get_m_pll_clk() * 2),
 	       ast_sdmc_get_ecc() ? "Enable" : "Disable",
 	       ast_sdmc_get_cache() ? "Enable" : "Disable");
-#elif defined(AST_SOC_CAM)
-	printf("MEM :	%4s MHz, ECC: %s, Cache: %s ",
-		   strmhz(buf, ast_get_m_pll_clk() * 2),
-		   ast_sdmc_get_ecc() ? "Enable" : "Disable",
-		   ast_sdmc_get_cache() ? "Enable" : "Disable");
 #else
 	printf("MEM :   %4s MHz, EEC:%s ",
 	       strmhz(buf, ast_get_m_pll_clk()),
@@ -51,11 +49,11 @@ int print_cpuinfo(void)
 		puts("2nd Boot : Enable\n");
 	}
 
-
 	if(ast_scu_espi_mode())
 		printf("eSPI Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
 	else
 		printf("LPC Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
+#endif
 
 	return 0;
 }

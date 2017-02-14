@@ -43,6 +43,10 @@ int print_cpuinfo(void)
 	size = ast_scu_get_vga_memsize();
 
 	puts("VGA :    ");
+	print_size(size, " - ");
+
+	size = ast_sdmc_get_mem_size();
+	puts("Total DRAM : ");
 	print_size(size, "\n");
 
 	if(ast_scu_2nd_wdt_mode()) {

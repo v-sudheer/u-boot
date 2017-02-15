@@ -45,7 +45,7 @@ PATTERN_TABLE:
     str r2, [r0]
 
     ldr r0, =0x1e6c0038                          @ Clear Timer3 ISR
-    ldr r1, =0x00040000
+    ldr r1, =0x01000000
     str r1, [r0]
 
     ldr r0, =0x1e782030                          @ Enable Timer3
@@ -58,8 +58,8 @@ PATTERN_TABLE:
 
     .macro check_delay_timer
     ldr r1, [r0]
-    bic r1, r1, #0xFFFBFFFF
-    mov r2, r1, lsr #18
+    bic r1, r1, #0xFEFFFFFF
+    mov r2, r1, lsr #24
     cmp r2, #0x01
     .endm
 
@@ -70,7 +70,7 @@ PATTERN_TABLE:
     str r1, [r0]
 
     ldr r0, =0x1e6c0038                          @ Clear Timer3 ISR
-    ldr r1, =0x00040000
+    ldr r1, =0x01000000
     str r1, [r0]
     .endm
 

@@ -181,7 +181,7 @@ check_pll_ld:
     beq platform_exit
 
 /* Debug - UART console message */
-    ldr   r0, =0x1e78400c
+    ldr   r0, =0x1e78300c
     mov   r1, #0x83
     str   r1, [r0]
 

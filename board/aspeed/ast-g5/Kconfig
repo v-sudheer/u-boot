@@ -13,6 +13,7 @@ config SYS_SOC
 	default "aspeed"
 
 config SYS_CONFIG_NAME
-	default "ast-g5"
+	string "Board configuration name"
+	default "ast-g5_evb"
 
 endif

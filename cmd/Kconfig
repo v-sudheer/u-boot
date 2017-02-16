@@ -305,6 +305,10 @@ endmenu
 
 menu "Memory commands"
 
+config CMD_DRAMTEST
+	bool "AST dram test"
+	default y
+
 config CMD_MEMORY
 	bool "md, mm, nm, mw, cp, cmp, base, loop"
 	default y

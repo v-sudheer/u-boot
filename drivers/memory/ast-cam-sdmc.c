@@ -100,41 +100,6 @@ ast_sdmc_write(u32 val, u32 reg)
 #endif
 }
 //***********************************Information ***********************************
-extern u8
-ast_sdmc_get_cache(void)
-{
-	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_CACHE_EN)
-		return 1;
-	else
-		return 0;
-}
-
-extern void
-ast_sdmc_set_cache(u8 enable)
-{
-	if(enable) 
-		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) | SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
-	else
-		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) & ~SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
-}
-
-extern u8
-ast_sdmc_get_ecc(void)
-{
-	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_EEC_EN)
-		return 1;
-	else
-		return 0;
-}
-
-extern void
-ast_sdmc_set_ecc(u8 enable)
-{
-	if(enable) 
-		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) | SDMC_CONFIG_EEC_EN, AST_SDMC_CONFIG);
-	else
-		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) & ~SDMC_CONFIG_EEC_EN, AST_SDMC_CONFIG);	
-}
 
 extern u8
 ast_sdmc_get_dram(void)
@@ -143,12 +108,6 @@ ast_sdmc_get_dram(void)
 		return 1;
 	else
 		return 0;
-}
-
-extern void
-ast_sdmc_disable_mem_protection(u8 req)
-{
-	ast_sdmc_write(ast_sdmc_read(AST_SDMC_MEM_REQ) & ~(1<< req), AST_SDMC_MEM_REQ);
 }
 
 extern u32

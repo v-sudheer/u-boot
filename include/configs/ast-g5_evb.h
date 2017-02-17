@@ -93,7 +93,7 @@
 
 #define CONFIG_SYS_SDRAM_SIZE (192*1024*1024)		/* 192MB */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 ramdisk_size=65536 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\

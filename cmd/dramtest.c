@@ -9,14 +9,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <command.h>
-
 #include <common.h>
 #include <console.h>
 #include <bootretry.h>
 #include <cli.h>
 #include <command.h>
 #include <console.h>
+
+#include <inttypes.h>
 #include <mapmem.h>
 #include <asm/io.h>
 #include <linux/compiler.h>
@@ -113,7 +113,8 @@ int MMCTest(void)
 }
 
 /* ------------------------------------------------------------------------- */
-int dram_stress_function(int argc, char * const argv[])
+static int do_ast_dramtest(cmd_tbl_t *cmdtp, int flag, int argc,
+			char * const argv[])
 {
 	unsigned int PassCnt     = 0;
 	ulong Testcounter = 0;
@@ -150,16 +151,9 @@ int dram_stress_function(int argc, char * const argv[])
 	return( ret );
 }
 
-static int do_dramtest(cmd_tbl_t *cmdtp, int flag, int argc,
-			char * const argv[])
-//int do_dramtest (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	return dram_stress_function(argc, argv);
-}
 
 U_BOOT_CMD(
-	dramtest,   CONFIG_SYS_MAXARGS, 0,  do_dramtest,
+	dramtest,   5, 0,  do_ast_dramtest,
 	"ASPEED dramtest- Stress DRAM",
 	""
 );
-

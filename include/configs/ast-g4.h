@@ -89,7 +89,7 @@
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Argument Buffer Size */
 
-#define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
+#define CONFIG_SYS_LOAD_ADDR	0x43000000	/* default load address */
 
 #define CONFIG_SYS_SDRAM_SIZE (192*1024*1024)		/* 192MB */
 
@@ -98,7 +98,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"spi_dma=yes\0"\
-	"update=tftp 80800000 ast2400.scr; so 80800000\0"\
+	"update=tftp 40800000 ast2400.scr; so 40800000\0"\
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0" \
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0" \
 	""

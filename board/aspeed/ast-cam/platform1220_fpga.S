@@ -29,6 +29,57 @@
    print_hex_byte,
    are for DRAM calibration */
 
+#define ASTMMC_REG_MCR10     0x00
+#define ASTMMC_REG_MCR14     0x04
+#define ASTMMC_REG_MCR18     0x08
+#define ASTMMC_REG_MCR1C     0x0C
+#define ASTMMC_REG_MCR20     0x10
+#define ASTMMC_REG_MRW01     0x14
+#define ASTMMC_REG_MRW02     0x18
+#define ASTMMC_REG_MRW03     0x1C
+#define ASTMMC_REG_MRW11     0x20
+
+TIME_TABLE_LPDDR3_600:
+    .word   0x02080305       @ MCR10
+    .word   0x07250813       @ MCR14
+    .word   0x02020202       @ MCR18
+    .word   0x01030008       @ MCR1C
+    .word   0x0000000D       @ MCR20
+    .word   0x0083010D       @ MRW01
+    .word   0x0004020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00000B0D       @ MRW11
+TIME_TABLE_LPDDR3_800:
+    .word   0x02080305       @ MCR10
+    .word   0x09250B19       @ MCR14
+    .word   0x02030203       @ MCR18
+    .word   0x0103000A       @ MCR1C
+    .word   0x00000012       @ MCR20
+    .word   0x0083010D       @ MRW01
+    .word   0x0004020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00000B0D       @ MRW11
+TIME_TABLE_LPDDR3_1200:
+    .word   0x030A0406       @ MCR10
+    .word   0x0D491126       @ MCR14
+    .word   0x04050305       @ MCR18
+    .word   0x0213000F       @ MCR1C
+    .word   0x0000001B       @ MCR20
+    .word   0x00E3010D       @ MRW01
+    .word   0x0007020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00000B0D       @ MRW11
+TIME_TABLE_LPDDR3_1600:
+    .word   0x030C0507       @ MCR10
+    .word   0x115C1733       @ MCR14
+    .word   0x05070407       @ MCR18
+    .word   0x42130014       @ MCR1C
+    .word   0x00000024       @ MCR20
+    .word   0x0043010D       @ MRW01
+    .word   0x001A020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00000B0D       @ MRW11
+
 PATTERN_TABLE:
     .word   0xff00ff00
     .word   0xcc33cc33
@@ -271,6 +322,31 @@ reset_mmc:
     ldr   r2, [r0]
     str   r1, [r0]
 
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_reset:
+    check_delay_timer
+    bne   delay_reset
+    clear_delay_timer
+    /* end delay 10us */
+
+    ldr   r0, =0x1e6e2070
+    ldr   r1, [r0]
+    mov   r1, r1, lsr #4
+    and   r1, r1, #0x03
+    adrl  r5, TIME_TABLE_LPDDR3_600              @ Init DRAM parameter table
+    cmp   r1, #0x0
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_800              @ Init DRAM parameter table
+    cmp   r1, #0x1
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_1200             @ Init DRAM parameter table
+    cmp   r1, #0x2
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_1600             @ Init DRAM parameter table
+
+init_start:
     ldr   r0, =0x1e6e0000
     ldr   r1, =0xfc600309
     str   r1, [r0]
@@ -316,23 +392,23 @@ reset_mmc:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0010                        @ ACTIME1
-    ldr   r1, =0x02080305
+    ldr   r1, [r5, #ASTMMC_REG_MCR10]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0014                        @ ACTIME2
-    ldr   r1, =0x07250813
+    ldr   r1, [r5, #ASTMMC_REG_MCR14]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0018                        @ ACTIME3
-    ldr   r1, =0x02020202
+    ldr   r1, [r5, #ASTMMC_REG_MCR18]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e001c                        @ ACTIME4
-    ldr   r1, =0x01030008
+    ldr   r1, [r5, #ASTMMC_REG_MCR1C]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0020                        @ ACTIME5
-    ldr   r1, =0x0000000D
+    ldr   r1, [r5, #ASTMMC_REG_MCR20]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0030                        @ PWRCTL, 1st enable CKE, wait at least 200 us
@@ -361,7 +437,7 @@ delay_2:
     clear_delay_timer
     /* end delay 20us */
 
-    ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done
+    ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done [CS0]
     ldr   r1, =0x00FF0A05
     str   r1, [r0]
 
@@ -374,20 +450,33 @@ delay_3:
     clear_delay_timer
     /* end delay 10us */
 
+    ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done [CS1]
+    ldr   r1, =0x00FF0A09
+    str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_4:
+    check_delay_timer
+    bne   delay_4
+    clear_delay_timer
+    /* end delay 10us */
+
     ldr   r0, =0x1e6e0024                        @ set MR1
-    ldr   r1, =0x0083010D
+    ldr   r1, [r5, #ASTMMC_REG_MRW01]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0024                        @ set MR2
-    ldr   r1, =0x0004020D
+    ldr   r1, [r5, #ASTMMC_REG_MRW02]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0024                        @ set MR3
-    ldr   r1, =0x0002030D
+    ldr   r1, [r5, #ASTMMC_REG_MRW03]
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0024                        @ set MR11
-    ldr   r1, =0x00000B0D
+    ldr   r1, [r5, #ASTMMC_REG_MRW11]
     str   r1, [r0]
 
 check_MR0:
@@ -460,6 +549,11 @@ read_MR_check_loop:
     str   r1, [r0]
     mov   r1, #0x0A                              @ '\n'
     str   r1, [r0]
+    ldr   r0, =0x1e783014
+wait_print_2:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_2
 /* Debug - UART console message */
 
     cmp   r3, #0x0
@@ -555,7 +649,7 @@ check_dram_size_end:
     str   r1, [r0]
 
 /* Debug - UART console message */
-    ldr   r0, =0x1e784000
+    ldr   r0, =0x1e783000
     mov   r1, #0x2D                              @ '-'
     str   r1, [r0]
     str   r3, [r0]
@@ -579,8 +673,40 @@ ddr_test_start:
     ldr   r1, =0xFF00FF00
     str   r1, [r0]
 
+ddr_test_single:
+    mov   r1, #0x00                              @ initialize loop index, r1 is loop index
+    mov   r2, r1
+    print_hex_byte
+ddr_test_single_loop:
+    ldr   r0, =0x1e6e0070
+    ldr   r2, =0x00000000
+    str   r2, [r0]
+    mov   r2, r1, lsl #3
+    orr   r2, r2, #0x85                          @ test command = 0x85 | (datagen << 3)
+    str   r2, [r0]
+    ldr   r3, =0x3000
+    ldr   r11, =0x500000
+ddr_wait_engine_idle_0:
+    subs  r11, r11, #1
+    beq   ddr_test_fail
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[12] = idle bit
+    beq   ddr_wait_engine_idle_0
+
+    ldr   r0, =0x1e6e0070                        @ read fail bit status
+    ldr   r3, =0x2000
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[13] = fail bit
+    bne   ddr_test_fail
+
+    add   r1, r1, #1                             @ increase the test mode index
+    cmp   r1, #0x08                              @ test 8 modes
+    bne   ddr_test_single_loop
+
 ddr_test_burst:
     mov   r1, #0x00                              @ initialize loop index, r1 is loop index
+    mov   r2, r1
+    print_hex_byte
 ddr_test_burst_loop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
@@ -589,7 +715,7 @@ ddr_test_burst_loop:
     orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)
     str   r2, [r0]
     ldr   r3, =0x3000
-    ldr   r11, =0x20000
+    ldr   r11, =0x500000
 ddr_wait_engine_idle_1:
     subs  r11, r11, #1
     beq   ddr_test_fail
@@ -604,7 +730,7 @@ ddr_wait_engine_idle_1:
     bne   ddr_test_fail
 
     add   r1, r1, #1                             @ increase the test mode index
-    cmp   r1, #0x03                              @ test 4 modes
+    cmp   r1, #0x08                              @ test 8 modes
     bne   ddr_test_burst_loop
 
     ldr   r0, =0x1e6e0070
@@ -614,7 +740,7 @@ ddr_wait_engine_idle_1:
 
 ddr_test_fail:
 /* Debug - UART console message */
-    ldr   r0, =0x1e784000
+    ldr   r0, =0x1e783000
     mov   r1, #0x46                              @ 'F'
     str   r1, [r0]
     mov   r1, #0x61                              @ 'a'
@@ -627,7 +753,7 @@ ddr_test_fail:
     str   r1, [r0]
     mov   r1, #0x0A                              @ '\n'
     str   r1, [r0]
-    ldr   r0, =0x1e784014
+    ldr   r0, =0x1e783014
 wait_print_1:
     ldr   r1, [r0]
     tst   r1, #0x40

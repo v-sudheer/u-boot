@@ -674,14 +674,17 @@ ddr_test_start:
     str   r1, [r0]
 
 ddr_test_single:
-    mov   r1, #0x00                              @ initialize loop index, r1 is loop index
-    mov   r2, r1
-    print_hex_byte
+    mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, r6
+    print_hex_char
+/* Debug - UART console message */
 ddr_test_single_loop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]
-    mov   r2, r1, lsl #3
+    mov   r2, r6, lsl #3
     orr   r2, r2, #0x85                          @ test command = 0x85 | (datagen << 3)
     str   r2, [r0]
     ldr   r3, =0x3000
@@ -699,19 +702,22 @@ ddr_wait_engine_idle_0:
     tst   r2, r3                                 @ D[13] = fail bit
     bne   ddr_test_fail
 
-    add   r1, r1, #1                             @ increase the test mode index
-    cmp   r1, #0x08                              @ test 8 modes
+    add   r6, r6, #1                             @ increase the test mode index
+    cmp   r6, #0x08                              @ test 8 modes
     bne   ddr_test_single_loop
 
 ddr_test_burst:
-    mov   r1, #0x00                              @ initialize loop index, r1 is loop index
-    mov   r2, r1
-    print_hex_byte
+    mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, r6
+    print_hex_char
+/* Debug - UART console message */
 ddr_test_burst_loop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]
-    mov   r2, r1, lsl #3
+    mov   r2, r6, lsl #3
     orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)
     str   r2, [r0]
     ldr   r3, =0x3000
@@ -729,8 +735,8 @@ ddr_wait_engine_idle_1:
     tst   r2, r3                                 @ D[13] = fail bit
     bne   ddr_test_fail
 
-    add   r1, r1, #1                             @ increase the test mode index
-    cmp   r1, #0x08                              @ test 8 modes
+    add   r6, r6, #1                             @ increase the test mode index
+    cmp   r6, #0x08                              @ test 8 modes
     bne   ddr_test_burst_loop
 
     ldr   r0, =0x1e6e0070

@@ -195,12 +195,19 @@ check_pll_ld:
     beq   check_pll_ld
 
     /* Step 5. Program aclk_div */
+    ldr   r0, =0x1e6e2070
+    ldr   r1, [r0]
+    mov   r1, r1, lsr #6
+    and   r1, r1, #0x03
+    add   r1, r1, #0x05
     ldr   r0, =0x33000004
-    ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
+//  ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
     str   r1, [r0]
 
     /* Step 6. Program set_pll */
-    ldr   r1, =0x00010007
+//  ldr   r1, =0x00010007
+    ldr   r2, =0x00010000
+    orr   r1, r1, r2
     str   r1, [r0]
     /* End of ES40004A PLL init */
 
@@ -675,12 +682,12 @@ ddr_test_start:
 
 ddr_test_single:
     mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+ddr_test_single_loop:
 /* Debug - UART console message */
     ldr   r0, =0x1e783000
     mov   r1, r6
     print_hex_char
 /* Debug - UART console message */
-ddr_test_single_loop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]
@@ -708,12 +715,12 @@ ddr_wait_engine_idle_0:
 
 ddr_test_burst:
     mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+ddr_test_burst_loop:
 /* Debug - UART console message */
     ldr   r0, =0x1e783000
     mov   r1, r6
     print_hex_char
 /* Debug - UART console message */
-ddr_test_burst_loop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]

@@ -118,7 +118,7 @@ static int do_ast_dramtest(cmd_tbl_t *cmdtp, int flag, int argc,
 {
 	unsigned int PassCnt     = 0;
 	ulong Testcounter = 0;
-	int          ret = 1;
+	int ret = 1;
 
 	printf("**************************************************** \n");       
 	printf("*** ASPEED Stress DRAM                           *** \n");
@@ -126,7 +126,7 @@ static int do_ast_dramtest(cmd_tbl_t *cmdtp, int flag, int argc,
 	printf("**************************************************** \n"); 
 	printf("\n"); 
 
-	if ( argc != 2 ){
+	if ( argc != 3 ){
 		ret = 0;
 		return ( ret );
 	} else {

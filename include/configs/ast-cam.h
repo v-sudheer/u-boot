@@ -77,7 +77,7 @@
  */
 
 #define CONFIG_BOOTFILE		"all.bin"
-#if 0
+
 /*#define CONFIG_USBD_VENDORID		0x1A03*/
 
 #define CONFIG_USB_DEVICE
@@ -98,7 +98,7 @@
 #define UDC_IN_PACKET_SIZE			1024
 #define UDC_BULK_PACKET_SIZE		1024
 #define UDC_BULK_HS_PACKET_SIZE		1024
-#endif
+
 /*
  * Miscellaneous configurable options
  */
@@ -119,7 +119,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
 	"spi_dma=yes\0" \
-	"update=tftp 80800000 ast2500.scr; so 80800000\0" \
+	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0"\
 	""

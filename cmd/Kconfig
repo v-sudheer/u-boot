@@ -499,6 +499,10 @@ endmenu
 
 menu "Network commands"
 
+config CMD_NETTEST
+	bool "nettest"
+	default y
+
 config CMD_NET
 	bool "bootp, tftpboot"
         select NET

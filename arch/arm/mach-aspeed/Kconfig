@@ -104,6 +104,9 @@ endchoice
 
 endif
 
+config FPGA_ASPEED
+	bool "FPGA"
+
 config AST_CVIC
 	bool "AST CVIC"
 

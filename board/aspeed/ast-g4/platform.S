@@ -48,6 +48,9 @@
  * Modified list from v0.60
  * EC1. Modify DDR2 init preliminary size to 1Gbit, and BL=4.
  *
+ * Modified list from v0.61
+ * EC1. Set for wide screen supporting, 0x1e6e2040[0] = 1
+ *
  * Optional define variable
  * 1. DRAM Speed             //
  *    CONFIG_DRAM_336        // 336MHz (DDR-667)
@@ -2555,7 +2558,7 @@ set_scratch:
     /*Set Scratch register Bit 6 after ddr initial finished */
     ldr r0, =0x1e6e2040
     ldr r1, [r0]
-    orr r1, r1, #0x40
+    orr r1, r1, #0x41
     str r1, [r0]
 
 /* Debug - UART console message */

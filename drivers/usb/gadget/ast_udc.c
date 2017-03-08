@@ -210,7 +210,12 @@ static struct usb_device_instance *udc_device;
 #define EP_SINGLE_DMA_MODE			(0x1 << 1)
 
 /*************************************************************************************/
+#ifdef AST_VHUB_BASE
 u32 udc_reg = AST_VHUB_BASE;
+#else
+u32 udc_reg = AST_UDC_BASE;
+#endif
+
 /*-------------------------------------------------------------------------*/
 #define ast_udc_read(offset) \
 	__raw_readl(udc_reg + (offset))

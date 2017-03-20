@@ -31,7 +31,7 @@
   #include <pthread.h>
   #include <sys/mman.h>
   #if	defined(__i386__) || defined(__amd64__) 
-    #include <sys/io.h>
+  #include <sys/io.h>
   #endif
 #endif
 #ifdef SLT_UBOOT

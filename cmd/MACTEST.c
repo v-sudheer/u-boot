@@ -39,7 +39,7 @@ static const char ThisFile[] = "MACTEST.c";
 int MACTest(_MACInfo *MACInfo)
 #endif
 #if defined(SLT_UBOOT)
-int main_function(int argc, char *argv[], char mode)
+int main_function(int argc, char * const argv[], char mode)
 #endif
 #if defined(DOS_ALONE)
 int main(int argc, char *argv[])
@@ -199,6 +199,7 @@ int main(int argc, char *argv[])
 	eng->flg.Des_Flag              = 0;
 	eng->flg.NCSI_Flag             = 0;
 	eng->flg.Flag_PrintEn          = 1;
+	eng->flg.AllFail               = 0;
 	eng->run.TIME_OUT_Des_PHYRatio = 1;
 	eng->run.Loop_ofcnt            = 0;
 	eng->run.Loop                  = 0;
@@ -212,9 +213,11 @@ int main(int argc, char *argv[])
 	eng->reg.SCU_oldvld            = 0;
 	eng->phy.Adr                   = 0;
 	eng->phy.loop_phy              = 0;
+	eng->phy.default_phy           = 0;
 	eng->phy.PHY_ID2               = 0;
 	eng->phy.PHY_ID3               = 0;
 	eng->phy.PHYName[0]            = 0;
+	eng->phy.RMIICK_IOMode         = 0;
 	eng->ncsi_cap.PCI_DID_VID      = 0;
 	eng->ncsi_cap.ManufacturerID   = 0;
 	read_scu( eng );
@@ -338,6 +341,7 @@ PASS_CHIP_ID:
 		if (argc > 1) {
 			if ( eng->ModeSwitch == MODE_NSCI ) {
 				switch ( argc ) {
+					case 8: eng->arg.GCtrl           = (BYTE)atoi(argv[7]);
 					case 7: eng->arg.GARPNumCnt      = (ULONG)atoi(argv[6]);
 					case 6: eng->arg.GChk_TimingBund = (BYTE)atoi(argv[5]);
 					case 5: eng->arg.GTestMode       = (BYTE)atoi(argv[4]);
@@ -404,7 +408,8 @@ PASS_CHIP_ID:
 		eng->arg.GChk_TimingBund = 0;
 		eng->arg.GTestMode       = 0;
 		eng->arg.GLOOP_INFINI    = 1;
-		eng->arg.GCtrl           = 0;
+//		eng->arg.GCtrl           = 0;
+		eng->arg.GCtrl           = eng->arg.GCtrl & 0x08;
 #endif
 
 //------------------------------------------------------------
@@ -451,39 +456,14 @@ Error_GRun_Mode:
 				return(1);
 		} // End switch ( eng->arg.GSpeed )
 
-		//------------------------------
-		// [Arg]check GCtrl
-		// [Arg]setup GEn_MACLoopback
-		// [Arg]setup GEn_SkipChkPHY
-		// [Arg]setup GEn_IntLoopPHY
-		// [Arg]setup GEn_InitPHY
-		// [Arg]setup GDis_RecovPHY
-		// [Arg]setup GEn_PHYAdrInv
-		// [Arg]setup GEn_SinglePacket
-		//------------------------------
-		if ( eng->arg.GCtrl & 0xffffff80 ) {
-			printf("Error ctrl!!!\n");
-			PrintCtrl ( eng );
-			return(1);
-		}
-		else {
-			eng->arg.GEn_MACLoopback  = ( eng->arg.GCtrl >> 6 ) & 0x1;
-			eng->arg.GEn_SkipChkPHY   = ( eng->arg.GCtrl >> 5 ) & 0x1;
-			eng->arg.GEn_IntLoopPHY   = ( eng->arg.GCtrl >> 4 ) & 0x1;
-
-			eng->arg.GEn_InitPHY      = ( eng->arg.GCtrl >> 3 ) & 0x1;
-			eng->arg.GDis_RecovPHY    = ( eng->arg.GCtrl >> 2 ) & 0x1;
-			eng->arg.GEn_PHYAdrInv    = ( eng->arg.GCtrl >> 1 ) & 0x1;
-			eng->arg.GEn_SinglePacket = ( eng->arg.GCtrl      ) & 0x1;
-
-			if ( !eng->env.AST2400 && eng->arg.GEn_MACLoopback ) {
-				printf("Error ctrl!!!\n");
-				PrintCtrl ( eng );
-				return(1);
-			}
-		} // End if ( eng->arg.GCtrl & 0xffffff83 )
 
 		if ( eng->ModeSwitch == MODE_NSCI ) {
+			//------------------------------
+			// [Arg]check GCtrl
+			// [Arg]setup GEn_SkipRxEr
+			//------------------------------
+			eng->arg.GEn_SkipRxEr = ( eng->arg.GCtrl      ) & 0x1;
+
 			//------------------------------
 			// [Arg]check GPackageTolNum
 			// [Arg]check GChannelTolNum
@@ -505,6 +485,40 @@ Error_GRun_Mode:
 			eng->arg.GARPNumCnt    = eng->arg.GARPNumCnt & 0xfffffffe;
 		}
 		else {
+			//------------------------------
+			// [Arg]check GCtrl
+			// [Arg]setup GEn_RMIIPHY_IN
+			// [Arg]setup GEn_MACLoopback
+			// [Arg]setup GEn_SkipChkPHY
+			// [Arg]setup GEn_IntLoopPHY
+			// [Arg]setup GEn_InitPHY
+			// [Arg]setup GDis_RecovPHY
+			// [Arg]setup GEn_PHYAdrInv
+			// [Arg]setup GEn_SinglePacket
+			//------------------------------
+			if ( eng->arg.GCtrl & 0xffffff00 ) {
+				printf("Error ctrl!!!\n");
+				PrintCtrl ( eng );
+				return(1);
+			}
+			else {
+				eng->arg.GEn_RMIIPHY_IN   = ( eng->arg.GCtrl >> 7 ) & 0x1;
+				eng->arg.GEn_MACLoopback  = ( eng->arg.GCtrl >> 6 ) & 0x1;
+				eng->arg.GEn_SkipChkPHY   = ( eng->arg.GCtrl >> 5 ) & 0x1;
+				eng->arg.GEn_IntLoopPHY   = ( eng->arg.GCtrl >> 4 ) & 0x1;
+
+				eng->arg.GEn_InitPHY      = ( eng->arg.GCtrl >> 3 ) & 0x1;
+				eng->arg.GDis_RecovPHY    = ( eng->arg.GCtrl >> 2 ) & 0x1;
+				eng->arg.GEn_PHYAdrInv    = ( eng->arg.GCtrl >> 1 ) & 0x1;
+				eng->arg.GEn_SinglePacket = ( eng->arg.GCtrl      ) & 0x1;
+
+				if ( !eng->env.AST2400 && eng->arg.GEn_MACLoopback ) {
+					printf("Error ctrl!!!\n");
+					PrintCtrl ( eng );
+					return(1);
+				}
+			} // End if ( eng->arg.GCtrl & 0xffffff83 )
+
 			//------------------------------
 			// [Arg]check GPHYADR
 			//------------------------------
@@ -551,6 +565,7 @@ Error_GRun_Mode:
 		eng->run.TM_Burst           = 0; // For mactest function
 		eng->run.TM_IEEE            = 0; // For mactest function
 		eng->run.TM_WaitStart       = 0; // For mactest function
+		eng->run.TM_DefaultPHY      = 0; // For mactest function
 		if ( eng->ModeSwitch == MODE_NSCI ) {
 			switch ( eng->arg.GTestMode ) {
 				case 0 :     break;
@@ -586,8 +601,8 @@ Error_GTestMode_NCSI:
 				              eng->run.TM_IOTiming = 1; eng->run.TM_IOStrength = 1; break;}
 				          else
 				              goto Error_GTestMode;
-				case  8 :     eng->run.TM_RxDataEn = 0; break;
-				case  9 :     eng->run.TM_TxDataEn = 0; break;
+				case  8 :     eng->run.TM_RxDataEn = 0; eng->run.TM_DefaultPHY = 1; break;
+				case  9 :     eng->run.TM_TxDataEn = 0; eng->run.TM_DefaultPHY = 1; break;
 				case 10 :     eng->run.TM_WaitStart = 1; break;
 				default:
 Error_GTestMode:
@@ -595,6 +610,9 @@ Error_GTestMode:
 					PrintTest ( eng );
 					return(1);
 			} // End switch ( eng->arg.GTestMode )
+#ifdef Enable_MAC_ExtLoop
+			eng->run.TM_DefaultPHY = 1;
+#endif
 		} // End if ( eng->ModeSwitch == MODE_NSCI )
 
 		//------------------------------
@@ -733,10 +751,13 @@ Error_GTestMode:
 		// [Env]setup MAC_RMII
 		//------------------------------
 		if ( eng->run.MAC_idx == 0 ) {
-			if ( eng->arg.GEn_PHYAdrInv )
-				eng->phy.PHY_BASE = MAC_BASE2;
-			else
-				eng->phy.PHY_BASE = MAC_BASE1;
+			if ( eng->arg.GEn_PHYAdrInv ) {
+				eng->phy.PHY_BASE    = MAC_BASE2;
+				eng->run.MAC_idx_PHY = 1;
+			} else {
+				eng->phy.PHY_BASE    = MAC_BASE1;
+				eng->run.MAC_idx_PHY = 0;
+			}
 			eng->env.MAC_1Gvld = eng->env.MAC1_1Gvld;
 			eng->env.MAC_RMII  = eng->env.MAC1_RMII;
 
@@ -746,10 +767,13 @@ Error_GTestMode:
 			}
 		}
 		else if ( eng->run.MAC_idx == 1 ) {
-			if ( eng->arg.GEn_PHYAdrInv )
-				eng->phy.PHY_BASE = MAC_BASE1;
-			else
-				eng->phy.PHY_BASE = MAC_BASE2;
+			if ( eng->arg.GEn_PHYAdrInv ) {
+				eng->phy.PHY_BASE    = MAC_BASE1;
+				eng->run.MAC_idx_PHY = 0;
+			} else {
+				eng->phy.PHY_BASE    = MAC_BASE2;
+				eng->run.MAC_idx_PHY = 1;
+			}
 			eng->env.MAC_1Gvld = eng->env.MAC2_1Gvld;
 			eng->env.MAC_RMII  = eng->env.MAC2_RMII;
 
@@ -764,15 +788,21 @@ Error_GTestMode:
 		}
 		else {
 			if ( eng->run.MAC_idx == 2 )
-				if ( eng->arg.GEn_PHYAdrInv )
-					eng->phy.PHY_BASE = MAC_BASE4;
-				else
-					eng->phy.PHY_BASE = MAC_BASE3;
+				if ( eng->arg.GEn_PHYAdrInv ) {
+					eng->phy.PHY_BASE    = MAC_BASE4;
+					eng->run.MAC_idx_PHY = 3;
+				} else {
+					eng->phy.PHY_BASE    = MAC_BASE3;
+					eng->run.MAC_idx_PHY = 2;
+				}
 			else
-				if ( eng->arg.GEn_PHYAdrInv )
-					eng->phy.PHY_BASE = MAC_BASE3;
-				else
-					eng->phy.PHY_BASE = MAC_BASE4;
+				if ( eng->arg.GEn_PHYAdrInv ) {
+					eng->phy.PHY_BASE    = MAC_BASE3;
+					eng->run.MAC_idx_PHY = 2;
+				} else {
+					eng->phy.PHY_BASE    = MAC_BASE4;
+					eng->run.MAC_idx_PHY = 3;
+				}
 
 			eng->env.MAC_1Gvld = 0;
 			eng->env.MAC_RMII  = 1;
@@ -971,8 +1001,9 @@ Error_GTestMode:
 		else
 			eng->run.IO_MrgChk = 0;
 
-		eng->phy.Adr      = eng->arg.GPHYADR;
-		eng->phy.loop_phy = eng->arg.GEn_IntLoopPHY;
+		eng->phy.Adr         = eng->arg.GPHYADR;
+		eng->phy.loop_phy    = eng->arg.GEn_IntLoopPHY;
+		eng->phy.default_phy = eng->run.TM_DefaultPHY;
 
 		eng->run.LOOP_MAX = eng->arg.GLOOP_MAX;
 		Calculate_LOOP_CheckNum( eng );
@@ -991,6 +1022,12 @@ Error_GTestMode:
 	if ( RUN_STEP >= 3 ) {
 		init_scu_macrst( eng );
 		if ( eng->ModeSwitch ==  MODE_DEDICATED ) {
+#if defined(PHY_GPIO)
+			phy_gpio_init( eng );
+#endif
+#if defined(PHY_SPECIAL)
+			special_PHY_MDIO_init( eng );
+#endif
 			eng->phy.PHYAdrValid = find_phyadr( eng );
 			if ( eng->phy.PHYAdrValid == TRUE )
 				phy_sel( eng, phyeng );
@@ -1001,12 +1038,8 @@ Error_GTestMode:
 // Data Initial
 //------------------------------------------------------------
 	if (RUN_STEP >= 4) {
-#if defined(PHY_SPECIAL)
-		special_PHY_buf_init( eng );
-#endif
 		setup_arp ( eng );
 		if ( eng->ModeSwitch ==  MODE_DEDICATED ) {
-
 			eng->dat.FRAME_LEN = (ULONG *)malloc( eng->dat.Des_Num    * sizeof( ULONG ) );
 			eng->dat.wp_lst    = (ULONG *)malloc( eng->dat.Des_Num    * sizeof( ULONG ) );
 
@@ -1016,6 +1049,9 @@ Error_GTestMode:
 				return( Finish_Check( eng, Err_Flag_MALLOC_LastWP ) );
 
 			// Setup data and length
+#if defined(PHY_SPECIAL)
+			special_PHY_buf_init( eng );
+#endif
 			TestingSetup ( eng );
 		} // End if ( eng->ModeSwitch ==  MODE_DEDICATED )
 
@@ -1036,6 +1072,7 @@ Error_GTestMode:
 		Debug_delay();
 #endif
 
+		eng->flg.AllFail = 1;
 #ifdef Enable_LOOP_INFINI
 LOOP_INFINI:;
 #endif
@@ -1091,7 +1128,8 @@ LOOP_INFINI:;
 					if ( eng->arg.GEn_InitPHY )
 						LAN9303( LAN9303_I2C_BUSNUM, eng->arg.GPHYADR, eng->run.Speed_idx, eng->arg.GEn_IntLoopPHY | (eng->run.TM_Burst<<1) | eng->run.TM_IEEE );
 #elif defined(PHY_SPECIAL)
-					special_PHY_reg_init( eng );
+					if ( eng->arg.GEn_InitPHY )
+						special_PHY_reg_init( eng );
 #else
 					if ( phyeng->fp_set != 0 ) {
 						init_phy( eng, phyeng );

@@ -126,11 +126,11 @@ static int do_ast_dramtest(cmd_tbl_t *cmdtp, int flag, int argc,
 	printf("**************************************************** \n"); 
 	printf("\n"); 
 
-	if ( argc != 3 ){
+	if ( argc != 2 ){
 		ret = 0;
 		return ( ret );
 	} else {
-		if (strict_strtoul(argv[2], 16, &Testcounter) < 0)
+		if (strict_strtoul(argv[1], 10, &Testcounter) < 0)
 			return CMD_RET_USAGE;
 	}
 

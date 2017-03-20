@@ -17,6 +17,7 @@ static const char ThisFile[] = "MAC.c";
 #if defined(SLT_UBOOT)
   #include <common.h>
   #include <command.h>
+  #include <malloc.h>
   #include "STDUBOOT.H"
   #include "COMMINF.H"
 #endif
@@ -39,6 +40,23 @@ static const char ThisFile[] = "MAC.c";
 
 // -------------------------------------------------------------
 const  ULONG   ARP_org_data[16] = {
+/*	0xffffffff,
+	0x0008ffff,
+	0x28d5c327,
+	0xfc0f0081,
+	0x01000608,
+	0x04060008,
+	0x00080100,
+	0x28d5c327,
+	0xfe010101,
+	0x00000000,
+	0x01010000,
+	0x0000fa01,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000
+*/
 	0xffffffff,
 	0x0000ffff, // SA:00-00-
 	0x12345678, // SA:78-56-34-12
@@ -79,32 +97,35 @@ ULONG Read_Mem_Des_DD (ULONG addr) {
 // Read Register
 //------------------------------------------------------------
 ULONG Read_Reg_MAC_DD (MAC_ENGINE *eng, ULONG addr) {
-//printf("[RegRd-MAC] %08lx\n", eng->run.MAC_BASE + addr);
+//printf("[RegRd-MAC] %08lx = %08lx\n", eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->run.MAC_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( eng->run.MAC_BASE + addr ) ) );
 }
 ULONG Read_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr) {
-//	ULONG	temp;
-//	temp = SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) );
-//printf("[RegRd-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, temp );
-//	return ( temp );
+//printf("[RegRd-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
 }
 ULONG Read_Reg_SCU_DD (ULONG addr) {
+//printf("[RegRd-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
 }
 ULONG Read_Reg_WDT_DD (ULONG addr) {
+//printf("[RegRd-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( WDT_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( WDT_BASE + addr ) ) );
 }
 ULONG Read_Reg_SDR_DD (ULONG addr) {
+//printf("[RegRd-SDR] %08lx = %08lx\n", SDR_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SDR_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SDR_BASE + addr ) ) );
 }
 ULONG Read_Reg_SMB_DD (ULONG addr) {
+//printf("[RegRd-SMB] %08lx = %08lx\n", SMB_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SMB_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SMB_BASE + addr ) ) );
 }
 ULONG Read_Reg_TIMER_DD (ULONG addr) {
+//printf("[RegRd-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( TIMER_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( TIMER_BASE + addr ) ) );
 }
 ULONG Read_Reg_GPIO_DD (ULONG addr) {
+//printf("[RegRd-GPIO] %08lx = %08lx\n", GPIO_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( GPIO_BASE + addr ) ) );
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( GPIO_BASE + addr ) ) );
 }
 
@@ -140,9 +161,11 @@ void Write_Reg_SCU_DD (ULONG addr, ULONG data) {
 	WriteSOC_DD( SCU_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_WDT_DD (ULONG addr, ULONG data) {
+//printf("[RegWr-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( data ));
 	WriteSOC_DD( WDT_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_TIMER_DD (ULONG addr, ULONG data) {
+//printf("[RegWr-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( data ));
 	WriteSOC_DD( TIMER_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_GPIO_DD (ULONG addr, ULONG data) {
@@ -653,8 +676,12 @@ void init_scu1 (MAC_ENGINE *eng) {
 #endif
 
 #ifdef AST1010_CHIP
-	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xffc00000) );//Multi-function Pin Control
-	Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffffdf );
+  #if defined(PHY_GPIO)
+	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xff000000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
+  #else
+	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xffc00000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
+  #endif
+	Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffffdf ); //Watchdog Reset for MAC
 	eng->reg.SCU_00c_clkbit = 0x00000040;
 	Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c & (~eng->reg.SCU_00c_clkbit) ) );//Clock Stop Control
 #else
@@ -664,30 +691,19 @@ void init_scu1 (MAC_ENGINE *eng) {
   #endif
   #ifdef Enable_Int125MHz
   #endif
-		if ( eng->arg.GEn_PHYAdrInv ) {
-			switch ( eng->run.MAC_idx ) {
-				case 1  :
-					Write_Reg_SCU_DD( 0x88, (eng->reg.SCU_088 & 0x3fffffff) | 0xc0000000 );//[31]MAC1 MDIO, [30]MAC1 MDC
-					break;
-				case 0  :
-					Write_Reg_SCU_DD( 0x90, (eng->reg.SCU_090 & 0xfffffffb) | 0x00000004 );//[2 ]MAC2 MDC/MDIO
-					break;
-				default : break;
-			}
+		switch ( eng->run.MAC_idx_PHY ) {
+  #if defined(PHY_GPIO)
+			case 0  : Write_Reg_SCU_DD( 0x88, (eng->reg.SCU_088 & 0x3fffffff)              ); break;//[31]MAC1 MDIO, [30]MAC1 MDC
+			case 1  : Write_Reg_SCU_DD( 0x90, (eng->reg.SCU_090 & 0xfffffffb)              ); break;//[2 ]MAC2 MDC/MDIO
+  #else
+			case 0  : Write_Reg_SCU_DD( 0x88, (eng->reg.SCU_088 & 0x3fffffff) | 0xc0000000 ); break;//[31]MAC1 MDIO, [30]MAC1 MDC
+			case 1  : Write_Reg_SCU_DD( 0x90, (eng->reg.SCU_090 & 0xfffffffb) | 0x00000004 ); break;//[2 ]MAC2 MDC/MDIO
+  #endif
+			default : break;
 		}
-		else {
-			switch ( eng->run.MAC_idx ) {
-				case 0  :
-					Write_Reg_SCU_DD( 0x88, (eng->reg.SCU_088 & 0x3fffffff) | 0xc0000000 );//[31]MAC1 MDIO, [30]MAC1 MDC
-					break;
-				case 1  :
-					Write_Reg_SCU_DD( 0x90, (eng->reg.SCU_090 & 0xfffffffb) | 0x00000004 );//[2 ]MAC2 MDC/MDIO
-					break;
-				default : break;
-			}
-		}
+
 		if ( eng->env.AST2400 )
-			Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffff9f );
+			Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffff9f ); //Watchdog Reset for MAC
 #ifdef AST2500_IOMAP
 		Write_Reg_WDT_DD( 0x01c, Read_Reg_WDT_DD( 0x01c ) & 0xffffff9f );
 		Write_Reg_WDT_DD( 0x03c, Read_Reg_WDT_DD( 0x03c ) & 0xffffff9f );
@@ -711,44 +727,36 @@ void init_scu1 (MAC_ENGINE *eng) {
 		Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c & (~eng->reg.SCU_00c_clkbit) ) );//Clock Stop Control
 	}
 	else {
-		if ( eng->arg.GEn_PHYAdrInv ) {
-			switch ( eng->run.MAC_idx ) {
-				case 1  :
-//					Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfdffffff) | 0x02000000 );//[25]MAC1 PHYLINK
-					break;
-				case 0  :
-					if ( eng->env.MAC2_RMII ) {
-//						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfbefffff) | 0x04100000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xffefffff) | 0x00100000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-					}
-					else {
-//						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfbcfffff) | 0x04300000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xffcfffff) | 0x00300000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-					}
-					break;
-				default : break;
-			} // End switch ( eng->run.MAC_idx )
-		} else {
-			switch ( eng->run.MAC_idx ) {
-				case 0  :
-//					Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfdffffff) | 0x02000000 );//[25]MAC1 PHYLINK
-					break;
-				case 1  :
-					if ( eng->env.MAC2_RMII ) {
-//						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfbefffff) | 0x04100000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xffefffff) | 0x00100000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-					}
-					else {
-//						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xfbcfffff) | 0x04300000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-						Write_Reg_SCU_DD( 0x74, (eng->reg.SCU_074 & 0xffcfffff) | 0x00300000 );//[26]MAC2 PHYLINK, [21]MAC2 MII, [20]MAC2 MDC/MDIO
-					}
-					break;
-				default : break;
-			} // End switch ( eng->run.MAC_idx )
-		}
+		switch ( eng->run.MAC_idx_PHY ) {
+//			case 0  :
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfdffffff) | 0x02000000;//[25]MAC1 PHYLINK
+//				break;
+			case 1  :
+#if defined(PHY_GPIO)
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfbefffff) | 0x04000000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xffefffff)             ;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+#else
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfbefffff) | 0x04100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xffefffff) | 0x00100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+#endif /* End defined(PHY_GPIO) */
+				break;
+			default : 
+				eng->reg.SCU_074_mix = eng->reg.SCU_074;
+				break;
+		} // End switch ( eng->run.MAC_idx_PHY )
+		switch ( eng->run.MAC_idx ) {
+			case 1  :
+				if ( eng->env.MAC2_RMII )
+					eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xffdfffff)             ;//[21]MAC2 MII
+				else
+					eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xffdfffff) | 0x00200000;//[21]MAC2 MII
+			default :
+				Write_Reg_SCU_DD( 0x74, eng->reg.SCU_074_mix);
+				break;
+		} // End switch ( eng->run.MAC_idx )
 		eng->reg.SCU_00c_clkbit = 0x00000000;
 	} // End if ( eng->env.AST2300 )
-#endif
+#endif /* End AST1010_CHIP */
 } // End void init_scu1 (MAC_ENGINE *eng)
 
 //------------------------------------------------------------
@@ -982,6 +990,16 @@ void FPri_RegValue (MAC_ENGINE *eng, BYTE option) {
 
 //------------------------------------------------------------
 void FPri_End (MAC_ENGINE *eng, BYTE option) {
+	if ( eng->env.MAC_RMII && ( eng->phy.RMIICK_IOMode != 0 ) && eng->run.IO_MrgChk && eng->flg.AllFail ) {
+		if ( eng->arg.GEn_RMIIPHY_IN == 0 ) {
+			PRINTF( option, "\n\n\n\n\n\n[Info] The PHY's RMII reference clock pin is setting to the OUTPUT mode now.\n" );
+			PRINTF( option, "       Maybe you can run the INPUT mode command \"mactest  %d %d %d %ld %d %d %d\".\n\n\n\n", eng->arg.GRun_Mode, eng->arg.GSpeed, (eng->arg.GCtrl | 0x80), eng->arg.GLOOP_MAX, eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund );
+		}
+		else {
+			PRINTF( option, "\n\n\n\n\n\n[Info] The PHY's RMII reference clock pin is setting to the INPUT mode now.\n" );
+			PRINTF( option, "       Maybe you can run the OUTPUT mode command \"mactest  %d %d %d %ld %d %d %d\".\n\n\n\n", eng->arg.GRun_Mode, eng->arg.GSpeed, (eng->arg.GCtrl & 0x7f), eng->arg.GLOOP_MAX, eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund );
+		}
+	} // End if ( eng->env.MAC_RMII && ( eng->phy.RMIICK_IOMode != 0 ) && eng->run.IO_MrgChk && eng->flg.AllFail )
 
 	if ( !eng->run.TM_RxDataEn ) {
 	}
@@ -1058,52 +1076,56 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 #endif
 
 	if ( eng->ModeSwitch == MODE_NSCI ) {
-		PRINTF( option, "\n[Arg] %d %d %d %d %d %ld (%s){%d}\n", eng->arg.GRun_Mode, eng->arg.GPackageTolNum, eng->arg.GChannelTolNum, eng->arg.GTestMode, eng->arg.GChk_TimingBund, ( eng->arg.GARPNumCnt | (ULONG)eng->arg.GEn_PrintNCSI ), eng->env.ASTChipName, TIME_OUT_NCSI );
+		PRINTF( option, "\n[Arg] %d %d %d %d %d %ld %d (%s){%d}\n", eng->arg.GRun_Mode, eng->arg.GPackageTolNum, eng->arg.GChannelTolNum, eng->arg.GTestMode, eng->arg.GChk_TimingBund, ( eng->arg.GARPNumCnt | (ULONG)eng->arg.GEn_PrintNCSI ), eng->arg.GCtrl, eng->env.ASTChipName, TIME_OUT_NCSI );
 
 		switch ( eng->ncsi_cap.PCI_DID_VID ) {
-			case PCI_DID_VID_Intel_82574L        : { PRINTF( option, "[NC]%08lx %08lx: Intel 82574L       \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82575_10d6    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82575_10a7    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82575_10a9    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_10c9    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_10e6    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_10e7    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_10e8    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_1518    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_1526    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_150a    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82576_150d    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82599_10fb    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82599        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_82599_1557    : { PRINTF( option, "[NC]%08lx %08lx: Intel 82599        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_I210          : { PRINTF( option, "[NC]%08lx %08lx: Intel I210         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_I350_1521     : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_I350_1523     : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Intel_X540          : { PRINTF( option, "[NC]%08lx %08lx: Intel X540         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM5718    : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5718   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM5719    : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5719   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM5720    : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5720   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM5725    : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5725   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM57810S  : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57810S \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_Cumulus    : { PRINTF( option, "[NC]%08lx %08lx: Broadcom Cumulus   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Broadcom_BCM57302   : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57302  \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Mellanox_ConnectX_3 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-3\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
-			case PCI_DID_VID_Mellanox_ConnectX_4 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-4\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82574L             : { PRINTF( option, "[NC]%08lx %08lx: Intel 82574L       \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82575_10d6         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82575_10a7         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82575_10a9         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82575        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_10c9         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_10e6         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_10e7         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_10e8         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_1518         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_1526         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_150a         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82576_150d         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82576        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82599_10fb         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82599        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_82599_1557         : { PRINTF( option, "[NC]%08lx %08lx: Intel 82599        \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_I210_1533          : { PRINTF( option, "[NC]%08lx %08lx: Intel I210         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_I210_1537          : { PRINTF( option, "[NC]%08lx %08lx: Intel I210         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_I350_1521          : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_I350_1523          : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_X540               : { PRINTF( option, "[NC]%08lx %08lx: Intel X540         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_Broadwell_DE       : { PRINTF( option, "[NC]%08lx %08lx: Intel Broadwell-DE \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM5718         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5718   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM5719         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5719   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM5720         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5720   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM5725         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5725   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM57810S       : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57810S \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_Cumulus         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom Cumulus   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM57302        : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57302  \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Mellanox_ConnectX_3_1003 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-3\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Mellanox_ConnectX_3_1007 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-3\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Mellanox_ConnectX_4      : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-4\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			default:
 			switch ( eng->ncsi_cap.ManufacturerID ) {
 				case ManufacturerID_Intel    : { PRINTF( option, "[NC]%08lx %08lx: Intel              \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 				case ManufacturerID_Broadcom : { PRINTF( option, "[NC]%08lx %08lx: Broadcom           \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 				case ManufacturerID_Mellanox : { PRINTF( option, "[NC]%08lx %08lx: Mellanox           \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 				case ManufacturerID_Mellanox1: { PRINTF( option, "[NC]%08lx %08lx: Mellanox           \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+				case ManufacturerID_Emulex   : { PRINTF( option, "[NC]%08lx %08lx: Emulex             \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 				default                      : { PRINTF( option, "[NC]%08lx %08lx                     \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			} // End switch ( eng->ncsi_cap.ManufacturerID )
 		} // End switch ( eng->ncsi_cap.PCI_DID_VID )
 	}
 	else {
 		if (eng->arg.GLOOP_INFINI) {
-			PRINTF( option, "\n[Arg] %d %d %d # %d %d %d %lx (%s){%ld x:%d %d %d}[%d %d %d]\n"  , eng->arg.GRun_Mode, eng->arg.GSpeed, eng->arg.GCtrl,                     eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund, eng->arg.GUserDVal, eng->env.ASTChipName, eng->run.TIME_OUT_Des_PHYRatio, TIME_OUT_Des_1G, TIME_OUT_Des_100M, TIME_OUT_Des_10M, eng->run.Loop_rl[0], eng->run.Loop_rl[1], eng->run.Loop_rl[2] );
+			PRINTF( option, "\n[Arg] %d %d %d # %d %d %d %lx (%s){%ld x:%d %d %d}[%d %d %d] %ld\n"  , eng->arg.GRun_Mode, eng->arg.GSpeed, eng->arg.GCtrl,                     eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund, eng->arg.GUserDVal, eng->env.ASTChipName, eng->run.TIME_OUT_Des_PHYRatio, TIME_OUT_Des_1G, TIME_OUT_Des_100M, TIME_OUT_Des_10M, eng->run.Loop_rl[0], eng->run.Loop_rl[1], eng->run.Loop_rl[2], eng->dat.Des_Num );
 		}
 		else {
-			PRINTF( option, "\n[Arg] %d %d %d %ld %d %d %d %lx (%s){%ld x:%d %d %d}[%d %d %d]\n", eng->arg.GRun_Mode, eng->arg.GSpeed, eng->arg.GCtrl, eng->arg.GLOOP_MAX, eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund, eng->arg.GUserDVal, eng->env.ASTChipName, eng->run.TIME_OUT_Des_PHYRatio, TIME_OUT_Des_1G, TIME_OUT_Des_100M, TIME_OUT_Des_10M, eng->run.Loop_rl[0], eng->run.Loop_rl[1], eng->run.Loop_rl[2] );
+			PRINTF( option, "\n[Arg] %d %d %d %ld %d %d %d %lx (%s){%ld x:%d %d %d}[%d %d %d] %ld\n", eng->arg.GRun_Mode, eng->arg.GSpeed, eng->arg.GCtrl, eng->arg.GLOOP_MAX, eng->arg.GTestMode, eng->arg.GPHYADR, eng->arg.GChk_TimingBund, eng->arg.GUserDVal, eng->env.ASTChipName, eng->run.TIME_OUT_Des_PHYRatio, TIME_OUT_Des_1G, TIME_OUT_Des_100M, TIME_OUT_Des_10M, eng->run.Loop_rl[0], eng->run.Loop_rl[1], eng->run.Loop_rl[2], eng->dat.Des_Num );
 		}
 
 		PRINTF( option, "[PHY] Adr:%d ID2:%04lx ID3:%04lx (%s)\n", eng->phy.Adr, eng->phy.PHY_ID2, eng->phy.PHY_ID3, eng->phy.PHYName );
@@ -1118,157 +1140,162 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 
 //------------------------------------------------------------
 void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option) {
+	if ( eng->flg.Flag_PrintEn ) {
+		if ( eng->flg.Wrn_Flag ) {
+			if ( eng->flg.Wrn_Flag & Wrn_Flag_IOMarginOUF ) {
+				PRINTF( option, "[Warning] IO timing testing range out of boundary\n" );
+				if ( eng->env.MAC_RMII ) {
+					PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
+											      eng->io.Dly_out_reg_idx,
+											      eng->run.IO_Bund,
+											      eng->io.Dly_in_min,
+											      eng->io.Dly_in_max,
+											      eng->io.Dly_out_min );
+				}
+				else {
+					PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
+												  eng->io.Dly_out_reg_idx,
+												  eng->run.IO_Bund,
+												  eng->run.IO_Bund,
+												  eng->io.Dly_in_min,
+												  eng->io.Dly_in_max,
+												  eng->io.Dly_out_min,
+												  eng->io.Dly_out_max );
+				}
+			} // End if ( eng->flg.Wrn_Flag & Wrn_Flag_IOMarginOUF )
+			if ( eng->flg.Wrn_Flag & Wrn_Flag_RxErFloatting ) {
+				PRINTF( option, "[Warning] NCSI RXER pin may be floatting to the MAC !!!\n" );
+				PRINTF( option, "          Please contact with the ASPEED Inc. for more help.\n" );
+			} // End if ( eng->flg.Wrn_Flag & Wrn_Flag_RxErFloatting )
+		} // End if ( eng->flg.Wrn_Flag )
 
-	if ( eng->flg.Wrn_Flag && eng->flg.Flag_PrintEn ) {
-		if ( eng->flg.Wrn_Flag & Wrn_Flag_IOMarginOUF ) {
-			PRINTF( option, "[Warning] IO timing testing range out of boundary\n" );
-			if ( eng->env.MAC_RMII ) {
-				PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
-				                                                      eng->io.Dly_out_reg_idx,
-				                                                      eng->run.IO_Bund,
-				                                                      eng->io.Dly_in_min,
-				                                                      eng->io.Dly_in_max,
-				                                                      eng->io.Dly_out_min );
-			}
-			else {
-				PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
-				                                                          eng->io.Dly_out_reg_idx,
-				                                                          eng->run.IO_Bund,
-				                                                          eng->run.IO_Bund,
-				                                                          eng->io.Dly_in_min,
-				                                                          eng->io.Dly_in_max,
-				                                                          eng->io.Dly_out_min,
-				                                                          eng->io.Dly_out_max );
-			}
-		} // End if ( eng->flg.Wrn_Flag & Wrn_Flag_IOMarginOUF )
-	}
-
-	if ( eng->flg.Err_Flag && eng->flg.Flag_PrintEn ) {
-		PRINTF( option, "\n\n" );
+		if ( eng->flg.Err_Flag ) {
+			PRINTF( option, "\n\n" );
 //PRINTF( option, "Err_Flag: %x\n\n", eng->flg.Err_Flag );
 
-		if ( eng->flg.Err_Flag & Err_Flag_PHY_Type                ) { PRINTF( option, "[Err] Unidentifiable PHY                                     \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_MALLOC_FrmSize          ) { PRINTF( option, "[Err] Malloc fail at frame size buffer                       \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_MALLOC_LastWP           ) { PRINTF( option, "[Err] Malloc fail at last WP buffer                          \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_Check_Buf_Data          ) { PRINTF( option, "[Err] Received data mismatch                                 \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_TxOwnTimeOut ) { PRINTF( option, "[Err] Time out of checking Tx owner bit in NCSI packet       \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_RxOwnTimeOut ) { PRINTF( option, "[Err] Time out of checking Rx owner bit in NCSI packet       \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_ARPOwnTimeOut) { PRINTF( option, "[Err] Time out of checking ARP owner bit in NCSI packet      \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_No_PHY             ) { PRINTF( option, "[Err] Can not find NCSI PHY                                  \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_Channel_Num        ) { PRINTF( option, "[Err] NCSI Channel Number Mismatch                           \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NCSI_Package_Num        ) { PRINTF( option, "[Err] NCSI Package Number Mismatch                           \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_PHY_TimeOut_RW          ) { PRINTF( option, "[Err] Time out of read/write PHY register                    \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_PHY_TimeOut_Rst         ) { PRINTF( option, "[Err] Time out of reset PHY register                         \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_RXBUF_UNAVA             ) { PRINTF( option, "[Err] MAC00h[2]:Receiving buffer unavailable                 \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_RPKT_LOST               ) { PRINTF( option, "[Err] MAC00h[3]:Received packet lost due to RX FIFO full     \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_NPTXBUF_UNAVA           ) { PRINTF( option, "[Err] MAC00h[6]:Normal priority transmit buffer unavailable  \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_TPKT_LOST               ) { PRINTF( option, "[Err] MAC00h[7]:Packets transmitted to Ethernet lost         \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_DMABufNum               ) { PRINTF( option, "[Err] DMA Buffer is not enough                               \n" ); }
-		if ( eng->flg.Err_Flag & Err_Flag_IOMargin                ) { PRINTF( option, "[Err] IO timing margin is not enough                         \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_PHY_Type                ) { PRINTF( option, "[Err] Unidentifiable PHY                                     \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_MALLOC_FrmSize          ) { PRINTF( option, "[Err] Malloc fail at frame size buffer                       \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_MALLOC_LastWP           ) { PRINTF( option, "[Err] Malloc fail at last WP buffer                          \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_Check_Buf_Data          ) { PRINTF( option, "[Err] Received data mismatch                                 \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_TxOwnTimeOut ) { PRINTF( option, "[Err] Time out of checking Tx owner bit in NCSI packet       \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_RxOwnTimeOut ) { PRINTF( option, "[Err] Time out of checking Rx owner bit in NCSI packet       \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Check_ARPOwnTimeOut) { PRINTF( option, "[Err] Time out of checking ARP owner bit in NCSI packet      \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_No_PHY             ) { PRINTF( option, "[Err] Can not find NCSI PHY                                  \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Channel_Num        ) { PRINTF( option, "[Err] NCSI Channel Number Mismatch                           \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Package_Num        ) { PRINTF( option, "[Err] NCSI Package Number Mismatch                           \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_PHY_TimeOut_RW          ) { PRINTF( option, "[Err] Time out of read/write PHY register                    \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_PHY_TimeOut_Rst         ) { PRINTF( option, "[Err] Time out of reset PHY register                         \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_RXBUF_UNAVA             ) { PRINTF( option, "[Err] MAC00h[2]:Receiving buffer unavailable                 \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_RPKT_LOST               ) { PRINTF( option, "[Err] MAC00h[3]:Received packet lost due to RX FIFO full     \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_NPTXBUF_UNAVA           ) { PRINTF( option, "[Err] MAC00h[6]:Normal priority transmit buffer unavailable  \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_TPKT_LOST               ) { PRINTF( option, "[Err] MAC00h[7]:Packets transmitted to Ethernet lost         \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_DMABufNum               ) { PRINTF( option, "[Err] DMA Buffer is not enough                               \n" ); }
+			if ( eng->flg.Err_Flag & Err_Flag_IOMargin                ) { PRINTF( option, "[Err] IO timing margin is not enough                         \n" ); }
 
-		if ( eng->flg.Err_Flag & Err_Flag_MHCLK_Ratio             ) {
+			if ( eng->flg.Err_Flag & Err_Flag_MHCLK_Ratio             ) {
 #ifdef AST1010_CHIP
-			PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[13:12])      \n" );
-			PRINTF( option, "      SCU08[13:12] == 0x%01x is not the suggestion value 3.\n", eng->env.MHCLK_Ratio );
+				PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[13:12])      \n" );
+				PRINTF( option, "      SCU08[13:12] == 0x%01x is not the suggestion value 3.\n", eng->env.MHCLK_Ratio );
 #elif defined(AST2500_IOMAP)
-			PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[18:16])      \n" );
-			if ( eng->env.MAC_atlast_1Gvld )
-				{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 2.\n", eng->env.MHCLK_Ratio ); }
-			else
-				{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 4.\n", eng->env.MHCLK_Ratio ); }
+				PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[18:16])      \n" );
+				if ( eng->env.MAC_atlast_1Gvld )
+					{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 2.\n", eng->env.MHCLK_Ratio ); }
+				else
+					{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 4.\n", eng->env.MHCLK_Ratio ); }
 #else
-			PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[18:16])      \n" );
-			if ( eng->env.MAC_atlast_1Gvld )
-				{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 2.\n", eng->env.MHCLK_Ratio ); }
-			else
-				{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 4.\n", eng->env.MHCLK_Ratio ); }
+				PRINTF( option, "[Err] Error setting of MAC AHB bus clock (SCU08[18:16])      \n" );
+				if ( eng->env.MAC_atlast_1Gvld )
+					{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 2.\n", eng->env.MHCLK_Ratio ); }
+				else
+					{ PRINTF( option, "      SCU08[18:16] == 0x%01x is not the suggestion value 4.\n", eng->env.MHCLK_Ratio ); }
 #endif
-		} // End if ( eng->flg.Err_Flag & Err_Flag_MHCLK_Ratio             )
+			} // End if ( eng->flg.Err_Flag & Err_Flag_MHCLK_Ratio             )
 
-		if ( eng->flg.Err_Flag & Err_Flag_IOMarginOUF ) {
-			PRINTF( option, "[Err] IO timing testing range out of boundary\n");
-			if ( eng->env.MAC_RMII ) {
-				PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
-				                                                      eng->io.Dly_out_reg_idx,
-				                                                      eng->run.IO_Bund,
-				                                                      eng->io.Dly_in_min,
-				                                                      eng->io.Dly_in_max,
-				                                                      eng->io.Dly_out_min );
-			}
-			else {
-				PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
-				                                                          eng->io.Dly_out_reg_idx,
-				                                                          eng->run.IO_Bund,
-				                                                          eng->run.IO_Bund,
-				                                                          eng->io.Dly_in_min,
-				                                                          eng->io.Dly_in_max,
-				                                                          eng->io.Dly_out_min,
-				                                                          eng->io.Dly_out_max );
-			}
-		} // End if ( eng->flg.Err_Flag & Err_Flag_IOMarginOUF )
+			if ( eng->flg.Err_Flag & Err_Flag_IOMarginOUF ) {
+				PRINTF( option, "[Err] IO timing testing range out of boundary\n");
+				if ( eng->env.MAC_RMII ) {
+					PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
+											      eng->io.Dly_out_reg_idx,
+											      eng->run.IO_Bund,
+											      eng->io.Dly_in_min,
+											      eng->io.Dly_in_max,
+											      eng->io.Dly_out_min );
+				}
+				else {
+					PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
+												  eng->io.Dly_out_reg_idx,
+												  eng->run.IO_Bund,
+												  eng->run.IO_Bund,
+												  eng->io.Dly_in_min,
+												  eng->io.Dly_in_max,
+												  eng->io.Dly_out_min,
+												  eng->io.Dly_out_max );
+				}
+			} // End if ( eng->flg.Err_Flag & Err_Flag_IOMarginOUF )
 
-		if ( eng->flg.Err_Flag & Err_Flag_Check_Des ) {
-			PRINTF( option, "[Err] Descriptor error\n");
-			if ( eng->flg.Des_Flag & Des_Flag_TxOwnTimeOut ) { PRINTF( option, "[Des] Time out of checking Tx owner bit\n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_RxOwnTimeOut ) { PRINTF( option, "[Des] Time out of checking Rx owner bit\n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_FrameLen     ) { PRINTF( option, "[Des] Frame length mismatch            \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_RxErr        ) { PRINTF( option, "[Des] Input signal RxErr               \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_CRC          ) { PRINTF( option, "[Des] CRC error of frame               \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_FTL          ) { PRINTF( option, "[Des] Frame too long                   \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_Runt         ) { PRINTF( option, "[Des] Runt packet                      \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_OddNibble    ) { PRINTF( option, "[Des] Nibble bit happen                \n" ); }
-			if ( eng->flg.Des_Flag & Des_Flag_RxFIFOFull   ) { PRINTF( option, "[Des] Rx FIFO full                     \n" ); }
-		} // End if ( eng->flg.Err_Flag & Err_Flag_Check_Des )
+			if ( eng->flg.Err_Flag & Err_Flag_Check_Des ) {
+				PRINTF( option, "[Err] Descriptor error\n");
+				if ( eng->flg.Des_Flag & Des_Flag_TxOwnTimeOut ) { PRINTF( option, "[Des] Time out of checking Tx owner bit\n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_RxOwnTimeOut ) { PRINTF( option, "[Des] Time out of checking Rx owner bit\n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_FrameLen     ) { PRINTF( option, "[Des] Frame length mismatch            \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_RxErr        ) { PRINTF( option, "[Des] Input signal RxErr               \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_CRC          ) { PRINTF( option, "[Des] CRC error of frame               \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_FTL          ) { PRINTF( option, "[Des] Frame too long                   \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_Runt         ) { PRINTF( option, "[Des] Runt packet                      \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_OddNibble    ) { PRINTF( option, "[Des] Nibble bit happen                \n" ); }
+				if ( eng->flg.Des_Flag & Des_Flag_RxFIFOFull   ) { PRINTF( option, "[Des] Rx FIFO full                     \n" ); }
+			} // End if ( eng->flg.Err_Flag & Err_Flag_Check_Des )
 
-		if ( eng->flg.Err_Flag & Err_Flag_MACMode ) {
-			PRINTF( option, "[Err] MAC interface mode mismatch\n" );
+			if ( eng->flg.Err_Flag & Err_Flag_MACMode ) {
+				PRINTF( option, "[Err] MAC interface mode mismatch\n" );
 #ifndef AST1010_CHIP
-			if ( eng->env.AST2300 ) {
-				switch ( eng->env.MAC_Mode ) {
-					case 0 : { PRINTF( option, "      SCU70h[7:6] == 0: [MAC#1] RMII   [MAC#2] RMII \n" ); break; }
-					case 1 : { PRINTF( option, "      SCU70h[7:6] == 1: [MAC#1] RGMII  [MAC#2] RMII \n" ); break; }
-					case 2 : { PRINTF( option, "      SCU70h[7:6] == 2: [MAC#1] RMII   [MAC#2] RGMII\n" ); break; }
-					case 3 : { PRINTF( option, "      SCU70h[7:6] == 3: [MAC#1] RGMII  [MAC#2] RGMII\n" ); break; }
+				if ( eng->env.AST2300 ) {
+					switch ( eng->env.MAC_Mode ) {
+						case 0 : { PRINTF( option, "      SCU70h[7:6] == 0: [MAC#1] RMII   [MAC#2] RMII \n" ); break; }
+						case 1 : { PRINTF( option, "      SCU70h[7:6] == 1: [MAC#1] RGMII  [MAC#2] RMII \n" ); break; }
+						case 2 : { PRINTF( option, "      SCU70h[7:6] == 2: [MAC#1] RMII   [MAC#2] RGMII\n" ); break; }
+						case 3 : { PRINTF( option, "      SCU70h[7:6] == 3: [MAC#1] RGMII  [MAC#2] RGMII\n" ); break; }
+					}
 				}
-			}
-			else {
-				switch ( eng->env.MAC_Mode ) {
-					case 0 : { PRINTF( option, "      SCU70h[8:6] == 000: [MAC#1] GMII               \n" ); break; }
-					case 1 : { PRINTF( option, "      SCU70h[8:6] == 001: [MAC#1] MII    [MAC#2] MII \n" ); break; }
-					case 2 : { PRINTF( option, "      SCU70h[8:6] == 010: [MAC#1] RMII   [MAC#2] MII \n" ); break; }
-					case 3 : { PRINTF( option, "      SCU70h[8:6] == 011: [MAC#1] MII                \n" ); break; }
-					case 4 : { PRINTF( option, "      SCU70h[8:6] == 100: [MAC#1] RMII               \n" ); break; }
-					case 5 : { PRINTF( option, "      SCU70h[8:6] == 101: Reserved                   \n" ); break; }
-					case 6 : { PRINTF( option, "      SCU70h[8:6] == 110: [MAC#1] RMII   [MAC#2] RMII\n" ); break; }
-					case 7 : { PRINTF( option, "      SCU70h[8:6] == 111: Disable MAC                \n" ); break; }
-				}
-			} // End if ( eng->env.AST2300 )
+				else {
+					switch ( eng->env.MAC_Mode ) {
+						case 0 : { PRINTF( option, "      SCU70h[8:6] == 000: [MAC#1] GMII               \n" ); break; }
+						case 1 : { PRINTF( option, "      SCU70h[8:6] == 001: [MAC#1] MII    [MAC#2] MII \n" ); break; }
+						case 2 : { PRINTF( option, "      SCU70h[8:6] == 010: [MAC#1] RMII   [MAC#2] MII \n" ); break; }
+						case 3 : { PRINTF( option, "      SCU70h[8:6] == 011: [MAC#1] MII                \n" ); break; }
+						case 4 : { PRINTF( option, "      SCU70h[8:6] == 100: [MAC#1] RMII               \n" ); break; }
+						case 5 : { PRINTF( option, "      SCU70h[8:6] == 101: Reserved                   \n" ); break; }
+						case 6 : { PRINTF( option, "      SCU70h[8:6] == 110: [MAC#1] RMII   [MAC#2] RMII\n" ); break; }
+						case 7 : { PRINTF( option, "      SCU70h[8:6] == 111: Disable MAC                \n" ); break; }
+					}
+				} // End if ( eng->env.AST2300 )
 #endif
-		} // End if ( eng->flg.Err_Flag & Err_Flag_MACMode )
+			} // End if ( eng->flg.Err_Flag & Err_Flag_MACMode )
 
-		if ( eng->ModeSwitch == MODE_NSCI ) {
-			if ( eng->flg.Err_Flag & Err_Flag_NCSI_LinkFail ) {
-				PRINTF( option, "[Err] NCSI packet retry number over flows when find channel\n" );
+			if ( eng->ModeSwitch == MODE_NSCI ) {
+				if ( eng->flg.Err_Flag & Err_Flag_NCSI_LinkFail ) {
+					PRINTF( option, "[Err] NCSI packet retry number over flows when find channel\n" );
 
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Version_ID                  ) { PRINTF( option, "[NCSI] Time out when Get Version ID                  \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Capabilities                ) { PRINTF( option, "[NCSI] Time out when Get Capabilities                \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Select_Active_Package           ) { PRINTF( option, "[NCSI] Time out when Select Active Package           \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Set_MAC_Address          ) { PRINTF( option, "[NCSI] Time out when Enable Set MAC Address          \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Broadcast_Filter         ) { PRINTF( option, "[NCSI] Time out when Enable Broadcast Filter         \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Network_TX               ) { PRINTF( option, "[NCSI] Time out when Enable Network TX               \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Channel                  ) { PRINTF( option, "[NCSI] Time out when Enable Channel                  \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Disable_Network_TX              ) { PRINTF( option, "[NCSI] Time out when Disable Network TX              \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Disable_Channel                 ) { PRINTF( option, "[NCSI] Time out when Disable Channel                 \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Select_Package                  ) { PRINTF( option, "[NCSI] Time out when Select Package                  \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Deselect_Package                ) { PRINTF( option, "[NCSI] Time out when Deselect Package                \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Set_Link                        ) { PRINTF( option, "[NCSI] Time out when Set Link                        \n" ); }
-				if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Controller_Packet_Statistics) { PRINTF( option, "[NCSI] Time out when Get Controller Packet Statistics\n" ); }
-			}
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Version_ID                  ) { PRINTF( option, "[NCSI] Time out when Get Version ID                  \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Capabilities                ) { PRINTF( option, "[NCSI] Time out when Get Capabilities                \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Select_Active_Package           ) { PRINTF( option, "[NCSI] Time out when Select Active Package           \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Set_MAC_Address          ) { PRINTF( option, "[NCSI] Time out when Enable Set MAC Address          \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Broadcast_Filter         ) { PRINTF( option, "[NCSI] Time out when Enable Broadcast Filter         \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Network_TX               ) { PRINTF( option, "[NCSI] Time out when Enable Network TX               \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Enable_Channel                  ) { PRINTF( option, "[NCSI] Time out when Enable Channel                  \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Disable_Network_TX              ) { PRINTF( option, "[NCSI] Time out when Disable Network TX              \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Disable_Channel                 ) { PRINTF( option, "[NCSI] Time out when Disable Channel                 \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Select_Package                  ) { PRINTF( option, "[NCSI] Time out when Select Package                  \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Deselect_Package                ) { PRINTF( option, "[NCSI] Time out when Deselect Package                \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Set_Link                        ) { PRINTF( option, "[NCSI] Time out when Set Link                        \n" ); }
+					if ( eng->flg.NCSI_Flag & NCSI_Flag_Get_Controller_Packet_Statistics) { PRINTF( option, "[NCSI] Time out when Get Controller Packet Statistics\n" ); }
+				}
 
-			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Channel_Num ) { PRINTF( option, "[NCSI] Channel number expected: %d, real: %d\n", eng->arg.GChannelTolNum, eng->dat.number_chl ); }
-			if ( eng->flg.Err_Flag & Err_Flag_NCSI_Package_Num ) { PRINTF( option, "[NCSI] Peckage number expected: %d, real: %d\n", eng->arg.GPackageTolNum, eng->dat.number_pak ); }
-		} // End if ( eng->ModeSwitch == MODE_NSCI )
-	} // End if ( eng->flg.Err_Flag && eng->flg.Flag_PrintEn )
+				if ( eng->flg.Err_Flag & Err_Flag_NCSI_Channel_Num ) { PRINTF( option, "[NCSI] Channel number expected: %d, real: %d\n", eng->arg.GChannelTolNum, eng->dat.number_chl ); }
+				if ( eng->flg.Err_Flag & Err_Flag_NCSI_Package_Num ) { PRINTF( option, "[NCSI] Peckage number expected: %d, real: %d\n", eng->arg.GPackageTolNum, eng->dat.number_pak ); }
+			} // End if ( eng->ModeSwitch == MODE_NSCI )
+		} // End if ( eng->flg.Err_Flag )
+	} // End if ( eng->flg.Flag_PrintEn )
 } // End void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option)
 
 //------------------------------------------------------------
@@ -2764,6 +2791,7 @@ char TestingLoop (MAC_ENGINE *eng, ULONG loop_checknum) {
   #endif
 #endif
 
+	eng->flg.AllFail = 0;
 	return(0);
 } // End char TestingLoop (MAC_ENGINE *eng, ULONG loop_checknum)
 

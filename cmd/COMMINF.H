@@ -33,6 +33,7 @@
 #include "LIB.H"
 #include "MAC.H"
 #include "PHYSPECIAL.H"
+#include "PHYGPIO.H"
 
 //---------------------------------------------------------
 // Print Message
@@ -266,7 +267,8 @@
   #ifdef Enable_MAC_ExtLoop
     #define DRAM_OFS_BUF                         0x00000000
   #else
-    #define DRAM_OFS_BUF                         0x06000000 // 0x04000000 for SLT
+    #define DRAM_OFS_BUF                         0x04000000
+    // #define DRAM_OFS_BUF                         0x06000000 // in-house setting
   #endif
   #ifdef AST2500_IOMAP
     #define DRAM_OFS_WINDOW                      0x80000000
@@ -322,6 +324,11 @@
 #define Err_Flag_MHCLK_Ratio                          ( 1 << 22 )   // Error setting of MAC AHB bus clock (SCU08[18:16])
 
 #define Wrn_Flag_IOMarginOUF                          ( 1 <<  0 )   // IO timing testing out of boundary
+#define Wrn_Flag_RxErFloatting                        ( 1 <<  1 )   // NCSI RXER pin may be floatting to the MAC
+//#define Wrn_Flag_RMIICK_IOMode                        ( 1 <<  2 )   // The PHY's RMII refreence clock input/output mode
+
+#define PHY_Flag_RMIICK_IOMode_RTL8201E               ( 1 <<  0 )
+#define PHY_Flag_RMIICK_IOMode_RTL8201F               ( 1 <<  1 )
 
 #define Des_Flag_TxOwnTimeOut                         ( 1 <<  0 )   // Time out of checking Tx owner bit
 #define Des_Flag_RxOwnTimeOut                         ( 1 <<  1 )   // Time out of checking Rx owner bit
@@ -397,7 +404,9 @@
   #ifdef AST1010_IOMAP
         #define DRAM_KByteSize                   ( 3 * 1024 )      // DATA buffer only use 0xB00000 to 0xE00000
   #else
-      #define DRAM_KByteSize                     ( 18 * 1024 )
+//      #define DRAM_KByteSize                     ( 18 * 1024 )
+//      #define DRAM_KByteSize                     ( 15 * 1024 )
+      #define DRAM_KByteSize                     ( 16500 )         //16.11328125 K
   #endif
 #endif
 
@@ -484,14 +493,14 @@
     #define TIME_OUT_PHY_RW                      10000
     #define TIME_OUT_PHY_Rst                     10000
 #else
-  #ifdef DOS_LPC
+  #if defined(USE_LPC)
     #define TIME_OUT_Des_1G                      4         //20150529 (16x slower then DOS_PCIE)
     #define TIME_OUT_Des_100M                    40
     #define TIME_OUT_Des_10M                     200
     #define TIME_OUT_NCSI                        400
     #define TIME_OUT_PHY_RW                      1000
     #define TIME_OUT_PHY_Rst                     10
-  #elif defined(DOS_PCIE)
+  #elif defined(USE_P2A)
     #define TIME_OUT_Des_1G                      1000       //20150423
     #define TIME_OUT_Des_100M                    2000
     #define TIME_OUT_Des_10M                     5000
@@ -643,6 +652,7 @@ typedef struct {
 	ULONG                SCU_048_check                 ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_070                       ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_074                       ;//__attribute__ ((aligned (4)));
+	ULONG                SCU_074_mix                   ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_07c                       ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_080                       ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_088                       ;//__attribute__ ((aligned (4)));
@@ -698,7 +708,7 @@ typedef struct {
 	CHAR                 GPHYADR                       ;//__attribute__ ((aligned (4)));//argv[6]
 	BYTE                 GTestMode                     ;//__attribute__ ((aligned (4)));//argv[5]  [4]
 	CHAR                 GLOOP_Str[32]                 ;//__attribute__ ((aligned (4)));//argv[4]
-	BYTE                 GCtrl                         ;//__attribute__ ((aligned (4)));//argv[3]
+	BYTE                 GCtrl                         ;//__attribute__ ((aligned (4)));//argv[3]  [7]
 	BYTE                 GSpeed                        ;//__attribute__ ((aligned (4)));//argv[2]
 	BYTE                 GChannelTolNum                ;//__attribute__ ((aligned (4)));//argv     [3]
 	BYTE                 GPackageTolNum                ;//__attribute__ ((aligned (4)));//argv     [2]
@@ -708,8 +718,10 @@ typedef struct {
 	CHAR                 GLOOP_INFINI                  ;//__attribute__ ((aligned (4)));//argv[4]
 	ULONG                GLOOP_MAX                     ;//__attribute__ ((aligned (4)));//argv[4]
 
+	CHAR                 GEn_SkipRxEr                  ;//__attribute__ ((aligned (4)));//GCtrl[0]
 	CHAR                 GEn_PrintNCSI                 ;//__attribute__ ((aligned (4)));//GARPNumCnt[0]
 
+	CHAR                 GEn_RMIIPHY_IN                ;//__attribute__ ((aligned (4)));//GCtrl[7]
 	CHAR                 GEn_MACLoopback               ;//__attribute__ ((aligned (4)));//GCtrl[6]
 	CHAR                 GEn_SkipChkPHY                ;//__attribute__ ((aligned (4)));//GCtrl[5]
 	CHAR                 GEn_IntLoopPHY                ;//__attribute__ ((aligned (4)));//GCtrl[4]
@@ -720,6 +732,7 @@ typedef struct {
 } MAC_Argument;
 typedef struct {
 	CHAR                 MAC_idx                       ;//__attribute__ ((aligned (4)));//GRun_Mode
+	CHAR                 MAC_idx_PHY                   ;//__attribute__ ((aligned (4)));//GRun_Mode
 	ULONG                MAC_BASE                      ;//__attribute__ ((aligned (4)));//GRun_Mode
 
 	CHAR                 Speed_1G                      ;//__attribute__ ((aligned (4)));//GSpeed
@@ -734,6 +747,7 @@ typedef struct {
 	CHAR                 TM_TxDataEn                   ;//__attribute__ ((aligned (4)));//GTestMode
 	CHAR                 TM_RxDataEn                   ;//__attribute__ ((aligned (4)));//GTestMode
 	CHAR                 TM_WaitStart                  ;//__attribute__ ((aligned (4)));//GTestMode
+	CHAR                 TM_DefaultPHY                 ;//__attribute__ ((aligned (4)));//GTestMode
 	CHAR                 TM_NCSI_DiSChannel            ;//__attribute__ ((aligned (4)));//GTestMode
 
 	BYTE                 IO_Bund                       ;//__attribute__ ((aligned (4)));
@@ -763,6 +777,7 @@ typedef struct {
 typedef struct {
 	ULONG                PHY_BASE                      ;//__attribute__ ((aligned (4)));
 	int                  loop_phy                      ;//__attribute__ ((aligned (4)));
+	CHAR                 default_phy                   ;//__attribute__ ((aligned (4)));
 	CHAR                 Adr                           ;//__attribute__ ((aligned (4)));
 
 	CHAR                 PHYName[64]                   ;//__attribute__ ((aligned (4)));
@@ -779,11 +794,14 @@ typedef struct {
 	ULONG                PHY_14h                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_15h                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_18h                       ;//__attribute__ ((aligned (4)));
+	ULONG                PHY_19h                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_1ch                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_1eh                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_1fh                       ;//__attribute__ ((aligned (4)));
 	ULONG                PHY_06hA[7]                   ;//__attribute__ ((aligned (4)));
 	BOOLEAN              PHYAdrValid                   ;//__attribute__ ((aligned (4)));
+
+	ULONG                RMIICK_IOMode                 ;//__attribute__ ((aligned (4)));
 } MAC_PHY;
 typedef struct {
 	CHAR                 init_done                     ;//__attribute__ ((aligned (4)));
@@ -867,6 +885,7 @@ typedef struct {
 
 	BYTE                 number_chl                    ;//__attribute__ ((aligned (4)));
 	BYTE                 number_pak                    ;//__attribute__ ((aligned (4)));
+	char                 NCSI_RxEr                     ;//__attribute__ ((aligned (4)));
 	ULONG                NCSI_TxDWBUF[512]             ;//__attribute__ ((aligned (4)));
 	ULONG                NCSI_RxDWBUF[512]             ;//__attribute__ ((aligned (4)));
 	char                 NCSI_CommandStr[512]          ;//__attribute__ ((aligned (4)));
@@ -884,6 +903,7 @@ typedef struct {
 	ULONG                Bak_NCSI_Flag                 ;//__attribute__ ((aligned (4)));
 	CHAR                 Flag_PrintEn                  ;//__attribute__ ((aligned (4)));
 	ULONG                CheckDesFail_DesNum           ;//__attribute__ ((aligned (4)));
+	CHAR                 AllFail                       ;//__attribute__ ((aligned (4)));
 } MAC_Flag;
 typedef struct {
 	MAC_Register         reg;
@@ -899,9 +919,8 @@ typedef struct {
 	NCSI_Response_Packet ncsi_rsp;
 	NCSI_Capability      ncsi_cap;
 
-#if defined(PHY_SPECIAL)
-	PHY_BCM5389          BCM5389;
-#endif
+	PHY_GPIOstr          GPIO;
+	PHY_BCMIMP           BCMIMP;
 #if defined(ENABLE_LOG_FILE)
 	FILE                 *fp_log;
 	FILE                 *fp_io;
@@ -1030,16 +1049,6 @@ GLOBAL void    phy_write (MAC_ENGINE *eng, int adr, ULONG data);
 GLOBAL ULONG   phy_read (MAC_ENGINE *eng, int adr);
 GLOBAL void    phy_sel (MAC_ENGINE *eng, PHY_ENGINE *phyeng);
 GLOBAL void    recov_phy (MAC_ENGINE *eng, PHY_ENGINE *phyeng);
-#ifdef PHY_SPECIAL
-GLOBAL void    special_PHY_init (MAC_ENGINE *eng);
-GLOBAL void    special_PHY_buf_init (MAC_ENGINE *eng);
-GLOBAL void    special_PHY_recov (MAC_ENGINE *eng);
-GLOBAL void    special_PHY_reg_init (MAC_ENGINE *eng);
-GLOBAL void    special_PHY_debug (MAC_ENGINE *eng);
-GLOBAL ULONG   special_PHY_FRAME_LEN (MAC_ENGINE *eng);
-GLOBAL ULONG  *special_PHY_txpkt_ptr (MAC_ENGINE *eng);
-GLOBAL ULONG  *special_PHY_rxpkt_ptr (MAC_ENGINE *eng);
-#endif
 GLOBAL int     FindErr (MAC_ENGINE *eng, int value);
 GLOBAL int     FindErr_Des (MAC_ENGINE *eng, int value);
 GLOBAL void    PrintIO_Header (MAC_ENGINE *eng, BYTE option);
@@ -1063,5 +1072,41 @@ GLOBAL void delay_hwtimer( USHORT msec );
 
 GLOBAL void LAN9303(int num, int phy_adr, int speed, int int_loopback);
 #endif // SUPPORT_PHY_LAN9303
-#endif // End COMMINF_H
 
+// ========================================================
+// For PHYGPIO.c
+#undef GLOBAL
+#ifdef PHYGPIO_C
+#define GLOBAL
+#else
+#define GLOBAL    extern
+#endif
+
+#if defined(PHY_GPIO)
+GLOBAL void    phy_gpio_init( MAC_ENGINE *eng );
+GLOBAL void    phy_gpio_write( MAC_ENGINE *eng, int regadr, int wrdata );
+GLOBAL ULONG   phy_gpio_read( MAC_ENGINE *eng, int regadr );
+#endif
+
+// ========================================================
+// For PHYSPECIAL.c
+#undef GLOBAL
+#ifdef PHYMISC_C
+#define GLOBAL
+#else
+#define GLOBAL    extern
+#endif
+
+#ifdef PHY_SPECIAL
+GLOBAL void    special_PHY_init (MAC_ENGINE *eng);
+GLOBAL void    special_PHY_MDIO_init (MAC_ENGINE *eng);
+GLOBAL void    special_PHY_buf_init (MAC_ENGINE *eng);
+GLOBAL void    special_PHY_recov (MAC_ENGINE *eng);
+GLOBAL void    special_PHY_reg_init (MAC_ENGINE *eng);
+GLOBAL void    special_PHY_debug (MAC_ENGINE *eng);
+GLOBAL ULONG   special_PHY_FRAME_LEN (MAC_ENGINE *eng);
+GLOBAL ULONG  *special_PHY_txpkt_ptr (MAC_ENGINE *eng);
+GLOBAL ULONG  *special_PHY_rxpkt_ptr (MAC_ENGINE *eng);
+#endif
+
+#endif // End COMMINF_H

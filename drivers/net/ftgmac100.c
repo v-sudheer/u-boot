@@ -50,7 +50,7 @@ struct ftgmac100_data {
 	int phy_addr;
 };
 
-
+#ifdef CONFIG_ARCH_AST3200
 /* 20150420
  * Bring up RTL8211F For AST3200 
  */
@@ -60,6 +60,7 @@ static void RTL8211F_BringUp( void )
     __raw_writel( ( __raw_readl(0x1E6E2070) | 0x00000040 ), 0x1E6E2070); // Set bit6
 }
 
+#endif
 /*
  * struct mii_bus functions
  */

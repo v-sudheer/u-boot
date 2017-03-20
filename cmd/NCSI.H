@@ -54,12 +54,14 @@
 #define ManufacturerID_Broadcom                  0x0000113d     //4413
 #define ManufacturerID_Mellanox                  0x000002c9     //713
 #define ManufacturerID_Mellanox1                 0x00008119     //33049
+#define ManufacturerID_Emulex                    0x0000006c     //108
 
 //PCI VID: [163c]intel
 //PCI VID: [8086]Intel Corporation
 //PCI VID: [8087]Intel
 //PCI VID: [14e4]Broadcom Corporation
 //PCI VID: [15b3]Mellanox
+//PCI VID: [10df]Emulex
 #define PCI_DID_VID_Intel_82574L                 0x10d38086     // IntelR 82574L Gigabit Ethernet Controller
 #define PCI_DID_VID_Intel_82575_10d6             0x10d68086     // 82566 DM-2-gigabyte
 #define PCI_DID_VID_Intel_82575_10a7             0x10a78086     // 82575EB Gigabit Network Connection
@@ -74,10 +76,12 @@
 #define PCI_DID_VID_Intel_82576_150d             0x150d8086     // 82576 Gigabit Backplane Connection
 #define PCI_DID_VID_Intel_82599_10fb             0x10fb8086     // 10 Gb Ethernet controller
 #define PCI_DID_VID_Intel_82599_1557             0x15578086     // 82599EN
-#define PCI_DID_VID_Intel_I210                   0x15338086     //
+#define PCI_DID_VID_Intel_I210_1533              0x15338086     //
+#define PCI_DID_VID_Intel_I210_1537              0x15378086     //???
 #define PCI_DID_VID_Intel_I350_1521              0x15218086     //
 #define PCI_DID_VID_Intel_I350_1523              0x15238086     //
 #define PCI_DID_VID_Intel_X540                   0x15288086     //
+#define PCI_DID_VID_Intel_Broadwell_DE           0x15ab8086     //
 #define PCI_DID_VID_Broadcom_BCM5718             0x165614e4     //
 #define PCI_DID_VID_Broadcom_BCM5719             0x165714e4     //
 #define PCI_DID_VID_Broadcom_BCM5720             0x165f14e4     //
@@ -85,8 +89,10 @@
 #define PCI_DID_VID_Broadcom_BCM57810S           0x168e14e4     //
 #define PCI_DID_VID_Broadcom_Cumulus             0x16ca14e4     //
 #define PCI_DID_VID_Broadcom_BCM57302            0x16c914e4     //
-#define PCI_DID_VID_Mellanox_ConnectX_3          0x100315b3     //*
+#define PCI_DID_VID_Mellanox_ConnectX_3_1003     0x100315b3     //*
+#define PCI_DID_VID_Mellanox_ConnectX_3_1007     0x100715b3     //ConnectX-3 Pro
 #define PCI_DID_VID_Mellanox_ConnectX_4          0x101515b3     //*
+#define PCI_DID_VID_Emulex_40G                   0x072010df     //
 
 //---------------------------------------------------------
 // NCSI Parameter

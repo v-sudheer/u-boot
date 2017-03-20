@@ -14,6 +14,6 @@
 
 unsigned long int strtoul(char *string, char **endPtr, int base);
 int atoi( char s[] );
-//int rand(void);
+// int rand(void); 20170320
 
 #endif // End STDUBOOT_H

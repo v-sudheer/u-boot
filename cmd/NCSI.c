@@ -268,7 +268,8 @@ char NCSI_Rx_SLT (MAC_ENGINE *eng) {
 #ifdef CheckRxErr
 			if ( NCSI_RxDesDat & Check_ErrMask_RxErr ) {
 				PRINTF( FP_LOG, "[RxDes] Error RxErr        %08lx\n", NCSI_RxDesDat );
-				FindErr_Des( eng, Des_Flag_RxErr );
+				eng->dat.NCSI_RxEr = 1;
+//				FindErr_Des( eng, Des_Flag_RxErr );
 			}
 #endif // End CheckRxErr
 
@@ -750,7 +751,7 @@ void Get_Version_ID_SLT (MAC_ENGINE *eng) {//Command:0x15
 		                             | (eng->ncsi_rsp.Payload_Data[ 33 ]<<16)
 		                             | (eng->ncsi_rsp.Payload_Data[ 34 ]<< 8)
 		                             | (eng->ncsi_rsp.Payload_Data[ 35 ]    );
-    }
+	}
 } // End void Get_Version_ID_SLT (MAC_ENGINE *eng)
 
 //------------------------------------------------------------
@@ -801,6 +802,7 @@ char phy_ncsi (MAC_ENGINE *eng) {
 	ULONG      Re_Send;
 	ULONG      Link_Status;
 
+	eng->dat.NCSI_RxEr  = 0;
 	eng->dat.number_chl = 0;
 	eng->dat.number_pak = 0;
 	eng->ncsi_cap.Package_ID = 0;
@@ -943,8 +945,26 @@ char phy_ncsi (MAC_ENGINE *eng) {
 	if ( eng->dat.number_chl != eng->arg.GChannelTolNum ) FindErr( eng, Err_Flag_NCSI_Channel_Num );
 //	if ( eng->dat.number_chl == 0                       ) FindErr( eng );
 
-	if ( eng->flg.Err_Flag )
+	if ( eng->flg.Err_Flag ) {
+		if ( eng->dat.NCSI_RxEr )
+			FindErr_Des( eng, Des_Flag_RxErr );
 		return(1);
-	else
-		return(0);
+	}
+	else {
+		if ( eng->dat.NCSI_RxEr ) {
+			eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_RxErFloatting;
+			if ( eng->arg.GEn_SkipRxEr ) {
+				eng->flg.AllFail = 0;
+				return(0);
+			}
+			else {
+				FindErr_Des( eng, Des_Flag_RxErr );
+				return(1);
+			}
+		}
+		else {
+			eng->flg.AllFail = 0;
+			return(0);
+		}
+	}
 }

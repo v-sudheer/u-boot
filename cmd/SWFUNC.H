@@ -19,11 +19,23 @@
 //---------------------------------------------------------
 // Program information
 //---------------------------------------------------------
+//#define PHY_GPIO
 //#define PHY_SPECIAL
+
 #ifdef PHY_SPECIAL
-#define    VER_NAME    "@2015/12/10 Verification PHY_SPECIAL"
+  /* PHY in SPECIAL mode */
+  #if defined(PHY_GPIO)
+    #define    VER_NAME    "Verification @2016/07/21 1524 [GPIO]PHY_SPECIAL"
+  #else
+    #define    VER_NAME    "Verification @2016/07/21 1524 PHY_SPECIAL"
+  #endif /* End defined(PHY_GPIO) */
 #else
-#define    VER_NAME    "Ver 0.67 version @2019/02/22 1419 for BCM54210E"
+  /* PHY in Normal mode */
+  #if defined(PHY_GPIO)
+    #define    VER_NAME    "Ver 0.69 version @2016/07/21 1524 [GPIO]"
+  #else
+    #define    VER_NAME    "Ver 0.72 version @2017/03/16 0817"
+  #endif /* End defined(PHY_GPIO) */
 #endif
 
 /* == Auto setting ==========================================  */
@@ -37,6 +49,7 @@
 /*        "SPI_BUS" or "USE_LPC" or "USE_P2A"                  */
 /* ====  Support Chip                                          */
 /*        "AST1010_CHIP" or "AST2500_IOMAP" or "FPGA"          */
+
 #if defined(CONFIG_ARCH_AST3200)
   #define SLT_UBOOT
   #define AST2500_IOMAP

@@ -32,6 +32,11 @@ if [ "$2" == "bmc" ]; then
 	rm -f $1/drivers/mmc/ast_sdhci.c
 	rm -f $1/drivers/usb/gadget/ast_udc.c
 	rm -f $1/drivers/memory/ast-cam-sdmc.c
+	rm -f $1/include/configs/ast-g5.h
+	rm -f $1/include/configs/ast-g4.h
+	rm -f $1/configs/ast2500_spl_defconfig
+	rm -f $1/configs/ast2500_defconfig
+	rm -f $1/configs/ast2400_defconfig
 fi
 
 #CAM

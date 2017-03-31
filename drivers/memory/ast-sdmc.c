@@ -143,6 +143,12 @@ ast_sdmc_get_mem_size(void)
 	return size;
 }
 
+extern u32
+ast_sdmc_get_ecc_size(void)
+{
+	return ast_sdmc_read(AST_SDMC_CACHE_ECC_RANGE);
+}
+
 extern u8
 ast_sdmc_get_ecc(void)
 {

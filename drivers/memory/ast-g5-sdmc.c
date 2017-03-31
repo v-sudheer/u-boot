@@ -36,7 +36,9 @@
 #define AST_SDMC_CONFIG		0x04		/*	Configuration register */
 #define AST_SDMC_MEM_REQ		0x08		/*	Graphics Memory Protection register */
 
-#define AST_SDMC_ISR					0x50		/*	Interrupt Control/Status Register */
+#define AST_SDMC_ISR						0x50		/*	Interrupt Control/Status Register */
+#define AST_SDMC_CACHE_ECC_RANGE			0x54		/*	ECC/CACHE Address Range Control Register */
+
 
 /*	AST_SDMC_PROTECT: 0x00  - protection key register */
 #define SDMC_PROTECT_UNLOCK			0xFC600309
@@ -56,6 +58,7 @@
 
 #define SDMC_ISR_GET_ECC_RECOVER(x)	((x >> 16) & 0xff)
 #define SDMC_ISR_GET_ECC_UNRECOVER(x)	((x >> 12) & 0xf)
+
 /****************************************************************************************/
 
 //#define AST_SDMC_LOCK
@@ -116,6 +119,12 @@ ast_sdmc_set_cache(u8 enable)
 		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) | SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
 	else
 		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) & ~SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
+}
+
+extern u32
+ast_sdmc_get_ecc_size(void)
+{
+	return ast_sdmc_read(AST_SDMC_CACHE_ECC_RANGE);
 }
 
 extern u8

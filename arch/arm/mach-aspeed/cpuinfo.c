@@ -29,14 +29,19 @@ int print_cpuinfo(void)
 	printf("PLL :   %4s MHz\n", strmhz(buf, ast_get_clk_source()));
 	printf("CPU :   %4s MHz\n", strmhz(buf, ast_get_h_pll_clk()));
 #if defined(AST_SOC_G5)
-	printf("MEM :	%4s MHz, ECC: %s, Cache: %s ",
+	printf("MEM :	%4s MHz, ECC: %s, ",
 	       strmhz(buf, ast_get_m_pll_clk() * 2),
-	       ast_sdmc_get_ecc() ? "Enable" : "Disable",
-	       ast_sdmc_get_cache() ? "Enable" : "Disable");
+	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
+	if(ast_sdmc_get_ecc())
+		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
+	printf("Cache: %s ",ast_sdmc_get_cache() ? "Enable" : "Disable");
 #else
 	printf("MEM :   %4s MHz, EEC:%s ",
 	       strmhz(buf, ast_get_m_pll_clk()),
 	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
+	if(ast_sdmc_get_ecc())
+		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
+
 #endif
 	ast_scu_get_who_init_dram();
 

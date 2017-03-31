@@ -29,7 +29,7 @@
 
 extern u32 ast_sdmc_get_mem_size(void);
 extern u8 ast_sdmc_get_ecc(void);
+extern u32 ast_sdmc_get_ecc_size(void);
 extern u8 ast_sdmc_get_cache(void);
 extern void ast_sdmc_disable_mem_protection(u8 req);
-
 #endif

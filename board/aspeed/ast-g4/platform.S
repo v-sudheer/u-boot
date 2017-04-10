@@ -51,6 +51,9 @@
  * Modified list from v0.61
  * EC1. Set for wide screen supporting, 0x1e6e2040[0] = 1
  *
+ * Modified list from v0.62
+ * EC1. Clear MCR04[10] = 0 before doing DRAM initial
+ *
  * Optional define variable
  * 1. DRAM Speed             //
  *    CONFIG_DRAM_336        // 336MHz (DDR-667)
@@ -425,6 +428,8 @@ delay_0:
 
     /* Reset MMC */
     ldr r1, =0x00000000
+    ldr r0, =0x1e6e0004
+    str r1, [r0]
     ldr r0, =0x1e6e0034
     str r1, [r0]
     ldr r0, =0x1e6e0018
@@ -457,7 +462,7 @@ delay_1:
     str r1, [r0]
 
     ldr r0, =0x1e6e0008
-    ldr r1, =0x0090040f                          /* VGA */
+    ldr r1, =0x0090040f                          /* VGA : remember to clear MCR04[10] = 0 */
     str r1, [r0]
 
     ldr r0, =0x1e6e0018

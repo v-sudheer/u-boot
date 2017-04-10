@@ -30,6 +30,8 @@
 #define AST_SDMC_CONFIG		0x04		/*	Configuration register */
 #define AST_SDMC_MEM_REQ		0x08		/*	Graphics Memory Protection register */
 
+#define AST_SDMC_CACHE_ECC_RANGE                 0x54            /*      ECC/CACHE Address Range Control Register */
+
 /*	AST_SDMC_PROTECT: 0x00  - protection key register */
 #define SDMC_PROTECT_UNLOCK			0xFC600309
 

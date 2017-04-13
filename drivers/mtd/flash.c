@@ -54,6 +54,14 @@
  * Verify erase and program timeouts.
  */
 
+/* 
+info->sector_count = 1024; 	//total block size
+info->size = 0x4000000;	//total size
+info->address32 = 1;		//4byte mode	
+erase_region_size  = 0x10000;	//block size
+info->buffersize = 256;		//page program size 
+*/
+
 #define CFI_MFR_MACRONIX		0x00C2
 #define CFI_MFR_MICRON			0x0020
 #define CFI_MFR_WINBOND		0x00DA

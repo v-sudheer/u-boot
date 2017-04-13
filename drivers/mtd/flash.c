@@ -441,8 +441,7 @@ static void flash_write_buffer (flash_info_t *info, uchar *src, ulong addr, int 
 			break;
 	}
 
-	base = info->start[0];
-	offset = addr - base;
+	offset = addr - info->start[0];
 	base = (ulong) flash_make_addr(info, 0, 0);
 
         enable_write (info);
@@ -453,12 +452,18 @@ static void flash_write_buffer (flash_info_t *info, uchar *src, ulong addr, int 
         ulCtrlData |= CE_LOW | USERMODE;
         *(ulong *) (info->reg_base + CtrlOffset) = ulCtrlData;
         udelay(200);
-        *(uchar *) (base) = (uchar) (0x02);
-        udelay(10);
+//	printf("write address %x \n", offset);
         if (info->address32)
         {
+			*(uchar *) (base) = (uchar) (0x12);
+			udelay(10);
+        
             *(uchar *) (base) = (uchar) ((offset & 0xff000000) >> 24);
             udelay(10);
+        } else {
+			*(uchar *) (base) = (uchar) (0x02);
+			udelay(10);
+        
         }
         *(uchar *) (base) = (uchar) ((offset & 0xff0000) >> 16);
         udelay(10);
@@ -591,12 +596,17 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
                         ulCtrlData |= CE_LOW | USERMODE;
                         *(ulong *) (info->reg_base + CtrlOffset) = ulCtrlData;
                         udelay(200);
-                        *(uchar *) (base) = (uchar) (0xd8);
-                        udelay(10);
                         if (info->address32)
                         {
+							*(uchar *) (base) = (uchar) (0xdC);
+							udelay(10);
+			                        
                             *(uchar *) (base) = (uchar) ((offset & 0xff000000) >> 24);
                             udelay(10);
+                        } else {
+							*(uchar *) (base) = (uchar) (0xd8);
+							udelay(10);
+                        
                         }
                         *(uchar *) (base) = (uchar) ((offset & 0xff0000) >> 16);
                         udelay(10);
@@ -1010,10 +1020,10 @@ static ulong flash_get_size (ulong base, flash_info_t *info)
 			info->size = 0x4000000;
 			info->address32 = 1;			
 			erase_region_size  = 0x10000;
-			info->readcmd = 0x0b;
+			info->readcmd = 0x0C;
 			info->dualport = 0;
 			info->dummybyte = 1;
-			info->buffersize = 512;
+			info->buffersize = 256;
 			WriteClk = 50;
 			EraseClk = 20;
 			ReadClk  = 50;

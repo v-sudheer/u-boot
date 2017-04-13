@@ -302,7 +302,7 @@ reset_mmc:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0008
-    ldr   r1, =0x2001000F
+    ldr   r1, =0x00000000
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0010
@@ -725,49 +725,6 @@ check_dram_size_end:
 
     ldr   r0, =0x1e6e0120                        @ VGA Compatible Mode
     ldr   r1, =0x000050C0                        @ 408 MHz
-    str   r1, [r0]
-
-    /* Enable DRAM Cache */
-    ldr   r0, =0x1e6e0004
-    ldr   r1, [r0]
-    mov   r2, #1
-    orr   r2, r1, r2, lsl #12
-    ldr   r3, =0x00080000
-    str   r2, [r0]
-dram_cache_init:
-    ldr   r2, [r0]
-    tst   r2, r3
-    beq   dram_cache_init
-    mov   r2, #1
-    orr   r1, r1, r2, lsl #10
-    str   r1, [r0]
-
-    /* Enable DRAM ECC */
-    orr   r1, r1, r2, lsl #7
-    str   r1, [r0]
-    ldr   r0, =0x1e6e0050
-    ldr   r1, =0x80000000
-    str   r1, [r0]
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-    ldr   r0, =0x1e6e0054
-    ldr   r1, =0x05FFFFFF                        @ set ECC size = 96MB
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0074
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-    ldr   r0, =0x1e6e007C
-    str   r1, [r0]
-    ldr   r0, =0x1e6e0070
-    ldr   r1, =0x00000221
-    ldr   r2, =0x00001000
-    str   r1, [r0]
-dram_ecc_init:
-    ldr   r1, [r0]
-    tst   r1, r2
-    beq   dram_ecc_init
-    ldr   r1, =0x00000400
     str   r1, [r0]
 
 /******************************************************************************

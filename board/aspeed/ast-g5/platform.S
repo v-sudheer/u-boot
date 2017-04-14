@@ -17,8 +17,8 @@
  *
  * Gary Hsu, <gary_hsu@aspeedtech.com>
  *
- * Version     : 14
- * Release date: 2016.11.07
+ * Version     : 15
+ * Release date: 2017.04.13
  *
  * Priority of fix item:
  * [P1] = critical
@@ -64,10 +64,12 @@
  *    |           : 3.[P1] Modify DDR4 Ron calibration to manual mode to fix Vix issue, set Ron_pu = 0
  *    |           : 4.[P2] Modify read timing margin report policy, change DDR4 min value from 0.35 to 0.3. Add "Warning" while violated.
  * V13|2016.08.29 : 1.[P3] Add option to route debug message output port from UART5 to UART1
- *    |2016.09.02 : 3.[P2] Add range control for cache function when ECC enabled
- *    |2016.09.06 : 2.[P1] Enable full mask setting for first SOC reset, since the coverage of original default setting is not enough
+ *    |2016.09.02 : 2.[P2] Add range control for cache function when ECC enabled
+ *    |2016.09.06 : 3.[P1] Enable full mask setting for first SOC reset, since the coverage of original default setting is not enough
  * V14|2016.10.25 : 1.[P2] Change Ron manual calibration to default OFF, customer can enable it to do fine-tuning of the Vix issue
  *    |2016.11.07 : 2.[P3] Add log information of DDR4 PHY Vref training
+ * V15|2017.04.06 : 1.[P1] Modify USB portA initial sequence, this is to prevent DMA lock condition of USB Virtual Hub device for some chips.
+ *    |2017.04.13 : 2.[P2] Add initial sequence for LPC controller
  *    |           :    Note: Read timing report is only a reference, it is not a solid rule for stability.
  *
  * Optional define variable
@@ -99,8 +101,8 @@
   Free registers:
   r0, r1, r2, r3, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
-#define ASTMMC_INIT_VER      0x0E                @ 8bit verison number
-#define ASTMMC_INIT_DATE     0x20161107          @ Release date
+#define ASTMMC_INIT_VER      0x0F                @ 8bit verison number
+#define ASTMMC_INIT_DATE     0x20170413          @ Release date
 
 /******************************************************************************
   BMC side DDR IO driving manual mode fine-tuning, used to improve CK/CKN Vix violation.
@@ -325,6 +327,12 @@ init_dram:
     b     bypass_first_reset
 
 start_first_reset:
+    ldr   r0, =0x1e789130                        @ Clear LPC interrupt
+    ldr   r1, =0x00000080
+    str   r1, [r0]
+    ldr   r0, =0x1e789138                        @ Clear LPC interrupt
+    ldr   r1, =0x00010198
+    str   r1, [r0]
     ldr   r0, =0x1e62009c                        @ clear software strap flag for doing again after reset
     ldr   r1, =0xAEEDFC20
     str   r1, [r0]
@@ -388,6 +396,9 @@ bypass_first_reset:
     ldr   r2, =0x00004000
     ldr   r1, [r0]
     orr   r1, r1, r2
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2090                        @ set portA as host mode
+    ldr   r1, =0x2000A000
     str   r1, [r0]
     ldr   r0, =0x1e6e2094                        @ set portB as host mode
     ldr   r1, =0x00004000
@@ -2101,12 +2112,12 @@ spi_cbr_end:
     ldr   r2, =0x0ffffff3
     and   r1, r1, r2
     str   r1, [r0]
-#if 0
+
     ldr r0, =0x1e6e2004                          @ Enable JTAG Master, solve ARM stucked by JTAG issue
     ldr r1, [r0]
     bic r1, r1, #0x00400000
     str r1, [r0]
-#endif
+
 /******************************************************************************
  Configure MAC timing
  ******************************************************************************/
@@ -2171,6 +2182,7 @@ set_D2PLL:
     ldr   r0, =0x1e6e2090                        @ Enable MAC interface pull low
     ldr   r1, [r0]
     bic   r1, r1, #0x0000F000
+    bic   r1, r1, #0x20000000                    @ Set USB portA as Device mode
     str   r1, [r0]
 
 /* Test - DRAM initial time */

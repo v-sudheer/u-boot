@@ -38,8 +38,8 @@
 #include <common.h>
 #include <asm/processor.h>
 #include <asm/io.h>
-#include <asm/arch/regs-scu.h>
-#include <asm/arch/ast-scu.h>
+#include <asm/arch/regs-bmc-scu.h>
+#include <asm/arch/ast-bmc-scu.h>
 #include <asm/arch/platform.h>
 #include <asm/arch/aspeed.h>
 

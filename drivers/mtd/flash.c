@@ -449,7 +449,8 @@ static void flash_write_buffer (flash_info_t *info, uchar *src, ulong addr, int 
 			break;
 	}
 
-	offset = addr - info->start[0];
+	base = info->start[0];
+	offset = addr - base;
 	base = (ulong) flash_make_addr(info, 0, 0);
 
         enable_write (info);

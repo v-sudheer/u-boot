@@ -112,7 +112,7 @@ int board_eth_init(bd_t *bd)
 #ifdef CONFIG_GENERIC_MMC
 
 #define CONFIG_SYS_MMC_NUM		2
-#define CONFIG_SYS_MMC_BASE		{AST_SDHC_BASE + 0x100, AST_SDHC_BASE + 0x200}
+#define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE}
 
 int board_mmc_init(bd_t *bis)
 {

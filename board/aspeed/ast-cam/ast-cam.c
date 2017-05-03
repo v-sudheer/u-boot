@@ -65,8 +65,6 @@ int misc_init_r (void)
 	//*((volatile ulong*) 0x1e6e2080) = 0xffff0000;
 	//uart 1/2 shar pin
 	*((volatile ulong*) 0x1e6e2084) = 0xffff0000;
-	//LPC UART1/2 reset [clear bit 4/5]
-	*((volatile ulong*) 0x1e789098) = 0x00000a00;
 	//mapping table
 	*((volatile ulong*) 0x1e6e2104) = CONFIG_CPU1_MAP_FLASH;
 	//IO table
@@ -112,7 +110,7 @@ int board_eth_init(bd_t *bd)
 #ifdef CONFIG_GENERIC_MMC
 
 #define CONFIG_SYS_MMC_NUM		2
-#define CONFIG_SYS_MMC_BASE		{AST_SDHC_BASE + 0x100, AST_SDHC_BASE + 0x200}
+#define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE}
 
 int board_mmc_init(bd_t *bis)
 {
@@ -121,7 +119,7 @@ int board_mmc_init(bd_t *bis)
 
 	ast_scu_init_sdhci();
 	ast_scu_multi_func_sdhc_slot(3);
-	//multipin. Remind: AST2300FPGA only supports one port at a time
+	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], ast_get_sd_clock_src(), 100000))
 			return 1;

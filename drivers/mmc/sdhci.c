@@ -461,9 +461,9 @@ static void sdhci_set_ios(struct mmc *mmc)
 	}
 #else
 	if (mmc->bus_width == 8) {
-		writel( (1 << 24) | readl(AST_SDHC_BASE), AST_SDHC_BASE);
+		writel( (1 << 24) | readl(AST_SDHCI_BASE), AST_SDHCI_BASE);
 	} else {
-		writel( ~(1 << 24) & readl(AST_SDHC_BASE), AST_SDHC_BASE);
+		writel( ~(1 << 24) & readl(AST_SDHCI_BASE), AST_SDHCI_BASE);
 	}
 
 	if (mmc->bus_width == 4)

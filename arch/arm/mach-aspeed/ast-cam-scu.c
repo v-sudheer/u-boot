@@ -174,25 +174,27 @@ ast_scu_init_eth(u8 num)
 	}		
 }
 
-#ifdef SCU_RESET_USB20
 extern void
 ast_scu_init_usb_port1(void)
 {
-	/* EHCI controller engine init. Process similar to VHub. */
-	/* Following reset sequence can resolve "vhub dead on first power on" issue on V4 board. */
 	//reset USB20
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_USB20, AST_SCU_RESET);
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_UDC0, AST_SCU_RESET);
 
 	//enable USB20 clock
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) | SCU_USB20_PHY_CLK_EN, AST_SCU_CLK_STOP);
+	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_UDC20_CLK_STOP_EN, AST_SCU_CLK_STOP);
 	mdelay(10);
 
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_USB20, AST_SCU_RESET);
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_UDC0, AST_SCU_RESET);
+
+	//device mode
+	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) & ~SCU_FUC_PIN_USB20_HOST, 
+				AST_SCU_FUN_PIN_CTRL5);
+	
+	printf("TODO ast_scu_init_usb_port1 ~\n");
 }
 
 
 EXPORT_SYMBOL(ast_scu_init_usb_port1);
-#endif
 
 extern void
 ast_scu_init_sdhci(void)
@@ -249,7 +251,6 @@ extern u32
 ast_get_clk_source(void)
 {
 }
-EXPORT_SYMBOL(ast_get_clk_source);
 
 extern u32
 ast_get_h_pll_clk(void)
@@ -363,21 +364,9 @@ ast_scu_osc_clk_output(void)
 extern u32
 ast_get_sd_clock_src(void)
 {
-//TODO ~~
-#ifdef CONFIG_AST_CAM_25FPGA
+
+	printf("TODO ~~ ast_get_sd_clock_src \n");
 	return 48000000;
-#else
-	u32 clk=0, sd_div;
-
-	clk = ast_get_h_pll_clk();
-	//get div
-	sd_div = SCU_CLK_SD_GET_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-		sd_div = (sd_div+1) << 2;
-		SCUDBUG("div %d, sdclk =%d \n",sd_div,clk/sd_div);
-		clk /= sd_div;
-
-	return clk;
-#endif	
 }
 
 extern void

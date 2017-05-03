@@ -57,8 +57,8 @@
 
 #define AST_JPEG_BASE              			0x1E700000	/* JPEG ENGINE */
 #define AST_SRAM_BASE               			0x1E720000	/* SRAM */
-#define AST_SDIO_BASE					0x1E740000	/* SDIO General Info */
-#define AST_SDIO_SLOT0_BASE			0x1E740100	/* SDIO Slot 0*/
+#define AST_SDIO_BASE					0x1E760000	/* SDIO General Info */
+#define AST_SDIO_SLOT0_BASE			0x1E760100	/* SDIO Slot 0*/
 
 #define AST_SDHCI_BASE					0x1E740000	/* SDHCI General Info */
 #define AST_SDHCI_SLOT0_BASE			0x1E740100	/* SDHCI0 Slot 0*/

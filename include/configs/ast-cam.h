@@ -77,16 +77,14 @@
  */
 
 #define CONFIG_BOOTFILE		"all.bin"
-
-/*#define CONFIG_USBD_VENDORID		0x1A03*/
-
+#if 0
+#define CONFIG_USBD_VENDORID		0x1A03
 #define CONFIG_USB_DEVICE
 #define CONFIG_USB_TTY
 
 #define CONFIG_USBD_HS
 #define CONFIG_USBD_PRODUCT_NAME	 "AST"
 #define CONFIG_USBD_MANUFACTURER	 "ASPEED"
-
 
 #define EP0_MAX_PACKET_SIZE			64 /* MUSB_EP0_FIFOSIZE */
 
@@ -98,7 +96,7 @@
 #define UDC_IN_PACKET_SIZE			1024
 #define UDC_BULK_PACKET_SIZE		1024
 #define UDC_BULK_HS_PACKET_SIZE		1024
-
+#endif
 /*
  * Miscellaneous configurable options
  */
@@ -118,7 +116,6 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
-	"spi_dma=yes\0" \
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0"\

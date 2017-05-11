@@ -118,7 +118,11 @@ int board_mmc_init(bd_t *bis)
 	u8 i;
 
 	ast_scu_init_sdhci();
+#ifdef CONFIG_FPGA_ASPEED
+	ast_scu_multi_func_sdhc_slot(2);
+#else
 	ast_scu_multi_func_sdhc_slot(3);
+#endif
 	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], ast_get_sd_clock_src(), 100000))

@@ -1650,16 +1650,6 @@ ast_scu_multi_func_usb_port34_mode(u8 mode)
 #endif
 }	
 
-
-//0 : 1: SD1 function 
-extern void
-ast_scu_multi_func_sdhc_8bit_mode(void)
-{
-		ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD1 | SCU_FUC_PIN_SD1_8BIT, 
-					AST_SCU_FUN_PIN_CTRL5);
-}	
-
-
 extern void
 ast_scu_multi_func_sdhc_slot(u8 slot)
 {

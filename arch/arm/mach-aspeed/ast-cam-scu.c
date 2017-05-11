@@ -366,7 +366,7 @@ ast_get_sd_clock_src(void)
 {
 
 	printf("TODO ~~ ast_get_sd_clock_src \n");
-	return 48000000;
+	return 50000000;
 }
 
 extern void

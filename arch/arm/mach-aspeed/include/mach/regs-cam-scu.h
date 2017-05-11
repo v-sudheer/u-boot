@@ -648,11 +648,10 @@
 //#define VIDEO_DISABLE	0x3
 
 #define SCU_FUC_PIN_USB11_PORT2	(0x1 << 3)
-#define SCU_FUC_PIN_SD1_8BIT		(0x1 << 3)
 
-#define SCU_FUC_PIN_MAC1_MDIO		(0x1 << 2)
-#define SCU_FUC_PIN_SD2		(0x1 << 1)
-#define SCU_FUC_PIN_SD1		(0x1 << 0)
+#define SCU_FUC_PIN_SD2		(0x1 << 2)
+#define SCU_FUC_PIN_SD1		(0x1 << 1)
+#define SCU_FUC_PIN_SDIO		(0x1 << 0)
 
 
 /*	AST_SCU_FUN_PIN_CTRL6		0x94		Multi-function Pin Control#6*/

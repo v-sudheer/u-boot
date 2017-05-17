@@ -125,6 +125,7 @@
 /* SD/MMC definition */
 #ifdef CONFIG_AST_SDHCI
 #define CONFIG_GENERIC_MMC
+/*#define CONFIG_MMC_TRACE*/
 #endif
 
 /* I2C definition */

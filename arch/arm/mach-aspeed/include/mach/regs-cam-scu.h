@@ -121,7 +121,7 @@
 #define SCU_RESET_PP				(0x1 << 13)
 #define SCU_RESET_UDC0				(0x1 << 12)
 #define SCU_RESET_MAC0				(0x1 << 11)
-#define SCU_RESET_SD				(0x1 << 10)
+#define SCU_RESET_SDHCI				(0x1 << 10)
 #define SCU_RESET_SDIO				(0x1 << 9)
 #define SCU_RESET_I2S				(0x1 << 8)
 #define SCU_RESET_H264				(0x1 << 7)
@@ -154,7 +154,7 @@
 
 /*	AST_SCU_CLK_SEL2	: 0xD8 - clock selection register Set 2	*/
 #define SCU_MAC_AHB_CLK_DIV(x)	(x << 24)
-#define SCU_SD_CLK_DIV(x)		(x << 20)
+#define SCU_SDHCI_CLK_DIV(x)		(x << 20)
 #define SCU_SDIO_CLK_DIV(x)			(x << 16)
 #define SCU_ZSP_CLK_DIV(x)			(x << 12)
 #define SCU_H264_HEVCLK_DIV(x)		(x << 9)
@@ -169,7 +169,7 @@
 #define SCU_WDR_CLK_STOP_EN		(0x1 << 24)
 #define SCU_HE_CLK_STOP_EN			(0x1 << 23)
 #define SCU_I2S_CLK_STOP_EN		(0x1 << 22)
-#define SCU_SD_CLK_STOP_EN			(0x1 << 21)
+#define SCU_SDHCI_CLK_STOP_EN		(0x1 << 21)
 #define SCU_SDIO_CLK_STOP_EN		(0x1 << 20)
 #define SCU_HEV_CLK_STOP_EN		(0x1 << 19)
 #define SCU_MAC_CLK_STOP_EN		(0x1 << 18)

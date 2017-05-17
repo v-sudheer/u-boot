@@ -200,15 +200,15 @@ extern void
 ast_scu_init_sdhci(void)
 {
 	//SDHCI Host's Clock Enable and Reset
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_SD, AST_SCU_RESET);
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_SDHCI, AST_SCU_RESET);
 	
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_SD_CLK_STOP_EN, AST_SCU_CLK_STOP);
+	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_SDHCI_CLK_STOP_EN, AST_SCU_CLK_STOP);
 	mdelay(10);
 
 
 	mdelay(10);
 	
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SD, AST_SCU_RESET);
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDHCI, AST_SCU_RESET);
 }
 
 
@@ -366,7 +366,7 @@ ast_get_sd_clock_src(void)
 {
 
 	printf("TODO ~~ ast_get_sd_clock_src \n");
-	return 50000000;
+	return 54000000;
 }
 
 extern void

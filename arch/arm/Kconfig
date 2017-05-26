@@ -164,6 +164,7 @@ config ARCH_AT91
 
 config ARCH_ASPEED
 	bool "Support ASPEED SoCs"
+	select SUPPORT_SPL
 
 config TARGET_EDB93XX
 	bool "Support edb93xx"

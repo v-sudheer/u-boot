@@ -364,9 +364,12 @@ ast_scu_osc_clk_output(void)
 extern u32
 ast_get_sd_clock_src(void)
 {
-
 	printf("TODO ~~ ast_get_sd_clock_src \n");
+#ifdef CONFIG_FPGA_ASPEED
+	return 50000000;
+#else
 	return 54000000;
+#endif
 }
 
 extern void

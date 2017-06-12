@@ -28,7 +28,3 @@ obj-y   += platform_fpga.o
 else
 obj-y   += platform.o
 endif
-
-ifdef CONFIG_SPL_BUILD
-obj-y   += spl.o
-endif

@@ -1485,6 +1485,7 @@ backup:
 
 pub:
 	cp u-boot.bin /tftpboot/
+	@[ -f spl/u-boot-spl.bin ] && cp spl/u-boot-spl.bin /tftpboot/ || echo "no spl file"
 
 help:
 	@echo  'Cleaning targets:'

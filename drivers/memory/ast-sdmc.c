@@ -152,6 +152,18 @@ ast_sdmc_get_ecc_size(void)
 }
 
 extern u8
+ast_sdmc_get_ecc_recover_count(void)
+{
+	return SDMC_ISR_GET_ECC_RECOVER(ast_sdmc_read(AST_SDMC_ISR));
+}
+
+extern u8
+ast_sdmc_get_ecc_unrecover_count(void)
+{
+	return SDMC_ISR_GET_ECC_UNRECOVER(ast_sdmc_read(AST_SDMC_ISR));
+}
+
+extern u8
 ast_sdmc_get_ecc(void)
 {
 	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_EEC_EN)

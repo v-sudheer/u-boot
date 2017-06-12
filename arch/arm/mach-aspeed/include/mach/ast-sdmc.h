@@ -28,6 +28,8 @@
 #define __AST_SDMC_H_INCLUDED
 
 extern u32 ast_sdmc_get_mem_size(void);
+extern u8 ast_sdmc_get_ecc_recover_count(void);
+extern u8 ast_sdmc_get_ecc_unrecover_count(void);
 extern u8 ast_sdmc_get_ecc(void);
 extern u32 ast_sdmc_get_ecc_size(void);
 extern u8 ast_sdmc_get_cache(void);

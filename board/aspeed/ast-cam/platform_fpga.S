@@ -134,7 +134,6 @@ lowlevel_init:
     mov   r1, #0
     str   r1, [r0]
 
-#if (CONFIG_AST_FPGA_VER == 4)
 init_arm11:
     /* Start of ES40004A PLL init */
     /* Step 1. Program PLL_config and keep power down */
@@ -170,7 +169,6 @@ check_pll_ld:
     ldr   r1, =0x00010007
     str   r1, [r0]
     /* End of ES40004A PLL init */
-#endif
 
     /* Check Scratch Register Bit 6 */
     ldr r0, =0x1e6e2040

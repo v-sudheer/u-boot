@@ -137,14 +137,3 @@ int power_init_board(void)
 {
 	return 0;
 }
-
-#ifdef CONFIG_SPL_BUILD
-#include <spl.h>
-#include <libfdt.h>
-
-void board_init_f(ulong dummy)
-{
-
-}
-#endif
-

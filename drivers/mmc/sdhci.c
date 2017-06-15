@@ -444,7 +444,7 @@ static void sdhci_set_ios(struct mmc *mmc)
 
 	/* Set bus width */
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
-#if 0	
+#ifndef CONFIG_ARCH_ASPEED
 	if (mmc->bus_width == 8) {
 		ctrl &= ~SDHCI_CTRL_4BITBUS;
 		if ((SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) ||

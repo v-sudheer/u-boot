@@ -17,23 +17,8 @@ int ast_sdhi_init(u32 regbase, u32 max_clk, u32 min_clk)
 
 	host->name = "ast_sdhci";
 	host->ioaddr = (void *)regbase;
-#if 1	
-	host->quirks = SDHCI_QUIRK_NO_HISPD_BIT |
-		SDHCI_QUIRK_BROKEN_R1B | SDHCI_QUIRK_32BIT_DMA_ADDR | SDHCI_QUIRK_REG32_RW |
-		SDHCI_QUIRK_WAIT_SEND_CMD;
-#else
-host->quirks = SDHCI_QUIRK_NO_HISPD_BIT | SDHCI_QUIRK_BROKEN_VOLTAGE |
-	SDHCI_QUIRK_BROKEN_R1B | SDHCI_QUIRK_REG32_RW |
-	SDHCI_QUIRK_WAIT_SEND_CMD;
-
-#endif
-	if (host->quirks & SDHCI_QUIRK_REG32_RW)
-		host->version = sdhci_readl(host, SDHCI_HOST_VERSION - 2) >> 16;
-	else
-		host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
 
 	add_sdhci(host, max_clk, min_clk);
 	
 	return 0;
 }
-

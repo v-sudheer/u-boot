@@ -123,6 +123,10 @@ int board_mmc_init(bd_t *bis)
 #else
 	ast_scu_multi_func_sdhc_slot(3);
 #endif
+
+	writel(0x50000, AST_SDHCI_BASE + 0xf0);
+	writel(0x10000, AST_SDIO_BASE + 0xf0);
+
 	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], ast_get_sd_clock_src(), 100000))

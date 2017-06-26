@@ -205,9 +205,6 @@ ast_scu_init_sdhci(void)
 	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_SDHCI_CLK_STOP_EN, AST_SCU_CLK_STOP);
 	mdelay(10);
 
-
-	mdelay(10);
-	
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDHCI, AST_SCU_RESET);
 }
 

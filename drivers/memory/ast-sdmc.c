@@ -30,6 +30,7 @@
 #define AST_SDMC_CONFIG		0x04		/*	Configuration register */
 #define AST_SDMC_MEM_REQ		0x08		/*	Graphics Memory Protection register */
 
+#define AST_SDMC_ISR						0x50		/*	Interrupt Control/Status Register */
 #define AST_SDMC_CACHE_ECC_RANGE                 0x54            /*      ECC/CACHE Address Range Control Register */
 
 /*	AST_SDMC_PROTECT: 0x00  - protection key register */
@@ -45,6 +46,13 @@
 #define SDMC_CONFIG_CACHE_EN		(0x1 << 10)
 #define SDMC_CONFIG_EEC_EN			(0x1 << 7)
 #endif
+
+/*	#define AST_SDMC_ISR	 : 0x50	- Interrupt Control/Status Register */
+#define SDMC_ISR_CLR					(0x1 << 31)
+#define SDMC_ISR_RW_ACCESS			(0x1 << 29)
+
+#define SDMC_ISR_GET_ECC_RECOVER(x)	((x >> 16) & 0xff)
+#define SDMC_ISR_GET_ECC_UNRECOVER(x)	((x >> 12) & 0xf)
 /**************************************************************/
 
 //#define AST_SDMC_LOCK

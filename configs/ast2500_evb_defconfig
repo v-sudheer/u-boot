@@ -166,12 +166,13 @@ CONFIG_IRMP=y
 # CONFIG_ARCH_AST2300 is not set
 # CONFIG_ARCH_AST2400 is not set
 CONFIG_ARCH_AST2500=y
+# CONFIG_FPGA_ASPEED is not set
 # CONFIG_AST_CVIC is not set
 # CONFIG_AST_SCU_LOCK is not set
 CONFIG_AST_UART_SDMA=y
 CONFIG_IDENT_STRING=""
 # CONFIG_PRE_CONSOLE_BUFFER is not set
-# CONFIG_MMC is not set
+CONFIG_MMC=y
 # CONFIG_VIDEO is not set
 
 #
@@ -316,7 +317,7 @@ CONFIG_CMD_LOADB=y
 CONFIG_CMD_LOADS=y
 CONFIG_CMD_FLASH=y
 # CONFIG_CMD_ARMFLASH is not set
-# CONFIG_CMD_MMC is not set
+CONFIG_CMD_MMC=y
 # CONFIG_CMD_NAND is not set
 # CONFIG_CMD_SF is not set
 # CONFIG_CMD_SPI is not set
@@ -338,6 +339,7 @@ CONFIG_CMD_SOURCE=y
 #
 # Network commands
 #
+CONFIG_CMD_NETTEST=y
 CONFIG_CMD_NET=y
 # CONFIG_CMD_TFTPPUT is not set
 # CONFIG_CMD_TFTPSRV is not set
@@ -355,6 +357,7 @@ CONFIG_CMD_PING=y
 #
 # Misc commands
 #
+# CONFIG_CMD_BKOPS_ENABLE is not set
 # CONFIG_CMD_CACHE is not set
 # CONFIG_CMD_TIME is not set
 CONFIG_CMD_MISC=y
@@ -483,6 +486,13 @@ CONFIG_DRAM_1600=y
 #
 # MMC Host controller Support
 #
+# CONFIG_SPL_MMC_TINY is not set
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_SDMA=y
+CONFIG_AST_SDHCI=y
+# CONFIG_MMC_SDHCI_KONA is not set
+# CONFIG_MMC_SDHCI_S5P is not set
+# CONFIG_MMC_SDHCI_SPEAR is not set
 
 #
 # MTD Support

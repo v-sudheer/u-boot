@@ -64,9 +64,9 @@ int misc_init_r(void)
 int dram_init(void)
 {
 	/* dram_init must store complete ramsize in gd->ram_size */
-//	u32 vga = ast_scu_get_vga_memsize();
-//	u32 dram = ast_sdmc_get_mem_size();
-	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;//(dram - vga);
+	u32 vga = ast_scu_get_vga_memsize();
+	u32 dram = ast_sdmc_get_mem_size();
+	gd->ram_size = (dram - vga - CONFIG_AST_VIDEO_SIZE);
 
 	return 0;
 }

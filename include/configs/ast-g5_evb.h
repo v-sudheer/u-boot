@@ -91,8 +91,6 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_SYS_SDRAM_SIZE 	(176*1024*1024)		/* 176MB : VGA 32MB, Video 40MB, FB 8MB*/
-
 #define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -103,6 +101,12 @@
 	""
 
 /* ------------------------------------------------------------------------- */
+/* SD/MMC definition */
+#ifdef CONFIG_AST_SDHCI
+#define CONFIG_GENERIC_MMC
+/*#define CONFIG_MMC_TRACE*/
+#endif
+
 /* I2C definition */
 #ifdef CONFIG_CMD_I2C
 #define CONFIG_HARD_I2C			1		/* To enable I2C support	*/

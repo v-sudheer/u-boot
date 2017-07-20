@@ -91,8 +91,6 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x43000000	/* default load address */
 
-#define CONFIG_SYS_SDRAM_SIZE   (176*1024*1024)         /* 176MB : VGA 32MB, Video 40MB, FB 8MB*/
-
 #define CONFIG_BOOTARGS		"console=ttyS0,115200n8 ramdisk_size=65536 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

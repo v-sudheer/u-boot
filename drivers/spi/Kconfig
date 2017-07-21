@@ -189,6 +189,9 @@ config OMAP3_SPI
 
 endif # if DM_SPI
 
+config FMC_SPI
+        bool "FMC SPI driver"
+
 config FSL_ESPI
 	bool "Freescale eSPI driver"
 	help

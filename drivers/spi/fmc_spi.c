@@ -46,6 +46,8 @@ struct ast_spi_host {
 #define SPIDBUG(fmt, args...)
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 static inline struct ast_spi_host *to_ast_spi(struct spi_slave *slave)
 {
 	return container_of(slave, struct ast_spi_host, slave);
@@ -69,8 +71,6 @@ ast_spi_read(struct ast_spi_host *spi, u32 reg)
 	else
 		return __raw_readl(spi->base + reg);
 }
-
-DECLARE_GLOBAL_DATA_PTR;
 
 
 void spi_init_f(void)
@@ -115,13 +115,14 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	u32			spi_ctrl;
 	u32 		div;	
 
-//	printf("bus %d , cs %d , max_hz %d , mode %d \n", bus, cs, max_hz, mode);	
+	printf("bus %d , cs %d , max_hz %d , mode %d \n", bus, cs, max_hz, mode);	
 
-	spi = malloc(sizeof(struct ast_spi_host));
+	spi = spi_alloc_slave(struct ast_spi_host, bus, cs);
 	if (!spi)
 		return NULL;
 
-	spi->slave.bus = bus;
+
+//	spi->slave.bus = bus;
 
 	switch(bus) {
 		case 0:
@@ -129,7 +130,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			*((volatile ulong*) AST_FMC_BASE) |= 0x800f002a; /* enable Flash Write */
 			
 			spi->base = AST_FMC_BASE;
-			spi->slave.cs = cs;
+//			spi->slave.cs = cs;
 			switch (cs) {
 				case 0:
 					spi->regs = (void *)AST_FMC_BASE + 0x10;
@@ -166,7 +167,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			/* Flash Controller */
 			*((volatile ulong*) AST_FMC_SPI0_BASE) |= 0x30000; /* enable Flash Write */			
 			spi->base = AST_FMC_SPI0_BASE;
-			spi->slave.cs = cs;
+//			spi->slave.cs = cs;
 			switch (cs) {
 #ifdef AST_SPI0_CS0_BASE				
 				case 0:
@@ -189,7 +190,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			*((volatile ulong*) 0x1e6e2088) |= 0x3c000000; /* SPI pin*/
 			*((volatile ulong*) AST_FMC_SPI1_BASE) |= 0x30000; /* enable Flash Write */
 			spi->base = AST_FMC_SPI1_BASE;
-			spi->slave.cs = cs;
+//			spi->slave.cs = cs;
 			switch (cs) {
 #ifdef AST_SPI1_CS0_BASE				
 				case 0:
@@ -320,10 +321,12 @@ done:
 
 }
 
+#if 0
 void spi_set_4byte(struct spi_slave *slave)
 {
 	*((volatile ulong*) (AST_FMC_BASE + 0x4)) |= (0x1 << slave->cs); /* enable Flash 4byte mode */
 }
+#endif
 
 void spi_dma(struct spi_slave *slave, void *to, void *from, size_t len)
 {

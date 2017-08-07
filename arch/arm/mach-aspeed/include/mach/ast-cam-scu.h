@@ -93,7 +93,7 @@ extern void ast_scu_multi_func_usb_port2_mode(u8 mode);
 extern void ast_scu_multi_func_usb_port34_mode(u8 mode);
 
 extern void ast_scu_multi_func_sdhc_8bit_mode(void);
-extern void ast_scu_multi_func_sdhc_slot(u8 slot);
+extern void ast_scu_multi_func_sdhc_slot(void);
 extern void ast_scu_multi_func_crt(void);
 
 extern void ast_scu_multi_nic_switch(u8 enable);

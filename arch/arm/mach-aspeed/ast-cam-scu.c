@@ -365,7 +365,7 @@ ast_get_sd_clock_src(void)
 #ifdef CONFIG_FPGA_ASPEED
 	return 50000000;
 #else
-	return 54000000;
+	return 108000000;
 #endif
 }
 
@@ -417,22 +417,10 @@ ast_scu_multi_func_usb_port2_mode(u8 mode)
 
 
 extern void
-ast_scu_multi_func_sdhc_slot(u8 slot)
+ast_scu_multi_func_sdhc_slot(void)
 {
-	switch(slot) {
-		case 1:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD1, 
-						AST_SCU_FUN_PIN_CTRL5);						
-			break;
-		case 2:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD2, 
-						AST_SCU_FUN_PIN_CTRL5);									
-			break;
-		case 3:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD1 | SCU_FUC_PIN_SD2, 
-						AST_SCU_FUN_PIN_CTRL5);						
-			break;			
-	}
+	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD1 | SCU_FUC_PIN_SD2, 
+				AST_SCU_FUN_PIN_CTRL5);						
 }	
 
 

@@ -42,13 +42,13 @@
 TIME_TABLE_LPDDR3_600:
     .word   0x02080305       @ MCR10
     .word   0x07250813       @ MCR14
-    .word   0x02020202       @ MCR18
+    .word   0x02030202       @ MCR18
     .word   0x01030008       @ MCR1C
     .word   0x0000000D       @ MCR20
     .word   0x0083010D       @ MRW01
     .word   0x0004020D       @ MRW02
     .word   0x0002030D       @ MRW03
-    .word   0x00000B0D       @ MRW11
+    .word   0x00010B0D       @ MRW11
 TIME_TABLE_LPDDR3_800:
     .word   0x02080305       @ MCR10
     .word   0x09250B19       @ MCR14
@@ -58,27 +58,27 @@ TIME_TABLE_LPDDR3_800:
     .word   0x0083010D       @ MRW01
     .word   0x0004020D       @ MRW02
     .word   0x0002030D       @ MRW03
-    .word   0x00000B0D       @ MRW11
+    .word   0x00010B0D       @ MRW11
 TIME_TABLE_LPDDR3_1200:
-    .word   0x030A0406       @ MCR10
-    .word   0x0D491126       @ MCR14
-    .word   0x04050305       @ MCR18
+    .word   0x030A0305       @ MCR10
+    .word   0x0D491A3E       @ MCR14
+    .word   0x05060305       @ MCR18
     .word   0x0213000F       @ MCR1C
     .word   0x0000001B       @ MCR20
     .word   0x00E3010D       @ MRW01
     .word   0x0007020D       @ MRW02
     .word   0x0002030D       @ MRW03
-    .word   0x00000B0D       @ MRW11
+    .word   0x00010B0D       @ MRW11
 TIME_TABLE_LPDDR3_1600:
-    .word   0x030C0507       @ MCR10
-    .word   0x115C1733       @ MCR14
-    .word   0x05070407       @ MCR18
+    .word   0x030C0406       @ MCR10
+    .word   0x115C2353       @ MCR14
+    .word   0x07080407       @ MCR18
     .word   0x42130014       @ MCR1C
     .word   0x00000024       @ MCR20
     .word   0x0043010D       @ MRW01
     .word   0x001A020D       @ MRW02
     .word   0x0002030D       @ MRW03
-    .word   0x00000B0D       @ MRW11
+    .word   0x00010B0D       @ MRW11
 
 PATTERN_TABLE:
     .word   0xff00ff00
@@ -151,6 +151,11 @@ lowlevel_init:
     /* save lr */
     mov   r4, lr
 
+    /*Set GPIO for SDMMC host  fpga */
+    ldr   r0, =0x1e780074
+    ldr   r1, =0x00400000
+    str   r1, [r0]
+
     /*Set Scratch register Bit 7 before initialize*/
     ldr r0, =0x1e6e2000
     ldr r1, =0x1688a8a8
@@ -212,13 +217,13 @@ check_pll_ld:
     /* End of ES40004A PLL init */
 
     /* Check Scratch Register Bit 6 */
-    ldr r0, =0x1e6e2040
+/*  ldr r0, =0x1e6e2040
     ldr r1, [r0]
     bic r1, r1, #0xFFFFFFBF
     mov r2, r1, lsr #6
     cmp r2, #0x01
     beq platform_exit
-
+*/
 /* Debug - UART console message */
     ldr   r0, =0x1e78300c
     mov   r1, #0x83
@@ -359,7 +364,7 @@ init_start:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0030
-    ldr   r1, =0x00020080
+    ldr   r1, =0x00040080
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0034
@@ -419,11 +424,11 @@ init_start:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0030                        @ PWRCTL, 1st enable CKE, wait at least 200 us
-    ldr   r1, =0x00030081
+    ldr   r1, =0x00060081
     str   r1, [r0]
 
     /* Delay about 200us */
-    ldr   r2, =0x000000C9                        @ Set Timer3 Reload = 200 us
+    ldr   r2, =0x000000CA                        @ Set Timer3 Reload = 200 us
     init_delay_timer
 delay_1:
     check_delay_timer
@@ -510,11 +515,11 @@ read_MR7_done:
 read_MR8_done:
 
     ldr   r0, =0x1e6e000C
-    ldr   r1, =0x021660A1
+    ldr   r1, =0x200016A1
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0030
-    ldr   r1, =0x00018D83
+    ldr   r1, =0x00034783
     str   r1, [r0]
 
     b     Calibration_End
@@ -798,6 +803,11 @@ set_scratch:
 /* Debug - UART console message */
 
 platform_exit:
+
+    /*Set GPIO for SDMMC host  fpga */
+    ldr   r0, =0x1e780070
+    ldr   r1, =0x00400000
+    str   r1, [r0]
 
     /* restore lr */
     mov   lr, r4

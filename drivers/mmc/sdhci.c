@@ -362,15 +362,10 @@ static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 	if (host->set_clock)
 		host->set_clock(host->index, div);
 
-#if 0
 	clk |= (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
 	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
 		<< SDHCI_DIVIDER_HI_SHIFT;
 	clk |= SDHCI_CLOCK_INT_EN;
-#else
-	clk = div << SDHCI_DIVIDER_SHIFT;
-	clk |= SDHCI_CLOCK_INT_EN;
-#endif
 	
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 

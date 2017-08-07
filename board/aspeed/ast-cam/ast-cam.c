@@ -35,7 +35,7 @@
 
 #include <common.h>
 #include <netdev.h>
-#include <asm/arch/ast-scu.h>
+#include <asm/arch/ast-cam-scu.h>
 #include <asm/arch/ast-sdmc.h>
 #include <asm/io.h>
 
@@ -93,7 +93,7 @@ int misc_init_r (void)
 int dram_init(void)
 {
 	/* dram_init must store complete ramsize in gd->ram_size */
-	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
+	gd->ram_size = 512*1024*1024;//ast_sdmc_get_mem_size();
 
 	return 0;
 }
@@ -118,14 +118,7 @@ int board_mmc_init(bd_t *bis)
 	u8 i;
 
 	ast_scu_init_sdhci();
-#ifdef CONFIG_FPGA_ASPEED
-	ast_scu_multi_func_sdhc_slot(2);
-#else
-	ast_scu_multi_func_sdhc_slot(3);
-#endif
-
-	writel(0x50000, AST_SDHCI_BASE + 0xf0);
-	writel(0x10000, AST_SDIO_BASE + 0xf0);
+	ast_scu_multi_func_sdhc_slot();
 
 	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {

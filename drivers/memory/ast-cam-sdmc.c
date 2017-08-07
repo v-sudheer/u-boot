@@ -32,30 +32,20 @@
 #include <asm/arch/ast-sdmc.h>
 
 /************************************  Registers for SDMC ****************************************/ 
-#define AST_SDMC_PROTECT	0x00		/*	protection key register	*/
+#define AST_SDMC_PROTECT		0x00		/*	protection key register	*/
 #define AST_SDMC_CONFIG		0x04		/*	Configuration register */
-#define AST_SDMC_MEM_REQ		0x08		/*	Graphics Memory Protection register */
 
-#define AST_SDMC_ISR					0x50		/*	Interrupt Control/Status Register */
 
 /*	AST_SDMC_PROTECT: 0x00  - protection key register */
 #define SDMC_PROTECT_UNLOCK			0xFC600309
 
 /*	AST_SDMC_CONFIG :0x04	 - Configuration register */
-#define SDMC_CONFIG_VER_NEW			(0x1 << 28)
+#define SDMC_CONFIG_VER_AST1220		(0x1 << 28)
+#define SDMC_CONFIG_CACHE_EN			(0x1 << 10)
+
 #define SDMC_CONFIG_MEM_GET(x)		(x & 0x3)
 
-#define SDMC_CONFIG_CACHE_EN			(0x1 << 10)
-#define SDMC_CONFIG_EEC_EN			(0x1 << 7)
-#define SDMC_CONFIG_DDR4				(0x1 << 4)
 
-
-/*	#define AST_SDMC_ISR	 : 0x50	- Interrupt Control/Status Register */
-#define SDMC_ISR_CLR					(0x1 << 31)
-#define SDMC_ISR_RW_ACCESS			(0x1 << 29)
-
-#define SDMC_ISR_GET_ECC_RECOVER(x)	((x >> 16) & 0xff)
-#define SDMC_ISR_GET_ECC_UNRECOVER(x)	((x >> 12) & 0xf)
 /****************************************************************************************/
 
 //#define AST_SDMC_LOCK
@@ -100,62 +90,27 @@ ast_sdmc_write(u32 val, u32 reg)
 #endif
 }
 //***********************************Information ***********************************
-
-extern u8
-ast_sdmc_get_dram(void)
-{
-	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_DDR4)
-		return 1;
-	else
-		return 0;
-}
-
 extern u32
 ast_sdmc_get_mem_size(void)
 {
 	u32 size=0;
 	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
 	
-	if(conf & SDMC_CONFIG_VER_NEW) {
-		switch(SDMC_CONFIG_MEM_GET(conf)) {
-			case 0:
-				size = 128*1024*1024;
-				break;
-			case 1:
-				size = 256*1024*1024;
-				break;
-			case 2:
-				size = 512*1024*1024;
-				break;
-			case 3:
-				size = 1024*1024*1024;
-				break;
-				
-			default:
-				SDMCMSG("error ddr size \n");
-				break;
-		}
-		
-	} else {
-		switch(SDMC_CONFIG_MEM_GET(conf)) {
-			case 0:
-				size = 64*1024*1024;
-				break;
-			case 1:
-				size = 128*1024*1024;
-				break;
-			case 2:
-				size = 256*1024*1024;
-				break;
-			case 3:
-				size = 512*1024*1024;
-				break;
-				
-			default:
-				SDMCMSG("error ddr size \n");
-				break;
-		}
+	switch(SDMC_CONFIG_MEM_GET(conf)) {
+		case 0:
+			size = 512*1024*1024;
+			break;
+		case 1:
+			size = 1024*1024*1024;
+			break;
+		case 2:
+			size = 2048*1024*1024;
+			break;
+		default:
+			SDMCMSG("error ddr size \n");
+			break;
 	}
+	
 	return size;
 }
 

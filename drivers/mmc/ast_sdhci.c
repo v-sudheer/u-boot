@@ -11,7 +11,7 @@ int ast_sdhi_init(u32 regbase, u32 max_clk, u32 min_clk)
 	struct sdhci_host *host = NULL;
 	host = (struct sdhci_host *)calloc(1, sizeof(struct sdhci_host));
 	if (!host) {
-		printf("sdh_host malloc fail!\n");
+		printf("sdhci_host malloc fail!\n");
 		return 1;
 	}
 

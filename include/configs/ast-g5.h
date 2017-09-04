@@ -162,56 +162,33 @@
 #define CONFIG_FAT_WRITE
 #define CONFIG_CMD_PART
 
-
-#ifdef CONFIG_AST_FMC_NOR
-#ifdef CONFIG_AST_SPI_NOR
-#define CONFIG_SYS_MAX_FLASH_BANKS		(CONFIG_FMC_CS + 1)
-#else
-#define CONFIG_SYS_MAX_FLASH_BANKS		(CONFIG_FMC_CS)
+/* ------------------------------------------------------------------------- */
+/* Serial Flash */
+#ifdef CONFIG_CMD_SF
+#define CONFIG_SF_DEFAULT_BUS		0
+#define CONFIG_SF_DEFAULT_CS		0
+#define CONFIG_SF_DEFAULT_SPEED	50000000
+#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_3
 #endif
-#define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
-#define CONFIG_ENV_IS_IN_FLASH		1
-#define CONFIG_ENV_ADDR				(AST_FMC_CS0_BASE + 0x60000)
-#define CONFIG_ENV_OFFSET		0x60000	/* environment starts here  */
-#define CONFIG_ENV_SIZE			0x20000	/* Total Size of Environment Sector */
-#endif
-
-#ifdef CONFIG_FMC_SPI
-#define CONFIG_SF_DEFAULT_BUS  		0
-#define CONFIG_SF_DEFAULT_CS			0
-#define CONFIG_SF_DEFAULT_SPEED	 	50000000	
-#define CONFIG_SF_DEFAULT_MODE			(SPI_MODE_0)
-
-#define CONFIG_SYS_MAX_FLASH_BANKS		(0)
-#define CONFIG_ENV_SIZE			0x20000	/* Total Size of Environment Sector */
-#define CONFIG_ENV_OFFSET		0x60000	/* environment starts here  */
-#define CONFIG_ENV_SECT_SIZE		(64 * 1024)
-
-#define CONFIG_ENV_IS_IN_SPI_FLASH
-#if 0
-#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
-#define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
-#define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
-#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
-#endif
-
 
 #define CONFIG_SYS_NO_FLASH
-
-
-#endif
-
+#define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
+#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
+#define CONFIG_ENV_SPI_MAX_HZ	CONFIG_SF_DEFAULT_SPEED //50MHz
+#define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
+#define CONFIG_SYS_MAX_FLASH_BANKS		(0)
+#define CONFIG_ENV_IS_IN_SPI_FLASH		1
+#define CONFIG_ENV_SECT_SIZE		0x20000		//4K sector
+#define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
+#define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
 /* ------------------------------------------------------------------------- */
-
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
 #define CONFIG_ENV_OVERWRITE
-
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1
 #define CONFIG_NETMASK			255.255.255.0
 #define CONFIG_IPADDR			192.168.0.45
 #define CONFIG_SERVERIP			192.168.0.81
-
 
 /* -------------------------------------------------------------------------
  *  2. UART5 message output
@@ -224,14 +201,14 @@
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SPL_RAM_DEVICE
-#define CONFIG_SPL_STACK                        0x85000000
+#define CONFIG_SPL_STACK                        0x88000000
+
+/* SP location before relocation, must use scratch RAM */
+#define CONFIG_SPL_TEXT_BASE					0x88000000
+/* 36kB blocks of OCM - one is on the top because of bootrom */
+#define CONFIG_SPL_MAX_SIZE						0x00010000
 
 /* BSS setup */
-#define CONFIG_SPL_BSS_START_ADDR               0x90100000
-#define CONFIG_SPL_BSS_MAX_SIZE         	0x00100000
-#define CONFIG_SYS_SPL_MALLOC_START		0x90200000
-#define CONFIG_SYS_SPL_MALLOC_SIZE		0x00080000
-
 #define CONFIG_SPL_LDSCRIPT     "arch/arm/mach-aspeed/u-boot-spl.lds"
 
 /* MMC support */
@@ -251,13 +228,6 @@
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME          "uImage"
 
 /* for booting directly linux */
-
-/* SP location before relocation, must use scratch RAM */
-#define CONFIG_SPL_TEXT_BASE		0x88000000
-/* 36kB blocks of OCM - one is on the top because of bootrom */
-#define CONFIG_SPL_MAX_SIZE		0x00400000
-
-
 
 /* FIT load address for RAM boot */
 #define CONFIG_SPL_LOAD_FIT_ADDRESS	0x10000000

@@ -300,7 +300,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	//ISSUE : ast spi ctrl couldn't use mode 3, so fix mode 0
 	spi_ctrl &= ~SPI_CPOL_1;
 	
-//	printf("write reg %x, : %x \n",ast_spi->ctrl_regs, spi_ctrl);
+	SPIBUG("ctrl reg %x, : %x \n", (u32)ast_spi->ctrl_regs, spi_ctrl);
 	writel(spi_ctrl, ast_spi->ctrl_regs);
 
 
@@ -347,7 +347,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	uchar *rxp = din;
 	struct spi_flash *flash = slave->flash;
 
-	SPIBUG("%s: bus:%i cs:%i bitlen:%i bytes:%i flags:%lx \n", __func__,
+	SPIBUG("%s: ctrl reg %x, bus:%i cs:%i bitlen:%i bytes:%i flags:%lx \n", __func__, (u32)ast_spi->ctrl_regs,
 		slave->bus, slave->cs, bitlen, bytes, flags);
 
 	if (flags & SPI_XFER_MMAP) {
@@ -371,7 +371,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	}
 
 	if (flags & SPI_XFER_BEGIN) {
-		SPIBUG("\n ----------Xfer BEGIN -------\n");
+		SPIDBUG("\n ----------Xfer BEGIN -------\n");
 		if(flash->name) {
 			writel(readl(ast_spi->ctrl_regs) & ~SPI_IO_MODE_MASK, ast_spi->ctrl_regs);
 		}
@@ -396,7 +396,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
    }
 //		SPIDBUG("\n");
 	if (flags & SPI_XFER_END) {
-		SPIBUG("\n ----------Xfer END -------\n");
+		SPIDBUG("\n ----------Xfer END -------\n");
 		writel(readl(ast_spi->ctrl_regs) | SPI_CE_INACTIVE, ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~(SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
 		if(flash->name) {
@@ -420,7 +420,7 @@ int spi_claim_bus(struct spi_slave *slave)
 	struct ast_spi_host *ast_spi = to_ast_spi(slave);
 	struct spi_flash *flash = slave->flash;
 	u32 ctrl = readl(ast_spi->ctrl_regs) & ~(SPI_CMD_DATA_MASK | SPI_DUMMY_LOW_MASK | SPI_DUMMY_HIGH | SPI_IO_MODE_MASK | SPI_CMD_MODE_MASK);
-	SPIBUG("spi_claim_bus flash->write_cmd %x , flash->read_cmd %x flash->dummy_byte %d, 4 byte mode %d \n", flash->write_cmd, flash->read_cmd, flash->dummy_byte, flash->bytemode);
+	SPIBUG("spi_claim_bus ctrl reg %x, flash->write_cmd %x , flash->read_cmd %x flash->dummy_byte %d, 4 byte mode %d \n", (u32)ast_spi->ctrl_regs, flash->write_cmd, flash->read_cmd, flash->dummy_byte, flash->bytemode);
 	switch(slave->bus) {
 		case 0:
 			switch(slave->cs) {

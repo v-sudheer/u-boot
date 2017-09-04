@@ -29,6 +29,16 @@
 #define SPI_RX_SLOW	BIT(11)			/* receive with 1 wire slow */
 #define SPI_RX_DUAL	BIT(12)			/* receive with 2 wires */
 #define SPI_RX_QUAD	BIT(13)			/* receive with 4 wires */
+#define SPI_TX_DUAL_IO	BIT(14)			/* transmit with 2 wires */
+#define SPI_TX_QUAD_IO	BIT(15)			/* transmit with 4 wires */
+#define SPI_RX_DUAL_IO	BIT(16)			/* receive with 2 wires (1_2_2)*/
+#define SPI_RX_QUAD_IO	BIT(17)			/* receive with 4 wires (1_4_4)*/
+#define SPI_RX_FAST	BIT(18)			/* receive with 1 wires */
+#define SPI_RX_FULL (SPI_RX_SLOW | SPI_RX_FAST | SPI_RX_DUAL | \
+					SPI_RX_QUAD | SPI_RX_DUAL_IO | SPI_RX_QUAD_IO)
+
+#define SPI_3BYTE_MODE	0			/* support for 3 byte address cmd */
+#define SPI_4BYTE_MODE	1			/* support for 4 byte address cmd */
 
 /* Header byte that marks the start of the message */
 #define SPI_PREAMBLE_END_BYTE	0xec
@@ -92,6 +102,8 @@ struct dm_spi_slave_platdata {
  * @flags:		Indication of SPI flags.
  */
 struct spi_slave {
+	//add struct of AST SOC Chip
+	struct spi_flash *flash;
 #ifdef CONFIG_DM_SPI
 	struct udevice *dev;	/* struct spi_slave is dev->parentdata */
 	uint max_hz;
@@ -105,7 +117,6 @@ struct spi_slave {
 	unsigned int max_write_size;
 	void *memory_map;
 	u8 option;
-
 	u8 flags;
 #define SPI_XFER_BEGIN		BIT(0)	/* Assert CS before transfer */
 #define SPI_XFER_END		BIT(1)	/* Deassert CS after transfer */

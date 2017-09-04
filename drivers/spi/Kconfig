@@ -190,7 +190,9 @@ config OMAP3_SPI
 endif # if DM_SPI
 
 config FMC_SPI
-        bool "FMC SPI driver"
+        bool "ASPEED FMC SPI driver"
+	help
+	  Enable the ASPEED FMC driver for AST2400/AST2500
 
 config FSL_ESPI
 	bool "Freescale eSPI driver"

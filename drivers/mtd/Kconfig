@@ -35,19 +35,6 @@ config FLASH_PIC32
 	  This enables access to Microchip PIC32 internal non-CFI flash
 	  chips through PIC32 Non-Volatile-Memory Controller.
 
-config AST_FMC_NOR
-	bool "AST FMC NOR Flash driver"
-	depends on ARCH_ASPEED
-	
-config FMC_CS
-        int "FMC Chip Select number support"
-        default 2
-        depends on AST_FMC_NOR
-
-config AST_SPI_NOR
-	bool "AST SPI NOR Flash driver"
-	depends on AST_FMC_NOR
-
 endmenu
 
 source "drivers/mtd/nand/Kconfig"

@@ -67,6 +67,8 @@ static struct spi_flash *spi_flash_probe_tail(struct spi_slave *bus)
 	}
 
 	flash->spi = bus;
+	//add struct of AST SOC Chip
+	bus->flash = flash;
 	if (spi_flash_probe_slave(flash)) {
 		spi_free_slave(bus);
 		free(flash);
@@ -152,6 +154,8 @@ static int spi_flash_std_probe(struct udevice *dev)
 	flash = dev_get_uclass_priv(dev);
 	flash->dev = dev;
 	flash->spi = slave;
+	//add for AST SOC Chip
+	slave->flash = flash;
 	debug("%s: slave=%p, cs=%d\n", __func__, slave, plat->cs);
 	return spi_flash_probe_slave(flash);
 }

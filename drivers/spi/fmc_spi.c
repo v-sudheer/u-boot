@@ -22,25 +22,112 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+
 #include <common.h>
 #include <spi.h>
 #include <malloc.h>
 #include <asm/io.h>
+#include <spi_flash.h>
 
-#include <asm/arch/regs-fmc.h>
 #include <asm/arch/ast-scu.h>
+#include <asm/arch/aspeed.h>
+#include "../mtd/spi/sf_internal.h"
+
+/* Register definitions for the AST SPI Controller  AST-G4*/
+#define AST_SPI_CONFIG			0x00
+#define AST_SPI_CTRL				0x04
+#define AST_SPI_DMA_STS			0x08
+#define AST_SPI_MISC			0x10
+#define AST_SPI_TIMING			0x14
+
+/* AST_SPI_CONFIG 0x00 : SPI00 CE Type Setting Register */
+#ifdef AST_SOC_G5
+#define SPI_CONF_CE1_WEN		(0x1 << 17)
+#define SPI_CONF_CE0_WEN		(0x1 << 16)
+#else
+#define SPI_CONF_CE0_WEN		(0x1)
+#endif
+
+/* Register offsets */
+#define FMC_SPI_CONFIG			0x00
+#define FMC_SPI_CTRL			0x04
+#define FMC_SPI_DMA_STS		0x08
+
+#define FMC_SPI_CE0_CTRL		0x10
+#define FMC_SPI_CE1_CTRL		0x14
+
+#define AST_SPI_DMA_CTRL		0x80
+#define AST_SPI_DMA_FLASH_BASE	0x84
+#define AST_SPI_DMA_DRAM_BASE	0x88
+#define AST_SPI_DMA_LENGTH	0x8c
+
+/* AST_FMC_CONFIG 0x00 : FMC00 CE Type Setting Register */
+#define FMC_CONF_LAGACY_DIS	(0x1 << 31)
+#define FMC_CONF_CE1_WEN		(0x1 << 17)
+#define FMC_CONF_CE0_WEN		(0x1 << 16)
+#define FMC_CONF_CE1_SPI		(0x2 << 2)
+#define FMC_CONF_CE0_SPI		(0x2)
+
+/* FMC_SPI_CTRL	: 0x04 : FMC04 CE Control Register */
+#define FMC_CTRL_CE1_4BYTE_MODE	(0x1 << 1)
+#define FMC_CTRL_CE0_4BYTE_MODE	(0x1)
+
+/* FMC_SPI_DMA_STS	: 0x08 : FMC08 Interrupt Control and Status Register */
+#define FMC_STS_DMA_READY		0x0800
+#define FMC_STS_DMA_CLEAR		0x0800
+
+/* FMC_CE0_CTRL	for SPI 0x10, 0x14, 0x18, 0x1c, 0x20 */
+#define SPI_IO_MODE_MASK		(3 << 28)
+#define SPI_SINGLE_BIT			(0 << 28)
+#define SPI_DUAL_MODE			(0x2 << 28)
+#define SPI_DUAL_IO_MODE		(0x3 << 28)
+#define SPI_QUAD_MODE			(0x4 << 28)
+#define SPI_QUAD_IO_MODE		(0x5 << 28)
+
+#define SPI_CE_WIDTH(x)			(x << 24)
+#define SPI_CMD_DATA_MASK		(0xff << 16)
+#define SPI_CMD_DATA(x)			(x << 16)
+#define SPI_DUMMY_CMD			(1 << 15)
+#define SPI_DUMMY_HIGH			(1 << 14)
+//#define SPI_CLK_DIV				(1 << 13)		?? TODO ask....
+//#define SPI_ADDR_CYCLE			(1 << 13)		?? TODO ask....
+#define SPI_CMD_MERGE_DIS		(1 << 12)
+#define SPI_CLK_DIV(x)			(x << 8)
+#define SPI_CLK_DIV_MASK		(0xf << 8)
+
+#define SPI_DUMMY_LOW_MASK	(0x3 << 6)
+#define SPI_DUMMY_LOW(x)		((x) << 6)
+#define SPI_LSB_FIRST_CTRL		(1 << 5)
+#define SPI_CPOL_1				(1 << 4)
+#define SPI_DUAL_DATA			(1 << 3)
+#define SPI_CE_INACTIVE			(1 << 2)
+#define SPI_CMD_MODE_MASK		(0x3)
+#define SPI_CMD_NORMAL_READ_MODE		0
+#define SPI_CMD_READ_CMD_MODE		1
+#define SPI_CMD_WRITE_CMD_MODE		2
+#define SPI_CMD_USER_MODE			3
+
+/* AST_SPI_DMA_CTRL				0x80 */
+#define FMC_DMA_ENABLE		(0x1)
 
 struct ast_spi_host {
-	struct spi_slave slave;	
-	void		*base;	
-	void		*regs;
-	void 		*buff;			
+	struct spi_slave slave;
+	void		*base;
+	void		*ctrl_regs;
+	void 		*buff;
 	u32 	(*get_clk)(void);
 };
 
-//#define ASPEED_SPI_DEBUG
+//#define AST_SPI_DEBUG
+//#define AST_SPI_DATA_DEBUG
 
-#ifdef ASPEED_SPI_DEBUG
+#ifdef AST_SPI_DEBUG
+#define SPIBUG(fmt, args...) printf(fmt, ## args)
+#else
+#define SPIBUG(fmt, args...)
+#endif
+
+#ifdef AST_SPI_DATA_DEBUG
 #define SPIDBUG(fmt, args...) printf(fmt, ## args)
 #else
 #define SPIDBUG(fmt, args...)
@@ -53,40 +140,9 @@ static inline struct ast_spi_host *to_ast_spi(struct spi_slave *slave)
 	return container_of(slave, struct ast_spi_host, slave);
 }
 
-static inline void
-ast_spi_write(struct ast_spi_host *spi, u32 val, u32 reg)
-{
-	SPIDBUG(" val: %x , reg : %x \n",val,reg);	
-	if(reg == 0x0)	
-		__raw_writel(val, spi->regs + reg);
-	else
-		__raw_writel(val, spi->base + reg);
-}
-
-static inline u32
-ast_spi_read(struct ast_spi_host *spi, u32 reg)
-{
-	if(reg == 0x0)
-		return __raw_readl(spi->regs + reg);
-	else
-		return __raw_readl(spi->base + reg);
-}
-
-
-void spi_init_f(void)
-{
-	SPIDBUG("spi_init_fffff \n");
-}
-
-void spi_init_r(void)
-{
-	SPIDBUG("spi_init_rrrrr \n");
-}
-
 void spi_init(void)
 {
-	SPIDBUG("spi_init iiii\n");
-	
+	SPIBUG("spi_init iiii\n");
 }
 
 static u32 ast_spi_calculate_divisor(u32 max_speed_hz)
@@ -103,7 +159,7 @@ static u32 ast_spi_calculate_divisor(u32 max_speed_hz)
 			break;
 		}
 	}
-		
+
 //	printf("hclk is %d, divisor is %d, target :%d , cal speed %d\n", hclk, spi_cdvr, max_speed_hz, hclk/SPI_DIV[i]);
 	return spi_cdvr;
 }
@@ -111,108 +167,119 @@ static u32 ast_spi_calculate_divisor(u32 max_speed_hz)
 struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 				  unsigned int max_hz, unsigned int mode)
 {
-	struct ast_spi_host	*spi;
+	struct ast_spi_host	*ast_spi;
+	u32 			fmc_config = FMC_CONF_LAGACY_DIS;
+	u32 			spi_config = 0;
 	u32			spi_ctrl;
-	u32 		div;	
+	u32			div;
 
-	printf("bus %d , cs %d , max_hz %d , mode %d \n", bus, cs, max_hz, mode);	
+	SPIBUG("spi_setup_slave bus %d, cs %d, max_hz %d, mode %d\n", bus, cs, max_hz, mode);
 
-	spi = spi_alloc_slave(struct ast_spi_host, bus, cs);
-	if (!spi)
+	ast_spi = spi_alloc_slave(struct ast_spi_host, bus, cs);
+	if (!ast_spi)
 		return NULL;
-
-
-//	spi->slave.bus = bus;
+	
+	ast_spi->slave.bus = bus;
+	ast_spi->slave.cs = cs;
+#ifdef AST_SOC_G5	
+	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL;
+#else
+	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL | SPI_RX_QUAD;
+#endif
 
 	switch(bus) {
-		case 0:
-			/* Flash Controller */
-			*((volatile ulong*) AST_FMC_BASE) |= 0x800f002a; /* enable Flash Write */
-			
-			spi->base = AST_FMC_BASE;
-//			spi->slave.cs = cs;
+		case 0:			
+			ast_spi->base = (void *)AST_FMC_BASE;
 			switch (cs) {
 				case 0:
-					spi->regs = (void *)AST_FMC_BASE + 0x10;
-					spi->buff = (void *)AST_FMC_CS0_BASE;
+					fmc_config |= FMC_CONF_CE0_WEN | FMC_CONF_CE0_SPI;
+					ast_spi->slave.memory_map = (void *)AST_FMC_CS0_BASE;
+					ast_spi->ctrl_regs = (void *)AST_FMC_BASE + FMC_SPI_CE0_CTRL;
+					ast_spi->buff = (void *)AST_FMC_CS0_BASE;
 					break;
-#ifdef AST_FMC_CS1_BASE
 				case 1:
-					*((volatile ulong*) 0x1e6e2088) |= 0x1000000; 
-					spi->regs = (void *)AST_FMC_BASE + 0x14;
-					spi->buff = (void *)AST_FMC_CS1_BASE;
+					*((volatile ulong*) 0x1e6e2088) |= (0x1 << 24); /* FWSPICS1# pin*/
+					fmc_config |= FMC_CONF_CE1_WEN | FMC_CONF_CE1_SPI;
+					ast_spi->slave.memory_map = (void *)AST_FMC_CS1_BASE;
+					ast_spi->ctrl_regs = (void *)AST_FMC_BASE + FMC_SPI_CE1_CTRL;
+					ast_spi->buff = (void *)AST_FMC_CS1_BASE;
 					break;
-#endif
-#ifdef AST_FMC_CS2_BASE
-				case 2:
-					*((volatile ulong*) 0x1e6e2088) |= 0x2000000; 
-					spi->regs = (void *)AST_FMC_BASE + 0x18;
-					spi->buff = (void *)AST_FMC_CS2_BASE;
-					break;
-#endif
-#ifdef AST_FMC_CS3_BASE
-				case 3:
-					spi->regs = (void *)AST_FMC_BASE + 0x1c;
-					spi->buff = (void *)AST_CS3_DEF_BASE;
-					break;
-#endif
 				default:
-					return NULL;
+					return 0;
+					break;
 			}
-		
-		break;
-		case 1:		
-			//SCU70
-			*((volatile ulong*) 0x1e6e2070) |= 0x1000; /* SPI strap */
-			/* Flash Controller */
-			*((volatile ulong*) AST_FMC_SPI0_BASE) |= 0x30000; /* enable Flash Write */			
-			spi->base = AST_FMC_SPI0_BASE;
-//			spi->slave.cs = cs;
+			/* enable Flash Write and select spi flash type*/
+//			printf("read config %x , and set config %x \n", readl(ast_spi->base), fmc_config);
+//			printf("read config 0x04 %x \n", readl(ast_spi->base + 0x04));
+			writel(fmc_config, ast_spi->base);
+			break;
+		case 1:
+			//AST-G5 use FMC, AST-G4 use SPI register 
+			//SCU70  SPI master strap */
+			ast_scu_spi_master(1);			
+			ast_spi->base = (void *)AST_FMC_SPI0_BASE;
 			switch (cs) {
-#ifdef AST_SPI0_CS0_BASE				
+#ifdef AST_SPI0_CS0_BASE	
 				case 0:
-					spi->regs = (void *)AST_FMC_SPI0_BASE + 0x10;
-					spi->buff = (void *)AST_SPI0_CS0_BASE;
+					spi_config |= SPI_CONF_CE0_WEN;
+#ifdef AST_SOC_G5
+					ast_spi->ctrl_regs = (void *)AST_FMC_SPI0_BASE + FMC_SPI_CE0_CTRL;
+					ast_spi->buff = (void *)AST_SPI0_CS0_BASE;
+#else
+					ast_spi->ctrl_regs = (void *)AST_SPI0_BASE + FMC_SPI_CTRL;
+					ast_spi->buff = (void *)AST_SPI0_MEM;
+#endif
 					break;
 #endif					
+/* AST-G4 no CS1 */
 #ifdef AST_SPI0_CS1_BASE
 				case 1:
-					spi->regs = (void *)AST_FMC_SPI0_BASE + 0x14;
-					spi->buff = (void *)AST_SPI0_CS1_BASE;
+					spi_config |= SPI_CONF_CE1_WEN;
+					ast_spi->ctrl_regs = (void *)AST_FMC_SPI0_BASE + FMC_SPI_CE1_CTRL;
+					ast_spi->buff = (void *)AST_SPI0_CS1_BASE;
 					break;
 #endif
 				default:
-					return NULL;
+					return 0;
+					break;
+				
 			}
-		
-		break;
+			/* Flash Controller enable Flash Write */ 
+			writel(spi_config, ast_spi->base);
+			break;
+#ifdef AST_FMC_SPI1_BASE			
 		case 2:
-			*((volatile ulong*) 0x1e6e2088) |= 0x3c000000; /* SPI pin*/
-			*((volatile ulong*) AST_FMC_SPI1_BASE) |= 0x30000; /* enable Flash Write */
-			spi->base = AST_FMC_SPI1_BASE;
-//			spi->slave.cs = cs;
+			*((volatile ulong*) 0x1e6e2088) |= (0x7 << 27); /* SPI pin*/
+			ast_spi->base = (void *)AST_FMC_SPI1_BASE;
 			switch (cs) {
 #ifdef AST_SPI1_CS0_BASE				
 				case 0:
-					spi->regs = (void *)AST_FMC_SPI1_BASE + 0x10;
-					spi->buff = (void *)AST_SPI1_CS0_BASE;
+					*((volatile ulong*) 0x1e6e2088) |= (0x1 << 26); /* SPI pin*/
+					spi_config |= SPI_CONF_CE0_WEN;
+					ast_spi->ctrl_regs = (void *)AST_FMC_SPI1_BASE + FMC_SPI_CE0_CTRL;
+					ast_spi->buff = (void *)AST_SPI1_CS0_BASE;
 					break;
 #endif					
 #ifdef AST_SPI1_CS1_BASE
 				case 1:
-					spi->regs = (void *)AST_FMC_SPI1_BASE + 0x14;
-					spi->buff = (void *)AST_SPI1_CS1_BASE;
+					*((volatile ulong*) 0x1e6e208c) |= (0x1); /* SPI pin*/
+					spi_config |= SPI_CONF_CE0_WEN;
+					ast_spi->ctrl_regs = (void *)AST_FMC_SPI1_BASE + FMC_SPI_CE1_CTRL;
+					ast_spi->buff = (void *)AST_SPI1_CS1_BASE;
 					break;
 #endif
 				default:
-					return NULL;
-			}			
-			break;		
+					return 0;
+					break;
+			}
+			/* Flash Controller enable Flash Write */ 
+			writel(spi_config, ast_spi->base);			
+			break;
+#endif			
 	}
 
 	/* AST2300 limit Max SPI CLK to 50MHz (Datasheet v1.2) */
-
-	spi_ctrl = ast_spi_read(spi, 0x00);	
+	spi_ctrl = 0;//readl(ast_spi->ctrl_regs);
 
 	//TODO MASK first
 	spi_ctrl &= ~SPI_IO_MODE_MASK;
@@ -220,9 +287,10 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	spi_ctrl &= ~SPI_CLK_DIV_MASK;
 //	spi_ctrl |= SPI_CLK_DIV(0x7);
 
-	div = ast_spi_calculate_divisor(max_hz);
-	spi_ctrl |= SPI_CLK_DIV(div);
 	
+	div = ast_spi_calculate_divisor(max_hz);
+//	printf("max_hz %d, div: %x \n",max_hz, div);
+	spi_ctrl |= SPI_CLK_DIV(div);	
 
 //	if (SPI_CPOL & mode) 
 //		spi_ctrl |= SPI_CPOL_1;
@@ -231,136 +299,217 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 	//ISSUE : ast spi ctrl couldn't use mode 3, so fix mode 0
 	spi_ctrl &= ~SPI_CPOL_1;
+	
+//	printf("write reg %x, : %x \n",ast_spi->ctrl_regs, spi_ctrl);
+	writel(spi_ctrl, ast_spi->ctrl_regs);
 
-	ast_spi_write(spi, spi_ctrl, 0x00);
-//	printf("write ctrl : %x \n");
-	return &spi->slave;
 
+	return &ast_spi->slave;
 }
 
-void spi_free_slave(struct spi_slave *slave)
+void fmc_spi_config_read_mode(struct ast_spi_host *ast_spi)
 {
-	free(slave);
-}
-
-int spi_claim_bus(struct spi_slave *slave)
-{
-//	struct ast_spi_host *spi = to_ast_spi(slave);
-	SPIDBUG("spi_claim_bus bus %d, cs %d\n",slave->bus, slave->cs);
-
-	//
-	return 0;
-
-}
-
-void spi_release_bus(struct spi_slave *slave)
-{
-	struct ast_spi_host *spi = to_ast_spi(slave);
-
-	SPIDBUG("spi_release_bus >>>>> >>>> \n");
-
-	ast_spi_write(spi, ast_spi_read(spi, 0x00) | SPI_CE_INACTIVE, 0x00);	
-	ast_spi_write(spi, ast_spi_read(spi, 0x00) & ~SPI_CMD_USER_MODE, 0x00);	
-	//Set to fast read mode ...
-	ast_spi_write(spi, SPI_CMD_DATA(0x0b) | SPI_CLK_DIV(7) | SPI_DUMMY_LOW(1) | SPI_CMD_FAST_R_MODE, 0x00);
-	//Set to dual fast read mode ...
-	//ast_spi_write(spi, SPI_IO_MODE(2) | SPI_CMD_DATA(0x3b) | SPI_CLK_DIV(7) | SPI_DUMMY_LOW(1) | SPI_CMD_FAST_R_MODE, 0x00);
+	struct spi_flash *flash = ast_spi->slave.flash;
+	/* Look for read commands */
+	switch(flash->read_cmd) {
+		case CMD_READ_ARRAY_FAST:
+			writel(readl(ast_spi->ctrl_regs) | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
+			break;
+		case CMD_READ_ARRAY_SLOW:
+			//keep to nomal read [0x03]
+			break;
+		case CMD_READ_DUAL_OUTPUT_FAST:
+			writel(readl(ast_spi->ctrl_regs) | SPI_DUAL_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
+			break;
+		case CMD_READ_DUAL_IO_FAST:
+			writel(readl(ast_spi->ctrl_regs) | SPI_DUAL_IO_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
+			break;					
+		case CMD_READ_QUAD_IO_FAST:
+			writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_IO_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
+			break;
+		case CMD_READ_QUAD_OUTPUT_FAST:
+			writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
+			break;
+		default:
+			printf("unknow read cmd %x \n", flash->read_cmd);
+			break;
+	}
+	SPIBUG("END yes flash %x \n", readl(ast_spi->ctrl_regs));	
 }
 
 int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	     void *din, unsigned long flags)
 {
-	struct ast_spi_host *spi = to_ast_spi(slave);
+	struct ast_spi_host *ast_spi = to_ast_spi(slave);
 	/* assume spi core configured to do 8 bit transfers */
 	uint bytes = bitlen / 8;
 	const uchar *txp = dout;
 	uchar *rxp = din;
+	struct spi_flash *flash = slave->flash;
 
-	SPIDBUG("%s: bus:%i cs:%i bitlen:%i bytes:%i flags:%lx\n", __func__,
+	SPIBUG("%s: bus:%i cs:%i bitlen:%i bytes:%i flags:%lx \n", __func__,
 		slave->bus, slave->cs, bitlen, bytes, flags);
 
+	if (flags & SPI_XFER_MMAP) {
+//		printf("SPI_XFER_MMAP \n: flash->write_cmd %x , flash->read_cmd %x \n", flash->write_cmd, flash->read_cmd);
+//		printf("spi_xfer flags %x read cmd %x TODO ~~\n", flags, *txp);
+		return 0;
+	}
+
+	if(flags & SPI_XFER_MMAP_END){
+		SPIBUG("SPI_XFER_MMAP_END \n");
+//		ast_spi_write(spi, ast_spi_read(spi, 0x00) & ~SPI_CE_HIGH, 0x00);
+		return 0;
+	}
+
 	if (bitlen == 0)
-		goto done;
+		return -1;
 
 	if (bitlen % 8) {
-		flags |= SPI_XFER_END;
-		goto done;
+		debug("spi_xfer: Non byte aligned SPI transfer\n");
+		return -1;
 	}
 
 	if (flags & SPI_XFER_BEGIN) {
-		SPIDBUG("\n ----------Xfer BEGIN -------\n");
-		ast_spi_write(spi, ast_spi_read(spi, 0x00) & ~SPI_IO_MODE_MASK , 0x00);		
-		ast_spi_write(spi, ast_spi_read(spi, 0x00) | SPI_CMD_USER_MODE , 0x00);
-		ast_spi_write(spi, ast_spi_read(spi, 0x00) & ~SPI_CE_INACTIVE, 0x00);
-	}   	
+		SPIBUG("\n ----------Xfer BEGIN -------\n");
+		if(flash->name) {
+			writel(readl(ast_spi->ctrl_regs) & ~SPI_IO_MODE_MASK, ast_spi->ctrl_regs);
+		}
+		writel((readl(ast_spi->ctrl_regs) | SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
+		writel(readl(ast_spi->ctrl_regs) & ~SPI_CE_INACTIVE, ast_spi->ctrl_regs);
+	}		
 
 
    while (bytes--) {
-   	uchar d;
-   	   if(txp) {
+	uchar d;
+	   if(txp) {
 		   d = txp ? *txp++ : 0xff;
 //		   SPIDBUG("%s: tx:%x ", __func__, d);
-		   __raw_writeb(d, spi->buff);
-   	   }
+		   __raw_writeb(d, ast_spi->buff);
+	   }
 //	   SPIDBUG("\n");
 	   if (rxp) {
-	   		d = __raw_readb(spi->buff);
+			d = __raw_readb(ast_spi->buff);
 		   *rxp++ = d;
 //		   SPIDBUG("rx:%x ", d);
 	   }
    }
-//   	SPIDBUG("\n");
-done:
+//		SPIDBUG("\n");
 	if (flags & SPI_XFER_END) {
-		SPIDBUG("SPI_XFER_END --- >\n");
-		ast_spi_write(spi, ast_spi_read(spi, 0x00) | SPI_CE_INACTIVE, 0x00);
-		ast_spi_write(spi, (ast_spi_read(spi, 0x00) & ~SPI_CMD_USER_MODE) , 0x00);
+		SPIBUG("\n ----------Xfer END -------\n");
+		writel(readl(ast_spi->ctrl_regs) | SPI_CE_INACTIVE, ast_spi->ctrl_regs);
+		writel(readl(ast_spi->ctrl_regs) & ~(SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
+		if(flash->name) {
+			fmc_spi_config_read_mode(ast_spi);
+		}
 	}
 
 	return 0;
-
 }
 
-#if 0
-void spi_set_4byte(struct spi_slave *slave)
+void spi_free_slave(struct spi_slave *slave)
 {
-	*((volatile ulong*) (AST_FMC_BASE + 0x4)) |= (0x1 << slave->cs); /* enable Flash 4byte mode */
+	struct ast_spi_host *ast_spi = to_ast_spi(slave);
+	SPIBUG("spi_free_slave slave->bus %d , slave->cs %d \n", slave->bus, slave->cs);
+	free(ast_spi);
 }
-#endif
 
-void spi_dma(struct spi_slave *slave, void *to, void *from, size_t len)
+int spi_claim_bus(struct spi_slave *slave)
 {
-	struct ast_spi_host *spi = to_ast_spi(slave);
-	ulong poll_time, data;
+	//init controller
+	struct ast_spi_host *ast_spi = to_ast_spi(slave);
+	struct spi_flash *flash = slave->flash;
+	u32 ctrl = readl(ast_spi->ctrl_regs) & ~(SPI_CMD_DATA_MASK | SPI_DUMMY_LOW_MASK | SPI_DUMMY_HIGH | SPI_IO_MODE_MASK | SPI_CMD_MODE_MASK);
+	SPIBUG("spi_claim_bus flash->write_cmd %x , flash->read_cmd %x flash->dummy_byte %d, 4 byte mode %d \n", flash->write_cmd, flash->read_cmd, flash->dummy_byte, flash->bytemode);
+	switch(slave->bus) {
+		case 0:
+			switch(slave->cs) {
+				case 0:
+					if(flash->bytemode)
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) | FMC_CTRL_CE0_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);
+					else
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) & ~FMC_CTRL_CE0_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);					
+					break;
+				case 1:
+					if(flash->bytemode)
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) | FMC_CTRL_CE1_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);
+					else
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) & ~FMC_CTRL_CE1_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);					
+					break;
+			}
+			break;
+		case 1:
+			switch(slave->cs) {
+				case 0:
+					if(flash->bytemode)
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) | FMC_CTRL_CE0_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);
+					else
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) & ~FMC_CTRL_CE0_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);					
+					break;
+				case 1:
+					if(flash->bytemode)
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) | FMC_CTRL_CE1_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);
+					else
+						writel(readl(ast_spi->base + FMC_SPI_CTRL) & ~FMC_CTRL_CE1_4BYTE_MODE, ast_spi->base + FMC_SPI_CTRL);					
+					break;
+			}
+			break;
+	}
+//	printf("read ctrl and mask %x \n", ctrl);
+	if(!flash->name) {
+		SPIBUG("Flash not yet \n");
+	} else {
+		SPIBUG("Flash is ok %s \n",flash->name);
+		//for high bit dummy byte
+		if(flash->dummy_byte & 0x4) 
+			ctrl |= SPI_CMD_DATA(flash->read_cmd) | SPI_DUMMY_LOW(flash->dummy_byte & 0x3) | SPI_DUMMY_HIGH;
+		else
+			ctrl |= SPI_CMD_DATA(flash->read_cmd) | SPI_DUMMY_LOW(flash->dummy_byte & 0x3);		
+
+		fmc_spi_config_read_mode(ast_spi);
+	}	
+
+//	printf("claim write ctrl %x \n", ctrl);
+	writel(ctrl, ast_spi->ctrl_regs);
+	return 0;
+}
+
+void spi_release_bus(struct spi_slave *slave)
+{
+	SPIBUG("spi_release_bus\n");
+	/* TODO: Shut the controller down */
+}
+
+/* TODO: control from sf layer to here through dm-spi */
+void spi_flash_copy_mmap(void *data, void *offset, size_t len)
+{	
+	ulong tmp;
+
+	SPIBUG("spi_flash_copy_mmap , data %x , offset %x, len %x[hex]\n", (u32)data, (u32)offset, len);
 	
-	if (to == from)
-		return;
-
-//	printf("spi dma to %x, start %x, len %x \n",to, from, len);
-	/* 4-bytes align */
+	if(len < 4) printf("TODO Fix \n");
+	if(len > 0x2000000) printf("TODO add dma bigger\n");
+	/* 4-bytes align 0 : 4 byte */
 	if(len % 4)
-		len += 4 - (len%4);
-
-        /* force end of burst read */
-	ast_spi_write(spi, ast_spi_read(spi, 0x0) | SPI_CE_INACTIVE, 0x0);
-	ast_spi_write(spi, ast_spi_read(spi, 0x0) & ~SPI_CE_INACTIVE, 0x0);		
-
-	ast_spi_write(spi, ast_spi_read(spi, AST_SPI_DMA_CTRL) & ~SPI_DMA_EN, AST_SPI_DMA_CTRL);
-	ast_spi_write(spi, (ulong *) (from), AST_SPI_DMA_FLASH_BASE);
-	ast_spi_write(spi, (ulong *) (to), AST_SPI_DMA_DRAM_BASE);
-	ast_spi_write(spi, (ulong *) (len), AST_SPI_DMA_LENGTH);
-	ast_spi_write(spi, SPI_DMA_EN, AST_SPI_DMA_CTRL);
+		len = len/4;
+	else
+		len = len/4 - 1;
 	
+      /* force end of burst read */
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) = (ulong) (~FMC_DMA_ENABLE);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_FLASH_BASE) = (ulong) (offset);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_DRAM_BASE) = (ulong) (data);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_LENGTH) = (ulong) (len);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) = (ulong) (FMC_DMA_ENABLE);
+
 	/* wait poll */
 	do {
-		udelay(100);	
-		data = ast_spi_read(spi, AST_SPI_DMA_STS);
-	} while (!(data & FLASH_STATUS_DMA_READY));
+		udelay(100);
+		tmp = *(ulong *) (AST_FMC_BASE + FMC_SPI_DMA_STS);
+	} while (!(tmp & FMC_STS_DMA_READY));
 
-	ast_spi_write(spi, ast_spi_read(spi, AST_SPI_DMA_CTRL) & ~SPI_DMA_EN, AST_SPI_DMA_CTRL);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) &= ~(FMC_DMA_ENABLE);
 	/* clear status */
-	ast_spi_write(spi, ast_spi_read(spi, AST_SPI_DMA_STS) | FLASH_STATUS_DMA_CLEAR, AST_SPI_DMA_STS);
-
-	return;
+	*(ulong *) (AST_FMC_BASE + FMC_SPI_DMA_STS) |= FMC_STS_DMA_CLEAR;
 
 }

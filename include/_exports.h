@@ -58,7 +58,6 @@
 #ifdef CONFIG_FMC_SPI
 	EXPORT_FUNC(spi_dma)
 #endif
-	EXPORT_FUNC(memmove_dma)
 	EXPORT_FUNC(spi_setup_slave, struct spi_slave *, spi_setup_slave,
 		    unsigned int, unsigned int, unsigned int, unsigned int)
 	EXPORT_FUNC(spi_free_slave, void, spi_free_slave, struct spi_slave *)

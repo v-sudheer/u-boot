@@ -22,12 +22,19 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static void spi_flash_addr(u32 addr, u8 *cmd)
+static void spi_flash_addr(u32 addr, u8 *cmd, u8 four_byte)
 {
 	/* cmd[0] is actual command */
-	cmd[1] = addr >> 16;
-	cmd[2] = addr >> 8;
-	cmd[3] = addr >> 0;
+	if (four_byte) {
+		cmd[1] = addr >> 24;
+		cmd[2] = addr >> 16;
+		cmd[3] = addr >> 8;
+		cmd[4] = addr >> 0;
+	} else {
+		cmd[1] = addr >> 16;
+		cmd[2] = addr >> 8;
+		cmd[3] = addr >> 0;
+	}
 }
 
 static int read_sr(struct spi_flash *flash, u8 *rs)
@@ -293,8 +300,9 @@ int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
 
 int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 {
+	size_t cmdsz;
 	u32 erase_size, erase_addr;
-	u8 cmd[SPI_FLASH_CMD_LEN];
+	u8 cmd[SPI_FLASH_CMD_LEN + 1];
 	int ret = -1;
 
 	erase_size = flash->erase_size;
@@ -319,17 +327,23 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		if (flash->dual_flash > SF_SINGLE_FLASH)
 			spi_flash_dual(flash, &erase_addr);
 #endif
+		if (flash->bytemode != SPI_4BYTE_MODE) {
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(flash, erase_addr);
-		if (ret < 0)
-			return ret;
+			ret = write_bar(flash, erase_addr);
+			if (ret < 0)
+				return ret;
 #endif
-		spi_flash_addr(erase_addr, cmd);
+			spi_flash_addr(erase_addr, cmd, 0);
+			cmdsz = SPI_FLASH_CMD_LEN;
+		} else {
+			spi_flash_addr(erase_addr, cmd, 1);
+			cmdsz = SPI_FLASH_CMD_LEN + 1;
+		}
 
 		debug("SF: erase %2x %2x %2x %2x (%x)\n", cmd[0], cmd[1],
 		      cmd[2], cmd[3], erase_addr);
 
-		ret = spi_flash_write_common(flash, cmd, sizeof(cmd), NULL, 0);
+		ret = spi_flash_write_common(flash, cmd, cmdsz, NULL, 0);
 		if (ret < 0) {
 			debug("SF: erase failed\n");
 			break;
@@ -345,11 +359,12 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf)
 {
+	size_t cmdsz;
 	struct spi_slave *spi = flash->spi;
 	unsigned long byte_addr, page_size;
 	u32 write_addr;
 	size_t chunk_len, actual;
-	u8 cmd[SPI_FLASH_CMD_LEN];
+	u8 cmd[SPI_FLASH_CMD_LEN + 1];
 	int ret = -1;
 
 	page_size = flash->page_size;
@@ -370,11 +385,19 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		if (flash->dual_flash > SF_SINGLE_FLASH)
 			spi_flash_dual(flash, &write_addr);
 #endif
+		if (flash->bytemode != SPI_4BYTE_MODE) {
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(flash, write_addr);
-		if (ret < 0)
-			return ret;
+			ret = write_bar(flash, write_addr);
+			if (ret < 0)
+				return ret;
 #endif
+			spi_flash_addr(write_addr, cmd, 0);
+			cmdsz = SPI_FLASH_CMD_LEN;
+		} else {
+			spi_flash_addr(write_addr, cmd, 1);
+			cmdsz = SPI_FLASH_CMD_LEN + 1;
+		}
+
 		byte_addr = offset % page_size;
 		chunk_len = min(len - actual, (size_t)(page_size - byte_addr));
 
@@ -382,12 +405,10 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 			chunk_len = min(chunk_len,
 					(size_t)spi->max_write_size);
 
-		spi_flash_addr(write_addr, cmd);
-
 		debug("SF: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x } chunk_len = %zu\n",
 		      buf + actual, cmd[0], cmd[1], cmd[2], cmd[3], chunk_len);
 
-		ret = spi_flash_write_common(flash, cmd, sizeof(cmd),
+		ret = spi_flash_write_common(flash, cmd, cmdsz,
 					buf + actual, chunk_len);
 		if (ret < 0) {
 			debug("SF: write failed\n");
@@ -460,6 +481,10 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 	}
 
 	cmdsz = SPI_FLASH_CMD_LEN + flash->dummy_byte;
+
+	if (flash->bytemode == SPI_4BYTE_MODE)
+		cmdsz += 1;
+
 	cmd = calloc(1, cmdsz);
 	if (!cmd) {
 		debug("SF: Failed to allocate cmd\n");
@@ -474,6 +499,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		if (flash->dual_flash > SF_SINGLE_FLASH)
 			spi_flash_dual(flash, &read_addr);
 #endif
+		if (flash->bytemode != SPI_4BYTE_MODE) {
 #ifdef CONFIG_SPI_FLASH_BAR
 		ret = write_bar(flash, read_addr);
 		if (ret < 0)
@@ -486,8 +512,14 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 			read_len = len;
 		else
 			read_len = remain_len;
-
-		spi_flash_addr(read_addr, cmd);
+			spi_flash_addr(read_addr, cmd, 0);
+		} else {
+			if (len > (SPI_FLASH_16MB_BOUN << flash->shift))
+				read_len = SPI_FLASH_16MB_BOUN << flash->shift;
+			else
+				read_len = len;
+			spi_flash_addr(read_addr, cmd, 1);
+		}
 
 		ret = spi_flash_read_common(flash, cmd, cmdsz, data, read_len);
 		if (ret < 0) {
@@ -831,6 +863,7 @@ static int macronix_quad_enable(struct spi_flash *flash)
 		return -EINVAL;
 	}
 
+	printf("SF: Macronix SR Quad bit is set!!\n");
 	return ret;
 }
 #endif
@@ -859,6 +892,7 @@ static int spansion_quad_enable(struct spi_flash *flash)
 		return -EINVAL;
 	}
 
+	printf("SF: Spansion SR Quad bit is set!!\n");
 	return ret;
 }
 #endif
@@ -884,7 +918,7 @@ static const struct spi_flash_info *spi_flash_read_id(struct spi_flash *flash)
 	}
 
 	printf("SF: unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
-	       id[0], id[1], id[2]);
+			id[0], id[1], id[2]);
 	return ERR_PTR(-ENODEV);
 }
 
@@ -948,11 +982,14 @@ int spi_flash_scan(struct spi_flash *flash)
 	if (IS_ERR_OR_NULL(info))
 		return -ENOENT;
 
-	/* Flash powers up read-only, so clear BP# bits */
+	/* Flash powers up, clean status register */
 	if (JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_ATMEL ||
 	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_MACRONIX ||
-	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SST)
+	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SST ||
+	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_WINBOND ||
+		JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SPANSION){
 		write_sr(flash, 0);
+	}
 
 	flash->name = info->name;
 	flash->memory_map = spi->memory_map;
@@ -1001,6 +1038,12 @@ int spi_flash_scan(struct spi_flash *flash)
 	flash->page_size <<= flash->shift;
 	flash->sector_size = info->sector_size << flash->shift;
 	flash->size = flash->sector_size * info->n_sectors << flash->shift;
+
+	if ((flash->size >> flash->shift) > SPI_FLASH_16MB_BOUN) {
+		flash->bytemode = SPI_4BYTE_MODE;
+	} else {
+		flash->bytemode = SPI_3BYTE_MODE;
+	}
 #ifdef CONFIG_SF_DUAL_FLASH
 	if (flash->dual_flash & SF_DUAL_STACKED_FLASH)
 		flash->size <<= 1;
@@ -1031,16 +1074,24 @@ int spi_flash_scan(struct spi_flash *flash)
 		flash->read_cmd = CMD_READ_DUAL_OUTPUT_FAST;
 
 	/* Look for write commands */
-	if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD)
-		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
-	else
-		/* Go for default supported write cmd */
-		flash->write_cmd = CMD_PAGE_PROGRAM;
+	if (info->flags & WR_QIOPP && spi->mode & SPI_TX_QUAD_IO) {
+		flash->write_cmd = (flash->bytemode == SPI_4BYTE_MODE) ?
+			CMD_QUAD_IO_PAGE_PROGRAM_4B : CMD_QUAD_IO_PAGE_PROGRAM;
+	} else if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD) {
+		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;	
+	} else {
+			/* Go for default supported write cmd */
+		flash->write_cmd = (flash->bytemode == SPI_4BYTE_MODE) ?
+			CMD_PAGE_PROGRAM_4B : CMD_PAGE_PROGRAM;
+	}
 
 	/* Set the quad enable bit - only for quad commands */
 	if ((flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST) ||
 	    (flash->read_cmd == CMD_READ_QUAD_IO_FAST) ||
-	    (flash->write_cmd == CMD_QUAD_PAGE_PROGRAM)) {
+        (flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST_4B) ||
+        (flash->read_cmd == CMD_READ_QUAD_IO_FAST_4B) ||
+	    (flash->write_cmd == CMD_QUAD_IO_PAGE_PROGRAM)||
+            (flash->write_cmd == CMD_QUAD_IO_PAGE_PROGRAM_4B )) {
 		ret = set_quad_mode(flash, info);
 		if (ret) {
 			debug("SF: Fail to set QEB for %02x\n",
@@ -1048,7 +1099,6 @@ int spi_flash_scan(struct spi_flash *flash)
 			return -EINVAL;
 		}
 	}
-
 	/* Read dummy_byte: dummy byte is determined based on the
 	 * dummy cycles of a particular command.
 	 * Fast commands - dummy_byte = dummy_cycles/8
@@ -1057,6 +1107,33 @@ int spi_flash_scan(struct spi_flash *flash)
 	 * based on particular command but incase of fast commands except
 	 * data all go on single line irrespective of command.
 	 */
+#if 0	 
+	switch (flash->read_cmd) {
+	case CMD_READ_ARRAY_SLOW:
+	case CMD_READ_ARRAY_SLOW_4B:
+		flash->dummy_byte = 0;
+		break;
+	case CMD_READ_DUAL_OUTPUT_FAST:
+	case CMD_READ_DUAL_OUTPUT_FAST_4B:
+		flash->dummy_byte = 4;
+		break;
+	case CMD_READ_DUAL_IO_FAST:
+	case CMD_READ_DUAL_IO_FAST_4B:
+		flash->dummy_byte = 4;
+		break;
+	case CMD_READ_QUAD_OUTPUT_FAST:
+	case CMD_READ_QUAD_OUTPUT_FAST_4B:
+		flash->dummy_byte = 4;
+		break;
+	case CMD_READ_QUAD_IO_FAST:
+	case CMD_READ_QUAD_IO_FAST_4B:
+		flash->dummy_byte = 4;
+		break;		
+	default:
+		flash->dummy_byte = 1;
+		break;
+	}
+#else
 	switch (flash->read_cmd) {
 	case CMD_READ_QUAD_IO_FAST:
 		flash->dummy_byte = 2;
@@ -1066,8 +1143,9 @@ int spi_flash_scan(struct spi_flash *flash)
 		break;
 	default:
 		flash->dummy_byte = 1;
-	}
-
+		break;
+	}	
+#endif
 #ifdef CONFIG_SPI_FLASH_STMICRO
 	if (info->flags & E_FSR)
 		flash->flags |= SNOR_F_USE_FSR;
@@ -1095,7 +1173,7 @@ int spi_flash_scan(struct spi_flash *flash)
 	print_size(flash->size, "");
 	if (flash->memory_map)
 		printf(", mapped at %p", flash->memory_map);
-	puts("\n");
+//	puts("\n");
 #endif
 
 #ifndef CONFIG_SPI_FLASH_BAR
@@ -1103,9 +1181,17 @@ int spi_flash_scan(struct spi_flash *flash)
 	     (flash->size > SPI_FLASH_16MB_BOUN)) ||
 	     ((flash->dual_flash > SF_SINGLE_FLASH) &&
 	     (flash->size > SPI_FLASH_16MB_BOUN << 1))) {
+#if 0	     
 		puts("SF: Warning - Only lower 16MiB accessible,");
 		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
-	}
+#else	
+		u8 cmd;
+		cmd = CMD_ENTER_4B_ADDR;
+		spi_flash_write_common(flash, &cmd, 1, NULL, 0);
+		puts(" (Enter 4 byte mode) \n");
+#endif		
+	} else 
+		puts(" (Enter 3 byte mode) \n");
 #endif
 
 	return 0;

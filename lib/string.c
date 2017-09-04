@@ -19,6 +19,7 @@
 #include <linux/string.h>
 #include <linux/ctype.h>
 #include <malloc.h>
+#include <spi.h>
 
 #include <common.h>
 
@@ -508,7 +509,7 @@ void * memcpy(void *dest, const void *src, size_t count)
  */
 void * memmove(void * dest,const void *src,size_t count)
 {
-#ifdef CONFIG_AST_FMC_NOR			
+#ifdef CONFIG_FMC_SPI
 		char *tmp, *s;
 		if (src == dest)
 			return dest;
@@ -516,7 +517,7 @@ void * memmove(void * dest,const void *src,size_t count)
 		if(((s = getenv("spi_dma")) != NULL) && (strcmp(s, "yes") == 0)) {
 			if(((u32)src >= AST_FMC_CS0_BASE) && ((u32)src < (AST_FMC_CS0_BASE + 0x10000000))) {
 //				printf("dma dest %x, src %x, len %d\n", dest, src, count);
-				memmove_dma((void *)dest, (void *)src, count);
+				spi_flash_copy_mmap((void *)dest, (void *)src, count);
 				return dest;
 			} else {
 				goto cpu_cp;

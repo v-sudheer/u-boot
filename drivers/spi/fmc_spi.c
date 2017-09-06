@@ -224,9 +224,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 					spi_config |= SPI_CONF_CE0_WEN;
 #ifdef AST_SOC_G5
 					ast_spi->ctrl_regs = (void *)AST_FMC_SPI0_BASE + FMC_SPI_CE0_CTRL;
+					ast_spi->slave.memory_map = (void *)AST_SPI0_CS0_BASE;
 					ast_spi->buff = (void *)AST_SPI0_CS0_BASE;
 #else
 					ast_spi->ctrl_regs = (void *)AST_SPI0_BASE + FMC_SPI_CTRL;
+					ast_spi->slave.memory_map = (void *)AST_SPI0_MEM;
 					ast_spi->buff = (void *)AST_SPI0_MEM;
 #endif
 					break;
@@ -236,6 +238,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 				case 1:
 					spi_config |= SPI_CONF_CE1_WEN;
 					ast_spi->ctrl_regs = (void *)AST_FMC_SPI0_BASE + FMC_SPI_CE1_CTRL;
+					ast_spi->slave.memory_map = (void *)AST_SPI0_CS1_BASE;
 					ast_spi->buff = (void *)AST_SPI0_CS1_BASE;
 					break;
 #endif
@@ -311,6 +314,7 @@ void fmc_spi_config_read_mode(struct ast_spi_host *ast_spi)
 {
 	struct spi_flash *flash = ast_spi->slave.flash;
 	/* Look for read commands */
+	SPIBUG("fmc_spi_config_read_mode %x \n", flash->read_cmd);	
 	switch(flash->read_cmd) {
 		case CMD_READ_ARRAY_FAST:
 			writel(readl(ast_spi->ctrl_regs) | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
@@ -319,15 +323,19 @@ void fmc_spi_config_read_mode(struct ast_spi_host *ast_spi)
 			//keep to nomal read [0x03]
 			break;
 		case CMD_READ_DUAL_OUTPUT_FAST:
+		case CMD_READ_DUAL_OUTPUT_FAST_4B:
 			writel(readl(ast_spi->ctrl_regs) | SPI_DUAL_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
 			break;
 		case CMD_READ_DUAL_IO_FAST:
+		case CMD_READ_DUAL_IO_FAST_4B:
 			writel(readl(ast_spi->ctrl_regs) | SPI_DUAL_IO_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
 			break;					
 		case CMD_READ_QUAD_IO_FAST:
+		case CMD_READ_QUAD_IO_FAST_4B:
 			writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_IO_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
 			break;
 		case CMD_READ_QUAD_OUTPUT_FAST:
+		case CMD_READ_QUAD_OUTPUT_FAST_4B:	
 			writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_MODE | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
 			break;
 		default:
@@ -347,7 +355,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	uchar *rxp = din;
 	struct spi_flash *flash = slave->flash;
 
-	SPIBUG("%s: ctrl reg %x, bus:%i cs:%i bitlen:%i bytes:%i flags:%lx \n", __func__, (u32)ast_spi->ctrl_regs,
+	SPIBUG("%s: ctrl %x, bus:%i cs:%i bitlen:%i bytes:%i flags:%lx \n", __func__, readl(ast_spi->ctrl_regs),
 		slave->bus, slave->cs, bitlen, bytes, flags);
 
 	if (flags & SPI_XFER_MMAP) {
@@ -420,7 +428,7 @@ int spi_claim_bus(struct spi_slave *slave)
 	struct ast_spi_host *ast_spi = to_ast_spi(slave);
 	struct spi_flash *flash = slave->flash;
 	u32 ctrl = readl(ast_spi->ctrl_regs) & ~(SPI_CMD_DATA_MASK | SPI_DUMMY_LOW_MASK | SPI_DUMMY_HIGH | SPI_IO_MODE_MASK | SPI_CMD_MODE_MASK);
-	SPIBUG("spi_claim_bus ctrl reg %x, flash->write_cmd %x , flash->read_cmd %x flash->dummy_byte %d, 4 byte mode %d \n", (u32)ast_spi->ctrl_regs, flash->write_cmd, flash->read_cmd, flash->dummy_byte, flash->bytemode);
+	SPIBUG("spi_claim_bus ctrl %x, flash->write_cmd %x , flash->read_cmd %x flash->dummy_byte %d, 4 byte mode %d \n", readl(ast_spi->ctrl_regs), flash->write_cmd, flash->read_cmd, flash->dummy_byte, flash->bytemode);
 	switch(slave->bus) {
 		case 0:
 			switch(slave->cs) {
@@ -458,6 +466,7 @@ int spi_claim_bus(struct spi_slave *slave)
 //	printf("read ctrl and mask %x \n", ctrl);
 	if(!flash->name) {
 		SPIBUG("Flash not yet \n");
+		writel(ctrl, ast_spi->ctrl_regs);
 	} else {
 		SPIBUG("Flash is ok %s \n",flash->name);
 		//for high bit dummy byte
@@ -466,11 +475,9 @@ int spi_claim_bus(struct spi_slave *slave)
 		else
 			ctrl |= SPI_CMD_DATA(flash->read_cmd) | SPI_DUMMY_LOW(flash->dummy_byte & 0x3);		
 
+		writel(ctrl, ast_spi->ctrl_regs);
 		fmc_spi_config_read_mode(ast_spi);
-	}	
-
-//	printf("claim write ctrl %x \n", ctrl);
-	writel(ctrl, ast_spi->ctrl_regs);
+	}
 	return 0;
 }
 
@@ -485,7 +492,7 @@ void spi_flash_copy_mmap(void *data, void *offset, size_t len)
 {	
 	ulong tmp;
 
-	SPIBUG("spi_flash_copy_mmap , data %x , offset %x, len %x[hex]\n", (u32)data, (u32)offset, len);
+	SPIBUG("spi_flash_copy_mmap , data %x , offset %x, len %x[hex], ctrl reg %x\n", (u32)data, (u32)offset, len, readl(AST_FMC_BASE + 0x10));
 	
 	if(len < 4) printf("TODO Fix \n");
 	if(len > 0x2000000) printf("TODO add dma bigger\n");

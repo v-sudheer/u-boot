@@ -1064,6 +1064,26 @@ int spi_flash_scan(struct spi_flash *flash)
 	/* Now erase size becomes valid sector size */
 	flash->sector_size = flash->erase_size;
 
+#if 1
+	if (info->flags & RD_QUADIO && spi->mode & SPI_RX_QUAD_IO)
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ? 
+			CMD_READ_QUAD_IO_FAST_4B : CMD_READ_QUAD_IO_FAST;
+	else if (info->flags & RD_QUAD && spi->mode & SPI_RX_QUAD)
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ?
+			CMD_READ_QUAD_OUTPUT_FAST_4B : CMD_READ_QUAD_OUTPUT_FAST;
+	else if (info->flags & RD_DUALIO && spi->mode & SPI_RX_DUAL_IO)
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ? 
+			CMD_READ_DUAL_IO_FAST_4B : CMD_READ_DUAL_IO_FAST;
+	else if (info->flags & RD_DUAL && spi->mode & SPI_RX_DUAL)
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ? 
+			CMD_READ_DUAL_OUTPUT_FAST_4B : CMD_READ_DUAL_OUTPUT_FAST;
+	else if (info->flags & RD_FAST)
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ?
+			CMD_READ_ARRAY_FAST_4B : CMD_READ_ARRAY_FAST;
+	else
+		flash->read_cmd = (flash->bytemode == SPI_4BYTE_MODE) ?
+			CMD_READ_ARRAY_SLOW_4B : CMD_READ_ARRAY_SLOW;
+#else
 	/* Look for read commands */
 	flash->read_cmd = CMD_READ_ARRAY_FAST;
 	if (spi->mode & SPI_RX_SLOW)
@@ -1072,6 +1092,7 @@ int spi_flash_scan(struct spi_flash *flash)
 		flash->read_cmd = CMD_READ_QUAD_OUTPUT_FAST;
 	else if (spi->mode & SPI_RX_DUAL && info->flags & RD_DUAL)
 		flash->read_cmd = CMD_READ_DUAL_OUTPUT_FAST;
+#endif
 
 	/* Look for write commands */
 	if (info->flags & WR_QIOPP && spi->mode & SPI_TX_QUAD_IO) {

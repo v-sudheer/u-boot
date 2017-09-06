@@ -182,6 +182,15 @@
 #define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
 #define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
 /* ------------------------------------------------------------------------- */
+/* mtdparts command line support */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#define MTDIDS_DEFAULT          "nor0=spi-flash.0"
+#define MTDPARTS_DEFAULT                "mtdparts=spi-flash.0:" \
+                                        "384k(u-boot),128k(u-boot-env)," \
+                                        "3585k(uImage),6144k(rootfs)," \
+                                        "64k(NVRAM),64k(ART)"
+/* ------------------------------------------------------------------------- */
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */

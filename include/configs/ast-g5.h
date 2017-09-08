@@ -186,10 +186,13 @@
 #define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_DEVICE
 #define MTDIDS_DEFAULT          "nor0=spi-flash.0"
-#define MTDPARTS_DEFAULT                "mtdparts=spi-flash.0:" \
-                                        "384k(u-boot),128k(u-boot-env)," \
-                                        "3585k(uImage),6144k(rootfs)," \
-                                        "64k(NVRAM),64k(ART)"
+#define MTDPARTS_DEFAULT   \
+						"mtdparts=spi-flash.0:0x60000@0x0(u-boot)," \
+						"0x10000@0x60000(u-boot-env)," \
+						"0x10000@0x70000(dts)," \
+						"0x380000@0x80000(kernel)," \
+						"0x400000@0x400000(rootfs)," \
+						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
 #define CONFIG_ENV_OVERWRITE

@@ -157,18 +157,19 @@
 #define CONFIG_FAT_WRITE
 #define CONFIG_CMD_PART
 
-
-#ifdef CONFIG_AST_FMC_NOR
-#define CONFIG_SYS_MAX_FLASH_BANKS 	(CONFIG_FMC_CS)
-#define CONFIG_SYS_MAX_FLASH_SECT	(8192)		/* max number of sectors on one chip */
-#define CONFIG_ENV_IS_IN_FLASH			1
-#define CONFIG_ENV_ADDR				(AST_FMC_CS0_BASE + 0x60000)
-#endif
+/* ------------------------------------------------------------------------- */
+#define CONFIG_ENV_SPI_BUS		0
+#define CONFIG_ENV_SPI_CS		0
+#define CONFIG_ENV_SPI_MAX_HZ	50000000 //50MHz
+#define CONFIG_ENV_SPI_MODE		SPI_MODE_3
+#define CONFIG_SYS_MAX_FLASH_BANKS		(CONFIG_FMC_CS)
+#define CONFIG_ENV_IS_IN_SPI_FLASH		1
+#define CONFIG_ENV_SECT_SIZE		0x20000		//4K sector
+#define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
+#define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
+/* ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------- */
-#define CONFIG_ENV_OFFSET		0x60000	/* environment starts here  */
-#define CONFIG_ENV_SIZE			0x20000	/* Total Size of Environment Sector */
-
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
 #define CONFIG_ENV_OVERWRITE
 

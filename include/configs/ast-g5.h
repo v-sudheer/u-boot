@@ -178,9 +178,9 @@
 #define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
 #define CONFIG_SYS_MAX_FLASH_BANKS		(0)
 #define CONFIG_ENV_IS_IN_SPI_FLASH		1
-#define CONFIG_ENV_SECT_SIZE		0x20000		//4K sector
+#define CONFIG_ENV_SECT_SIZE		0x10000		//4K sector
 #define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
-#define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_SIZE				0x10000	/* Total Size of Environment Sector */
 /* ------------------------------------------------------------------------- */
 /* mtdparts command line support */
 #define CONFIG_CMD_MTDPARTS
@@ -190,7 +190,7 @@
 						"mtdparts=spi-flash.0:0x60000@0x0(u-boot)," \
 						"0x10000@0x60000(u-boot-env)," \
 						"0x10000@0x70000(dts)," \
-						"0x380000@0x80000(kernel)," \
+						"0x380000@0x80000(uImage)," \
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */

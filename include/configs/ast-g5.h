@@ -114,14 +114,14 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 ramdisk_size=65536 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"spi_dma=no\0"\
 	"update=tftp 80800000 ast2500.scr; so 80800000\0"\
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0"\
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 /* ------------------------------------------------------------------------- */
@@ -194,7 +194,7 @@
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 - 20070000"
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1

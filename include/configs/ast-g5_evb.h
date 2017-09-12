@@ -97,7 +97,7 @@
 	"verify=yes\0"\
 	"update=tftp 80800000 ast2500.scr; so 80800000\0"\
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0"\
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 /* ------------------------------------------------------------------------- */
@@ -147,26 +147,36 @@
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_3
 #endif
 
+#define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
 #define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
 #define CONFIG_ENV_SPI_MAX_HZ	CONFIG_SF_DEFAULT_SPEED //50MHz
 #define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
 #define CONFIG_SYS_MAX_FLASH_BANKS		(0)
 #define CONFIG_ENV_IS_IN_SPI_FLASH		1
-#define CONFIG_ENV_SECT_SIZE		0x20000		//4K sector
+#define CONFIG_ENV_SECT_SIZE		0x10000		//4K sector
 #define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
-#define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_SIZE				0x10000	/* Total Size of Environment Sector */
 /* ------------------------------------------------------------------------- */
-
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
+/* mtdparts command line support */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#define MTDIDS_DEFAULT          "nor0=spi-flash.0"
+#define MTDPARTS_DEFAULT   \
+						"mtdparts=spi-flash.0:0x60000@0x0(u-boot)," \
+						"0x10000@0x60000(u-boot-env)," \
+						"0x10000@0x70000(dts)," \
+						"0x380000@0x80000(uImage)," \
+						"0x400000@0x400000(rootfs)," \
+						"-(pd_rootfs)"
+/* ------------------------------------------------------------------------- */
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
 #define CONFIG_ENV_OVERWRITE
-
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1
 #define CONFIG_NETMASK			255.255.255.0
 #define CONFIG_IPADDR			192.168.0.45
 #define CONFIG_SERVERIP			192.168.0.81
-
 
 /* -------------------------------------------------------------------------
  *  2. UART5 message output

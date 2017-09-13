@@ -187,7 +187,7 @@
 #define MTDPARTS_DEFAULT   \
 						"mtdparts=spi-flash.0:0x60000@0x0(u-boot)," \
 						"0x10000@0x60000(u-boot-env)," \
-						"0x10000@0x70000(dts)," \
+						"0x10000@0x70000(dtb)," \
 						"0x380000@0x80000(uImage)," \
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"

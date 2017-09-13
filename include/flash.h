@@ -47,23 +47,6 @@ typedef struct {
 #ifdef CONFIG_MTD
 	struct mtd_info *mtd;
 #endif
-#ifdef CONFIG_AST_FMC_NOR
-	ulong 	reg_base;
-        ulong   readcmd;
-        ulong   dualport;
-	ulong	dummybyte;
-	ulong	tCK_Write;
-	ulong	tCK_Erase;
-	ulong	tCK_Read;
-	ulong	CE;
-	ulong 	sysspi;
-	ulong	iomode;
-	ulong   address32;
-	ulong   quadport;
-	ulong	dummydata;
-	ulong	buffersize;
-	ulong	specificspi;
-#endif
 } flash_info_t;
 
 extern flash_info_t flash_info[]; /* info for FLASH chips	*/

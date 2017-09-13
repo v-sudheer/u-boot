@@ -34,8 +34,6 @@
 
 #define CONFIG_CMDLINE_EDITING		1	/* command line history */
 
-/* Enable cache controller */
-#define CONFIG_SYS_DCACHE_OFF	1
 /* ------------------------------------------------------------------------- */
 /* additions for new relocation code, must added to all boards */
 #define CONFIG_SYS_SDRAM_BASE		(AST_DRAM_BASE)
@@ -78,6 +76,29 @@
 
 #define CONFIG_BOOTFILE		"all.bin"
 
+#define CONFIG_USBD_VENDORID		0x1A03
+#define CONFIG_USBD_PRODUCTID_CDCACM	0x2500	/* CDC ACM */
+
+
+#define CONFIG_USB_DEVICE
+#define CONFIG_USB_TTY
+
+#define CONFIG_USBD_HS
+#define CONFIG_USBD_PRODUCT_NAME	 "AST"
+#define CONFIG_USBD_MANUFACTURER	 "ASPEED"
+
+
+#define EP0_MAX_PACKET_SIZE			64 /* MUSB_EP0_FIFOSIZE */
+
+#define UDC_INT_ENDPOINT				3
+#define UDC_INT_PACKET_SIZE			64
+#define UDC_OUT_ENDPOINT				2
+#define UDC_OUT_PACKET_SIZE			1024
+#define UDC_IN_ENDPOINT				1
+#define UDC_IN_PACKET_SIZE				1024
+#define UDC_BULK_PACKET_SIZE			1024
+#define UDC_BULK_HS_PACKET_SIZE		1024
+
 /*
  * Miscellaneous configurable options
  */
@@ -91,17 +112,23 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x43000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 ramdisk_size=65536 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"spi_dma=no\0"\
 	"update=tftp 40800000 ast2400.scr; so 40800000\0"\
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0" \
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock3 rootfs=squashfs init=/linuxrc\0" \
+	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 /* ------------------------------------------------------------------------- */
+/* SD/MMC definition */
+#ifdef CONFIG_AST_SDHCI
+#define CONFIG_GENERIC_MMC
+/*#define CONFIG_MMC_TRACE*/
+#endif
+
 /* I2C definition */
 #ifdef CONFIG_CMD_I2C
 #define CONFIG_HARD_I2C		1		/* To enable I2C support	*/
@@ -142,17 +169,30 @@
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_3
 #endif
 
+#define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
 #define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
 #define CONFIG_ENV_SPI_MAX_HZ	CONFIG_SF_DEFAULT_SPEED //50MHz
 #define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
 #define CONFIG_SYS_MAX_FLASH_BANKS		(0)
 #define CONFIG_ENV_IS_IN_SPI_FLASH		1
-#define CONFIG_ENV_SECT_SIZE		0x20000		//4K sector
+#define CONFIG_ENV_SECT_SIZE		0x10000		//4K sector
 #define CONFIG_ENV_OFFSET			0x60000	/* environment starts here  */
-#define CONFIG_ENV_SIZE				0x20000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_SIZE				0x10000	/* Total Size of Environment Sector */
 /* ------------------------------------------------------------------------- */
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000"
+/* mtdparts command line support */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#define MTDIDS_DEFAULT          "nor0=spi-flash.0"
+#define MTDPARTS_DEFAULT   \
+						"mtdparts=spi-flash.0:0x60000@0x0(u-boot)," \
+						"0x10000@0x60000(u-boot-env)," \
+						"0x10000@0x70000(dts)," \
+						"0x380000@0x80000(uImage)," \
+						"0x400000@0x400000(rootfs)," \
+						"-(pd_rootfs)"
+/* ------------------------------------------------------------------------- */
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 - 20070000"
 #define CONFIG_ENV_OVERWRITE
 
 /* ------------------------------------------------------------------------- */

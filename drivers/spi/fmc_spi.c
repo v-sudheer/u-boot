@@ -181,10 +181,12 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	
 	ast_spi->slave.bus = bus;
 	ast_spi->slave.cs = cs;
-#ifdef AST_SOC_G5	
-	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL;
-#else
+
+#ifdef CONFIG_AST_SPI_QUAD
+	//only support in G4 platform
 	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL | SPI_RX_QUAD;
+#else
+	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL;
 #endif
 
 	switch(bus) {
@@ -216,8 +218,12 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 		case 1:
 			//AST-G5 use FMC, AST-G4 use SPI register 
 			//SCU70  SPI master strap */
-			ast_scu_spi_master(1);			
+			ast_scu_spi_master(1);
+#ifdef AST_SOC_G5			
 			ast_spi->base = (void *)AST_FMC_SPI0_BASE;
+#else
+			ast_spi->base = (void *)AST_SPI0_BASE;
+#endif
 			switch (cs) {
 #ifdef AST_SPI0_CS0_BASE	
 				case 0:

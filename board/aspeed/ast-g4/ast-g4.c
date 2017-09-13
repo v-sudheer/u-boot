@@ -23,6 +23,12 @@ void show_boot_progress(int progress)
 }
 #endif
 
+void enable_caches(void)
+{
+	/* Enable D-cache. I-cache is already enabled in start.S */
+}
+
+
 int board_init(void)
 {
 	/* adress of boot parameters */

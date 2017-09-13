@@ -165,6 +165,8 @@ CONFIG_IRMP=y
 # CONFIG_ARCH_AST2300 is not set
 CONFIG_ARCH_AST2400=y
 # CONFIG_ARCH_AST2500 is not set
+CONFIG_AST_VIDEO_SIZE=0x2800000
+# CONFIG_FPGA_ASPEED is not set
 # CONFIG_AST_CVIC is not set
 # CONFIG_AST_SCU_LOCK is not set
 CONFIG_IDENT_STRING=""
@@ -239,6 +241,8 @@ CONFIG_DISPLAY_BOARDINFO=y
 #
 # SPL / TPL
 #
+CONFIG_SUPPORT_SPL=y
+# CONFIG_SPL is not set
 
 #
 # Command line interface
@@ -312,11 +316,11 @@ CONFIG_CMD_CRC32=y
 #
 CONFIG_CMD_LOADB=y
 CONFIG_CMD_LOADS=y
-CONFIG_CMD_FLASH=y
+# CONFIG_CMD_FLASH is not set
 # CONFIG_CMD_ARMFLASH is not set
 # CONFIG_CMD_MMC is not set
 # CONFIG_CMD_NAND is not set
-# CONFIG_CMD_SF is not set
+CONFIG_CMD_SF=y
 # CONFIG_CMD_SPI is not set
 CONFIG_CMD_I2C=y
 # CONFIG_CMD_USB is not set
@@ -336,6 +340,7 @@ CONFIG_CMD_SOURCE=y
 #
 # Network commands
 #
+CONFIG_CMD_NETTEST=y
 CONFIG_CMD_NET=y
 # CONFIG_CMD_TFTPPUT is not set
 # CONFIG_CMD_TFTPSRV is not set
@@ -483,9 +488,6 @@ CONFIG_AST_SDMC=y
 #
 # MTD Support
 #
-CONFIG_AST_FMC_NOR=y
-CONFIG_FMC_CS=1
-# CONFIG_AST_SPI_NOR is not set
 
 #
 # NAND Device Support
@@ -508,13 +510,13 @@ CONFIG_SPI_FLASH=y
 # CONFIG_SPI_FLASH_ATMEL is not set
 # CONFIG_SPI_FLASH_EON is not set
 # CONFIG_SPI_FLASH_GIGADEVICE is not set
-# CONFIG_SPI_FLASH_MACRONIX is not set
+CONFIG_SPI_FLASH_MACRONIX=y
 # CONFIG_SPI_FLASH_SPANSION is not set
 # CONFIG_SPI_FLASH_STMICRO is not set
 # CONFIG_SPI_FLASH_SST is not set
-# CONFIG_SPI_FLASH_WINBOND is not set
+CONFIG_SPI_FLASH_WINBOND=y
 CONFIG_SPI_FLASH_USE_4K_SECTORS=y
-# CONFIG_SPI_FLASH_MTD is not set
+CONFIG_SPI_FLASH_MTD=y
 
 #
 # UBI support
@@ -575,6 +577,7 @@ CONFIG_SYS_NS16550=y
 #
 # SPI Support
 #
+CONFIG_FMC_SPI=y
 # CONFIG_FSL_ESPI is not set
 # CONFIG_FSL_QSPI is not set
 # CONFIG_TI_QSPI is not set
@@ -595,7 +598,41 @@ CONFIG_SYS_NS16550=y
 #
 # TPM support
 #
-# CONFIG_USB is not set
+CONFIG_USB=y
+
+#
+# USB Host Controller Drivers
+#
+# CONFIG_USB_XHCI_HCD is not set
+# CONFIG_USB_EHCI_HCD is not set
+# CONFIG_USB_EHCI is not set
+# CONFIG_USB_OHCI_HCD is not set
+# CONFIG_USB_UHCI_HCD is not set
+# CONFIG_USB_DWC3 is not set
+
+#
+# MUSB Controller Driver
+#
+# CONFIG_USB_MUSB_HOST is not set
+# CONFIG_USB_MUSB_GADGET is not set
+
+#
+# ULPI drivers
+#
+
+#
+# USB peripherals
+#
+# CONFIG_USB_STORAGE is not set
+# CONFIG_USB_KEYBOARD is not set
+CONFIG_USB_GADGET=y
+CONFIG_AST_UDC=y
+# CONFIG_USB_GADGET_ATMEL_USBA is not set
+# CONFIG_USB_GADGET_BCM_UDC_OTG_PHY is not set
+# CONFIG_USB_GADGET_DWC2_OTG is not set
+# CONFIG_CI_UDC is not set
+CONFIG_USB_GADGET_VBUS_DRAW=2
+# CONFIG_USB_GADGET_DOWNLOAD is not set
 
 #
 # Graphics support

@@ -49,7 +49,6 @@ int print_cpuinfo(void)
 
 	if(ast_sdmc_get_ecc())
 		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
-
 #endif
 	ast_scu_get_who_init_dram();
 

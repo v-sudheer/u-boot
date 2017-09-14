@@ -225,7 +225,6 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			ast_spi->base = (void *)AST_SPI0_BASE;
 #endif
 			switch (cs) {
-#ifdef AST_SPI0_CS0_BASE	
 				case 0:
 					spi_config |= SPI_CONF_CE0_WEN;
 #ifdef AST_SOC_G5
@@ -238,7 +237,6 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 					ast_spi->buff = (void *)AST_SPI0_MEM;
 #endif
 					break;
-#endif					
 /* AST-G4 no CS1 */
 #ifdef AST_SPI0_CS1_BASE
 				case 1:

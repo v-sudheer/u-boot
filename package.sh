@@ -23,7 +23,6 @@ if [ "$2" == "bmc" ]; then
 	rm -f $1/arch/arm/mach-aspeed/include/mach/*cam*.h
 	rm -rf $1/board/aspeed/ast-cam
 	rm -rf $1/arch/m68k/cpu/aspeed
-	rm -f $1/drivers/spi/fmc_spi.c
 	rm -f $1/arch/arm/cpu/ast-common/spl.c
 	rm -f $1/arch/arm/include/asm/arch-aspee/spl.h
 	rm -f $1/include/configs/ast-cam.h

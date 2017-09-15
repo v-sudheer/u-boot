@@ -325,7 +325,7 @@ CONFIG_CMD_I2C=y
 # CONFIG_CMD_DFU is not set
 # CONFIG_CMD_USB_MASS_STORAGE is not set
 CONFIG_CMD_FPGA=y
-CONFIG_CMD_GPIO=y
+# CONFIG_CMD_GPIO is not set
 
 #
 # Shell scripting commands

@@ -241,8 +241,6 @@ CONFIG_DISPLAY_BOARDINFO=y
 #
 # SPL / TPL
 #
-CONFIG_SUPPORT_SPL=y
-# CONFIG_SPL is not set
 
 #
 # Command line interface
@@ -448,7 +446,7 @@ CONFIG_BOOTP_VCI_STRING="U-Boot.arm"
 #
 # GPIO Support
 #
-CONFIG_AST_GPIO=y
+# CONFIG_AST_GPIO is not set
 
 #
 # I2C support

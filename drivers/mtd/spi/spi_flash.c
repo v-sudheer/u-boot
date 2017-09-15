@@ -1074,15 +1074,24 @@ int spi_flash_scan(struct spi_flash *flash)
 		flash->read_cmd = CMD_READ_DUAL_OUTPUT_FAST;
 
 	/* Look for write commands */
-	if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD)
-		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
-	else
+	if ((info->flags & WR_QPP) && (spi->mode & SPI_TX_QUAD)){
+		if((JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_WINBOND) || (JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SPANSION)){
+			flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
+		}else if(JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_MACRONIX){
+			flash->write_cmd = CMD_QUAD_IO_PAGE_PROGRAM;
+		}else{
+			//Todo: check more flash use io or not
+			flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
+		}
+	}else{
 		/* Go for default supported write cmd */
 		flash->write_cmd = CMD_PAGE_PROGRAM;
+	}
 
 	/* Set the quad enable bit - only for quad commands */
 	if ((flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST) ||
 	    (flash->read_cmd == CMD_READ_QUAD_IO_FAST) ||
+	    (flash->write_cmd == CMD_QUAD_IO_PAGE_PROGRAM) ||
 	    (flash->write_cmd == CMD_QUAD_PAGE_PROGRAM)) {
 		ret = set_quad_mode(flash, info);
 		if (ret) {

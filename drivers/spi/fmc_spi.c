@@ -184,7 +184,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 #ifdef CONFIG_AST_SPI_QUAD
 	//only support in G4 platform
-	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL | SPI_RX_QUAD;
+	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL | SPI_RX_QUAD | SPI_TX_QUAD;
 #else
 	ast_spi->slave.mode = SPI_MODE_3 | SPI_RX_DUAL;
 #endif
@@ -314,11 +314,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	return &ast_spi->slave;
 }
 
-void fmc_spi_config_read_mode(struct ast_spi_host *ast_spi)
+void fmc_spi_read_config(struct ast_spi_host *ast_spi)
 {
 	struct spi_flash *flash = ast_spi->slave.flash;
 	/* Look for read commands */
-	SPIBUG("fmc_spi_config_read_mode %x \n", flash->read_cmd);	
+	SPIBUG("fmc_spi_read_config %x \n", flash->read_cmd);	
 	switch(flash->read_cmd) {
 		case CMD_READ_ARRAY_FAST:
 			writel(readl(ast_spi->ctrl_regs) | SPI_CMD_READ_CMD_MODE, ast_spi->ctrl_regs);
@@ -383,36 +383,52 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	}
 
 	if (flags & SPI_XFER_BEGIN) {
-		SPIDBUG("\n ----------Xfer BEGIN -------\n");
+		SPIDBUG("\n ----------Xfer BEGIN -------\n");		
 		if(flash->name) {
 			writel(readl(ast_spi->ctrl_regs) & ~SPI_IO_MODE_MASK, ast_spi->ctrl_regs);
 		}
 		writel((readl(ast_spi->ctrl_regs) | SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~SPI_CE_INACTIVE, ast_spi->ctrl_regs);
+
+		if(txp[0] == CMD_QUAD_IO_PAGE_PROGRAM) {
+			printf("CMD_QUAD_IO_PAGE_PROGRAM \n");
+			//for cmd is nornal write 
+			__raw_writeb(txp[0], ast_spi->buff);
+			writel((readl(ast_spi->ctrl_regs) | SPI_QUAD_IO_MODE), ast_spi->ctrl_regs);
+			bytes--;
+			*txp++;
+			//for address is quad io mode
+		}
 	}		
-
-
-   while (bytes--) {
-	uchar d;
-	   if(txp) {
-		   d = txp ? *txp++ : 0xff;
-//		   SPIDBUG("%s: tx:%x ", __func__, d);
-		   __raw_writeb(d, ast_spi->buff);
-	   }
-//	   SPIDBUG("\n");
-	   if (rxp) {
+   	
+	while (bytes--) {
+		uchar d;
+		if(txp) {
+			d = txp ? *txp++ : 0xff;
+			//SPIDBUG("%s: tx:%x ", __func__, d);
+			__raw_writeb(d, ast_spi->buff);
+		}
+		//SPIDBUG("\n");
+		if (rxp) {
 			d = __raw_readb(ast_spi->buff);
-		   *rxp++ = d;
-//		   SPIDBUG("rx:%x ", d);
-	   }
-   }
-//		SPIDBUG("\n");
+			*rxp++ = d;
+			//SPIDBUG("rx:%x ", d);
+		}
+	}
+	//SPIDBUG("\n");
+
+	if ((flags & SPI_XFER_BEGIN) && (txp[0] == CMD_QUAD_PAGE_PROGRAM)) {
+		//next xfer will be quad mode write
+		writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_MODE, ast_spi->ctrl_regs);
+		printf("next is quad write data \n");		
+	}
+	
 	if (flags & SPI_XFER_END) {
 		SPIDBUG("\n ----------Xfer END -------\n");
 		writel(readl(ast_spi->ctrl_regs) | SPI_CE_INACTIVE, ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~(SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
 		if(flash->name) {
-			fmc_spi_config_read_mode(ast_spi);
+			fmc_spi_read_config(ast_spi);
 		}
 	}
 
@@ -480,7 +496,7 @@ int spi_claim_bus(struct spi_slave *slave)
 			ctrl |= SPI_CMD_DATA(flash->read_cmd) | SPI_DUMMY_LOW(flash->dummy_byte & 0x3);		
 
 		writel(ctrl, ast_spi->ctrl_regs);
-		fmc_spi_config_read_mode(ast_spi);
+		fmc_spi_read_config(ast_spi);
 	}
 	return 0;
 }

@@ -194,6 +194,16 @@ config FMC_SPI
 	help
 	  Enable the ASPEED FMC driver for AST2400/AST2500
 
+if FMC_SPI
+
+config AST_SPI_QUAD
+	depends on CONFIG_ARCH_AST2400
+	bool "FMC Quad mode"
+	help 
+	  Enable SPI Quad mode
+
+endif
+
 config FSL_ESPI
 	bool "Freescale eSPI driver"
 	help

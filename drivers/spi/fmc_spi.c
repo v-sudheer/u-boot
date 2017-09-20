@@ -390,7 +390,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		}
 		writel((readl(ast_spi->ctrl_regs) | SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~SPI_CE_INACTIVE, ast_spi->ctrl_regs);
-
+#if 0
 		if(cmd == CMD_QUAD_IO_PAGE_PROGRAM) {
 			printf("CMD_QUAD_IO_PAGE_PROGRAM \n");
 			//for cmd is nornal write 
@@ -400,6 +400,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 			*txp++;
 			//for address is quad io mode
 		}
+#endif
 	}		
    	
 	while (bytes--) {
@@ -417,13 +418,13 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		}
 	}
 	//SPIDBUG("\n");
-
+#if 0
 	if ((flags & SPI_XFER_BEGIN) && (cmd == CMD_QUAD_PAGE_PROGRAM)) {
 		//next xfer will be quad mode write
 		writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_MODE, ast_spi->ctrl_regs);
-		printf("next is quad write data \n");		
+		printf("next is quad write data cmd %x write %x\n", cmd, flash->write_cmd);		
 	}
-	
+#endif	
 	if (flags & SPI_XFER_END) {
 		SPIDBUG("\n ----------Xfer END -------\n");
 		writel(readl(ast_spi->ctrl_regs) | SPI_CE_INACTIVE, ast_spi->ctrl_regs);

@@ -356,6 +356,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	/* assume spi core configured to do 8 bit transfers */
 	uint bytes = bitlen / 8;
 	const uchar *txp = dout;
+	uchar cmd = txp[0];
 	uchar *rxp = din;
 	struct spi_flash *flash = slave->flash;
 
@@ -390,7 +391,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		writel((readl(ast_spi->ctrl_regs) | SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~SPI_CE_INACTIVE, ast_spi->ctrl_regs);
 
-		if(txp[0] == CMD_QUAD_IO_PAGE_PROGRAM) {
+		if(cmd == CMD_QUAD_IO_PAGE_PROGRAM) {
 			printf("CMD_QUAD_IO_PAGE_PROGRAM \n");
 			//for cmd is nornal write 
 			__raw_writeb(txp[0], ast_spi->buff);
@@ -417,7 +418,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	}
 	//SPIDBUG("\n");
 
-	if ((flags & SPI_XFER_BEGIN) && (txp[0] == CMD_QUAD_PAGE_PROGRAM)) {
+	if ((flags & SPI_XFER_BEGIN) && (cmd == CMD_QUAD_PAGE_PROGRAM)) {
 		//next xfer will be quad mode write
 		writel(readl(ast_spi->ctrl_regs) | SPI_QUAD_MODE, ast_spi->ctrl_regs);
 		printf("next is quad write data \n");		

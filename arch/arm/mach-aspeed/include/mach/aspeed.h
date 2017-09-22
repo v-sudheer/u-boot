@@ -24,11 +24,13 @@
 
 #if defined(CONFIG_ARCH_AST1220)
 #define AST_MACH_NAME 		"AST-CAM"
+#define AST_FMC_SPI
 #define AST_SOC_CAM
 #define NEW_VIC
 
 #elif defined(CONFIG_ARCH_AST2500) || defined(CONFIG_ARCH_AST1520)
 #define AST_MACH_NAME 		"AST-G5"
+#define AST_FMC_SPI
 #define AST_SOC_G5
 #define NEW_VIC
 

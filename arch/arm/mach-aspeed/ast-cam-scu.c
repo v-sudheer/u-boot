@@ -356,7 +356,10 @@ ast_scu_osc_clk_output(void)
 
 }
 
-
+extern void
+ast_scu_spi_master(u8 mode)
+{
+}
 
 extern u32
 ast_get_sd_clock_src(void)

@@ -41,7 +41,7 @@
 #define AST_SPI_TIMING			0x14
 
 /* AST_SPI_CONFIG 0x00 : SPI00 CE Type Setting Register */
-#ifdef AST_SOC_G5
+#ifdef AST_FMC_SPI
 #define SPI_CONF_CE1_WEN		(0x1 << 17)
 #define SPI_CONF_CE0_WEN		(0x1 << 16)
 #else
@@ -219,7 +219,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			//AST-G5 use FMC, AST-G4 use SPI register 
 			//SCU70  SPI master strap */
 			ast_scu_spi_master(1);
-#ifdef AST_SOC_G5			
+#ifdef AST_FMC_SPI
 			ast_spi->base = (void *)AST_FMC_SPI0_BASE;
 #else
 			ast_spi->base = (void *)AST_SPI0_BASE;
@@ -227,7 +227,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			switch (cs) {
 				case 0:
 					spi_config |= SPI_CONF_CE0_WEN;
-#ifdef AST_SOC_G5
+#ifdef AST_FMC_SPI
 					ast_spi->ctrl_regs = (void *)AST_FMC_SPI0_BASE + FMC_SPI_CE0_CTRL;
 					ast_spi->slave.memory_map = (void *)AST_SPI0_CS0_BASE;
 					ast_spi->buff = (void *)AST_SPI0_CS0_BASE;

@@ -36,6 +36,9 @@ if [ "$2" == "bmc" ]; then
 	rm -f $1/configs/ast2500_spl_defconfig
 	rm -f $1/configs/ast2500_defconfig
 	rm -f $1/configs/ast2400_defconfig
+	rm -f $1/arch/arm/mach-aspeed/include/mach/boot0.h
+	rm -f $1/arch/arm/mach-aspeed/spl.c
+	rm -f $1/arch/arm/mach-aspeed/u-boot-spl.lds
 fi
 
 #CAM
@@ -56,9 +59,6 @@ rm -rf $1/board/aspeed/ast2510
 rm -rf $1/board/aspeed/ast2150
 rm -rf $1/board/aspeed/ast2100
 rm -rf $1/board/aspeed/ast2050
-rm -f $1/arch/arm/mach-aspeed/include/mach/boot0.h
-rm -f $1/arch/arm/mach-aspeed/spl.c
-rm -f $1/arch/arm/mach-aspeed/u-boot-spl.lds
 rm -f $1/arch/arm/include/asm/arch-aspeed/ast1010_platform.h
 rm -f $1/arch/arm/include/asm/arch-aspeed/ast3200_platform.h
 rm -f $1/arch/arm/cpu/arm1176/u-boot-spl.lds

@@ -12,7 +12,6 @@
 #ifndef STDUBOOT_H
 #define STDUBOOT_H
 
-unsigned long int strtoul(char *string, char **endPtr, int base);
 int atoi( char s[] );
 // int rand(void); 20170320
 

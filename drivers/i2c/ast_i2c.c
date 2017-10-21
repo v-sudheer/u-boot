@@ -1,18 +1,14 @@
 /*
- *  i2c_adap_ast.c
+ * ast_i2c.c - GPIO driver for the Aspeed SoC
  *
- *  I2C adapter for the ASPEED I2C bus access.
+ * Copyright (C) ASPEED Technology Inc.
+ * Ryan Chen <ryan_chen@aspeedtech.com>
  *
- *  Copyright (C) 2012-2020  ASPEED Technology Inc.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  History:
- *    2012.07.26: Initial version [Ryan Chen]
  */
-
 #include <common.h>
 #include <fdtdec.h>
 

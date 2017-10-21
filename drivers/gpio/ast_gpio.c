@@ -1,16 +1,13 @@
 /*
- *  ast_gpio.c
+ * ast_gpio.c - GPIO driver for the Aspeed SoC
  *
- *  ASPEED GPIO Driver
+ * Copyright (C) ASPEED Technology Inc.
+ * Ryan Chen <ryan_chen@aspeedtech.com>
  *
- *  Copyright (C) 2012-2020  ASPEED Technology Inc.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  History:
- *    2013.12.26: Initial version [Ryan Chen]
  */
 #include <common.h>
 #include <asm/io.h>

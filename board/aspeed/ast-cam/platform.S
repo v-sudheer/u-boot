@@ -155,6 +155,10 @@ lowlevel_init:
     ldr   r0, =0x1e780074
     ldr   r1, =0x00400000
     str   r1, [r0]
+    /* for SDIO */
+    ldr   r0, =0x1e780004
+    ldr   r1, =0x80000000
+    str   r1, [r0]
 
     /*Set Scratch register Bit 7 before initialize*/
     ldr r0, =0x1e6e2000
@@ -807,6 +811,10 @@ platform_exit:
     /*Set GPIO for SDMMC host  fpga */
     ldr   r0, =0x1e780070
     ldr   r1, =0x00400000
+    str   r1, [r0]
+    /* SDIO */
+    ldr   r0, =0x1e780000
+    ldr   r1, =0x80000000
     str   r1, [r0]
 
     /* restore lr */

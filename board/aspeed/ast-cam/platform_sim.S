@@ -74,8 +74,9 @@ TIME_TABLE_LPDDR3_1866:
     .word   0x001B2929       @ MCRFCpb
     .word   0x003C6161       @ MCRFCab
 TIME_TABLE_PHY_1866:
-    .word   0x02492aae       @ phyr000
-    .word   0x0000004c       @ phyr004
+    .word   0x1e6e0100       @ phyr000 address
+    .word   0x08002000       @ phyr000 0x02492aae
+    .word   0x0400004c       @ phyr004 0x0000004c
     .word   0x55e00a0a       @ phyr008
     .word   0x55e00a0a       @ phyr00c
     .word   0x55e00a0a       @ phyr010
@@ -94,41 +95,53 @@ TIME_TABLE_PHY_1866:
     .word   0x0a0a0000       @ phyr044
     .word   0x00000000       @ phyr048
     .word   0x00003080       @ phyr04c
-    .word   0x01000080       @ phyr050
-    .word   0x0000000c       @ phyr054
+    .word   0x010000c0       @ phyr050 0x01000080
+    .word   0x0001000c       @ phyr054 0x0000000c
     .word   0x00000043       @ phyr058
     .word   0x04000000       @ phyr05c
     .word   0x00000000       @ phyr060
     .word   0x00000000       @ phyr064
     .word   0x000a000a       @ phyr068
-    .word   0x01060400       @ phyr06c
-    .word   0x0608000A       @ phyr070
-    .word   0x00fa0000       @ phyr074
+    .word   0x5B310200       @ phyr06c 0x01060400
+    .word   0x000E000A       @ phyr070 0x0608000A
+    .word   0x01234000       @ phyr074 0x00fa0000
     .word   0x00014107       @ phyr078
     .word   0x0E160805       @ phyr07c
     .word   0x62000B00       @ phyr080
-    .word   0x09800E37       @ phyr084
-    .word   0x00001000       @ phyr088
+    .word   0x09000E37       @ phyr084 0x09800E37
+    .word   0x00001010       @ phyr088 0x00001000
     .word   0x05701018       @ phyr08c
     .word   0x00000000       @ phyr090
     .word   0x0111ffe6       @ phyr094
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e019c       @ new address
     .word   0x20202020       @ phyr09c
     .word   0x20202020       @ phyr0a0
     .word   0x00002020       @ phyr0a4
     .word   0x80000000       @ phyr0a8
     .word   0x00000001       @ phyr0ac
-    .word   0x09090909       @ phyr0cc
-    .word   0x09090909       @ phyr0d0
-    .word   0x48484848       @ phyr0d4
-    .word   0x48484848       @ phyr0d8
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e01cc       @ new address
+    .word   0x06060606       @ phyr0cc 0x09090909
+    .word   0x06060606       @ phyr0d0 0x09090909
+    .word   0x80808080       @ phyr0d4 0x48484848
+    .word   0x80808080       @ phyr0d8 0x48484848
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e0288       @ new address
     .word   0x87878787       @ phyr188
     .word   0x87878787       @ phyr18c
     .word   0x87878787       @ phyr190
     .word   0x87878787       @ phyr194
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e02f8       @ new address
     .word   0x88888888       @ phyr1f8
     .word   0x88888888       @ phyr1fc
     .word   0x00000000       @ phyr200
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e0198       @ new address
     .word   0x08060000       @ phyr098
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e01b0       @ new address
     .word   0x00000000       @ phyr0b0
     .word   0x00000000       @ phyr0b4
     .word   0x00000000       @ phyr0b8
@@ -136,7 +149,11 @@ TIME_TABLE_PHY_1866:
     .word   0x00000000       @ phyr0c0
     .word   0x00000000       @ phyr0c4
     .word   0x00000000       @ phyr0c8
-    .word   0x0014ff2c       @ phyr0c8
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e01c8       @ new address
+    .word   0x0114ff2c       @ phyr0c8 0x0014ff2c
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e01dc       @ new address
     .word   0x00000000       @ phyr0dc
     .word   0x00000000       @ phyr0e0
     .word   0xaa55aa55       @ phyr0e4
@@ -175,6 +192,8 @@ TIME_TABLE_PHY_1866:
     .word   0x3f3f3f3f       @ phyr168
     .word   0x3f3f3f3f       @ phyr16c
     .word   0x3f3f3f3f       @ phyr170
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e0298       @ new address
     .word   0x3f3f0000       @ phyr198
     .word   0x3f3f3f3f       @ phyr19c
     .word   0x3f3f3f3f       @ phyr1a0
@@ -196,7 +215,13 @@ TIME_TABLE_PHY_1866:
     .word   0x3f3f3f3f       @ phyr1e0
     .word   0x3f3f3f3f       @ phyr1e4
     .word   0x00003f3f       @ phyr1e8
-    .word   0xaeedaeed       @ end
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e0344       @ new address
+    .word   0x2aa00000       @ phyr244
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e033c       @ new address
+    .word   0x01100000       @ phyr23c
+    .word   0xaeededed       @ end
 
 PATTERN_TABLE:
     .word   0xff00ff00
@@ -470,15 +495,25 @@ init_start:
     str   r1, [r0]
 
     /* Init DDR PHY */
-    ldr   r0, =0x1e6e0100                        @ phyr start address
-    ldr   r2, =0xaeedaeed                        @ phyr end pattern
+    ldr   r2, =0xaeededed                        @ phyr end pattern
+    ldr   r5, =0xaeeddeea                        @ phyr change address
     adrl  r3, TIME_TABLE_PHY_1866                @ phyr init value
+    ldr   r0, [r3]                               @ phyr start address
+    add   r3, r3, #4
 ddrphy_init_start:
     ldr   r1, [r3]
     cmp   r1, r2
     beq   ddrphy_init_end
+    cmp   r1, r5
+    beq   ddrphy_init_change_address
     str   r1, [r0]
     add   r0, r0, #4
+    add   r3, r3, #4
+    b     ddrphy_init_start
+
+ddrphy_init_change_address:
+    add   r3, r3, #4
+    ldr   r0, [r3]                               @ phyr new address
     add   r3, r3, #4
     b     ddrphy_init_start
 

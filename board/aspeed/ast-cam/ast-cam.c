@@ -93,7 +93,7 @@ int misc_init_r (void)
 int dram_init(void)
 {
 	/* dram_init must store complete ramsize in gd->ram_size */
-	gd->ram_size = 512*1024*1024;//ast_sdmc_get_mem_size();
+	gd->ram_size = 256*1024*1024;//ast_sdmc_get_mem_size();
 
 	return 0;
 }

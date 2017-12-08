@@ -191,13 +191,11 @@
 /* ------------------------------------------------------------------------- */
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
 #define CONFIG_ENV_OVERWRITE
-
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1
 #define CONFIG_NETMASK			255.255.255.0
 #define CONFIG_IPADDR			192.168.0.45
 #define CONFIG_SERVERIP			192.168.0.81
-
 
 /* -------------------------------------------------------------------------
  *  2. UART5 message output
@@ -206,16 +204,20 @@
  * #define CONFIG_DDR3_8GSTACK     DDR3 8Gbit Stack die
  -------------------------------------------------------------------------*/
 /* SPL part */
-#define CONFIG_CMD_SPL
 #define CONFIG_SPL_FRAMEWORK
-#define CONFIG_SPL_BOARD_INIT
-#define CONFIG_SPL_RAM_DEVICE
-#define CONFIG_SPL_STACK                    	0x1e7d0000
 
-/* SP location before relocation, must use scratch RAM */
 #define CONFIG_SPL_TEXT_BASE					0x1e7d0000
-/* 36kB blocks of OCM - one is on the top because of bootrom */
-#define CONFIG_SPL_MAX_SIZE						0x00010000
+#define CONFIG_SPL_MAX_SIZE						0x00020000
+
+#if 1
+#define CONFIG_SPL_STACK                    	0x1e7c8000
+#else 
+#define CONFIG_SPL_STACK                    	0x90000000
+#endif
+#define CONFIG_SYS_SPL_MALLOC_START     		0x88000000
+#define CONFIG_SYS_SPL_MALLOC_SIZE      		0x00100000
+
+#define CONFIG_SPL_RAM_DEVICE
 
 /* BSS setup */
 #define CONFIG_SPL_LDSCRIPT     "arch/arm/mach-aspeed/u-boot-spl.lds"
@@ -223,22 +225,22 @@
 /* MMC support */
 #ifdef CONFIG_AST_SDHCI
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION     1
-#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME     "u-boot.img"
-/* Not using MMC raw mode - just for compilation purpose */
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR   0
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS  0
-#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR 0
+/*#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME     "u-boot.img"*/
 #endif
 
-/* Address in RAM where the parameters must be copied by SPL. */
-#define CONFIG_SYS_SPL_ARGS_ADDR			0x80000000
-
-#define CONFIG_SPL_FS_LOAD_ARGS_NAME            "system.dtb"
+#define CONFIG_SPL_FS_LOAD_ARGS_NAME            "ast1220.dtb"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME          "uImage"
+
+#define SYS_LOAD_IMAGE_ADDR					0x80800000
+/* Address in RAM where the parameters must be copied by SPL. */
+#define CONFIG_SYS_SPL_ARGS_ADDR			0x80000100
+/* Not using MMC raw mode - just for compilation purpose */
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	   	129
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS	  	18
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR 	147
 
 /* for booting directly linux */
 
 /* FIT load address for RAM boot */
 #define CONFIG_SPL_LOAD_FIT_ADDRESS	0x10000000
-
 #endif	/* __CONFIG_H */

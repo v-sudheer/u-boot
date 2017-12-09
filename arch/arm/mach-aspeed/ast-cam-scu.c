@@ -302,6 +302,7 @@ ast_get_m_pll_clk(void)
 extern u32
 ast_get_ahbclk(void)
 {
+#if 0
 	unsigned int axi_div, ahb_div, hpll;
 
 	hpll = ast_get_h_pll_clk();
@@ -311,7 +312,9 @@ ast_get_ahbclk(void)
 	
 	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, (hpll/axi_div)/ahb_div);	
 	return ((hpll/axi_div)/ahb_div);
-
+#else
+	return 52000000;
+#endif
 }
 
 
@@ -368,7 +371,7 @@ ast_get_sd_clock_src(void)
 #ifdef CONFIG_FPGA_ASPEED
 	return 50000000;
 #else
-	return 108000000;
+	return 104000000;
 #endif
 }
 

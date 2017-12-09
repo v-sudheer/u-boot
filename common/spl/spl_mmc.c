@@ -59,7 +59,7 @@ static int mmc_load_image_raw_sector(struct spl_image_info *spl_image,
 	struct image_header *header;
 	int ret = 0;
 
-	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+	header = (struct image_header *)(SYS_LOAD_IMAGE_ADDR -
 					 sizeof(struct image_header));
 
 	/* read image header to find the image size & load address */

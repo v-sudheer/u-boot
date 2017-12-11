@@ -2,7 +2,8 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 dtb-$(CONFIG_ARCH_ASPEED) += ast2500_evb.dtb \
-	ast2500.dtb
+	ast2500.dtb \
+	ast1220.dtb
 
 dtb-$(CONFIG_AT91FAMILY) += at91sam9260-smartweb.dtb \
 	at91sam9g20-taurus.dtb \

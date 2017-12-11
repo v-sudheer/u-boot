@@ -189,7 +189,7 @@
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
-#define CONFIG_BOOTCOMMAND	"bootm 20070000"
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1

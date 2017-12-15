@@ -75,6 +75,7 @@ const struct spi_flash_info spi_flash_ids[] = {
 #ifdef CONFIG_SPI_FLASH_MACRONIX	/* MACRONIX */
 	{"mx25l2006e",	   INFO(0xc22012, 0x0, 64 * 1024,     4, 0) },
 	{"mx25l4005",	   INFO(0xc22013, 0x0, 64 * 1024,     8, 0) },
+	{"mx25u4033e",	   INFO(0xc22533, 0x0, 64 * 1024,     8, 0) },
 	{"mx25l8005",	   INFO(0xc22014, 0x0, 64 * 1024,    16, 0) },
 	{"mx25l1605d",	   INFO(0xc22015, 0x0, 64 * 1024,    32, 0) },
 	{"mx25l3205d",	   INFO(0xc22016, 0x0, 64 * 1024,    64, 0) },

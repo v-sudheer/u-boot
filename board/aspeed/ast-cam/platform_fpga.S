@@ -3,7 +3,7 @@
  *
  ******************************************************************************
  * ASPEED Technology Inc.
- * AST2500 FPGA DDR3 SDRAM controller initialization and calibration sequence
+ * AST1220 FPGA LPDDR3 SDRAM controller initialization and calibration sequence
  *
  * Gary Hsu, <gary_hsu@aspeedtech.com>
  *
@@ -25,9 +25,60 @@
    init_delay_timer,
    check_delay_timer,
    clear_delay_timer,
-   record_pll_pass_range,
-   record_pll_pass_range_h,
+   print_hex_char,
+   print_hex_byte,
    are for DRAM calibration */
+
+#define ASTMMC_REG_MCR10     0x00
+#define ASTMMC_REG_MCR14     0x04
+#define ASTMMC_REG_MCR18     0x08
+#define ASTMMC_REG_MCR1C     0x0C
+#define ASTMMC_REG_MCR20     0x10
+#define ASTMMC_REG_MRW01     0x14
+#define ASTMMC_REG_MRW02     0x18
+#define ASTMMC_REG_MRW03     0x1C
+#define ASTMMC_REG_MRW11     0x20
+
+TIME_TABLE_LPDDR3_600:
+    .word   0x02080305       @ MCR10
+    .word   0x07250813       @ MCR14
+    .word   0x02030202       @ MCR18
+    .word   0x01030008       @ MCR1C
+    .word   0x0000000D       @ MCR20
+    .word   0x0083010D       @ MRW01
+    .word   0x0004020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00010B0D       @ MRW11
+TIME_TABLE_LPDDR3_800:
+    .word   0x02080305       @ MCR10
+    .word   0x09250B19       @ MCR14
+    .word   0x02030203       @ MCR18
+    .word   0x0103000A       @ MCR1C
+    .word   0x00000012       @ MCR20
+    .word   0x0083010D       @ MRW01
+    .word   0x0004020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00010B0D       @ MRW11
+TIME_TABLE_LPDDR3_1200:
+    .word   0x030A0305       @ MCR10
+    .word   0x0D491A3E       @ MCR14
+    .word   0x05060305       @ MCR18
+    .word   0x0213000F       @ MCR1C
+    .word   0x0000001B       @ MCR20
+    .word   0x00E3010D       @ MRW01
+    .word   0x0007020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00010B0D       @ MRW11
+TIME_TABLE_LPDDR3_1600:
+    .word   0x030C0406       @ MCR10
+    .word   0x115C2353       @ MCR14
+    .word   0x07080407       @ MCR18
+    .word   0x42130014       @ MCR1C
+    .word   0x00000024       @ MCR20
+    .word   0x0043010D       @ MRW01
+    .word   0x001A020D       @ MRW02
+    .word   0x0002030D       @ MRW03
+    .word   0x00010B0D       @ MRW11
 
 PATTERN_TABLE:
     .word   0xff00ff00
@@ -74,31 +125,20 @@ PATTERN_TABLE:
     str r1, [r0]
     .endm
 
-    .macro record_pll_pass_range
-    ldr                 r1, [r0]
-    bic                 r2, r1, #0xFFFFFF00
-    cmp                 r2, r3                   @ record min
-    bicgt               r1, r1, #0x000000FF
-    orrgt               r1, r1, r3
-    bic                 r2, r1, #0xFFFF00FF
-    cmp                 r3, r2, lsr #8           @ record max
-    bicgt               r1, r1, #0x0000FF00
-    orrgt               r1, r1, r3, lsl #8
-    str                 r1, [r0]
+    .macro print_hex_char
+    and   r1, r1, #0xF
+    cmp   r1, #9
+    addgt r1, r1, #0x37
+    addle r1, r1, #0x30
+    str   r1, [r0]
     .endm
 
-    .macro record_pll_pass_range_h
-    ldr                 r1, [r0]
-    bic                 r2, r1, #0xFF00FFFF
-    mov                 r2, r2, lsr #16
-    cmp                 r2, r3                   @ record min
-    bicgt               r1, r1, #0x00FF0000
-    orrgt               r1, r1, r3, lsl #16
-    bic                 r2, r1, #0x00FFFFFF
-    cmp                 r3, r2, lsr #24          @ record max
-    bicgt               r1, r1, #0xFF000000
-    orrgt               r1, r1, r3, lsl #24
-    str                 r1, [r0]
+    .macro print_hex_byte
+    ldr   r0, =0x1e783000
+    mov   r1, r2, lsr #4
+    print_hex_char
+    mov   r1, r2
+    print_hex_char
     .endm
 
 /******************************************************************************
@@ -110,6 +150,15 @@ lowlevel_init:
 
     /* save lr */
     mov   r4, lr
+
+    /*Set GPIO for SDMMC host  fpga */
+    ldr   r0, =0x1e780074
+    ldr   r1, =0x00400000
+    str   r1, [r0]
+    /* for SDIO */
+    ldr   r0, =0x1e780004
+    ldr   r1, =0x80000000
+    str   r1, [r0]
 
     /*Set Scratch register Bit 7 before initialize*/
     ldr r0, =0x1e6e2000
@@ -125,12 +174,6 @@ lowlevel_init:
  Disable WDT3 for SPI Address mode detection function
  ******************************************************************************/
     ldr   r0, =0x1e78504c
-    mov   r1, #0
-    str   r1, [r0]
-/******************************************************************************
- Disable WDT2 for 2nd boot function
- ******************************************************************************/
-    ldr   r0, =0x1e78502c
     mov   r1, #0
     str   r1, [r0]
 
@@ -161,23 +204,30 @@ check_pll_ld:
     beq   check_pll_ld
 
     /* Step 5. Program aclk_div */
+    ldr   r0, =0x1e6e2070
+    ldr   r1, [r0]
+    mov   r1, r1, lsr #6
+    and   r1, r1, #0x03
+    add   r1, r1, #0x05
     ldr   r0, =0x33000004
-    ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
+//  ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
     str   r1, [r0]
 
     /* Step 6. Program set_pll */
-    ldr   r1, =0x00010007
+//  ldr   r1, =0x00010007
+    ldr   r2, =0x00010000
+    orr   r1, r1, r2
     str   r1, [r0]
     /* End of ES40004A PLL init */
 
     /* Check Scratch Register Bit 6 */
-    ldr r0, =0x1e6e2040
+/*  ldr r0, =0x1e6e2040
     ldr r1, [r0]
     bic r1, r1, #0xFFFFFFBF
     mov r2, r1, lsr #6
     cmp r2, #0x01
     beq platform_exit
-
+*/
 /* Debug - UART console message */
     ldr   r0, =0x1e78300c
     mov   r1, #0x83
@@ -190,10 +240,6 @@ check_pll_ld:
     ldr   r0, =0x1e783000
     moveq r1, #0x0D                              @ Baudrate 115200
     movne r1, #0x01                              @ Baudrate 115200, div13
-#if defined(CONFIG_DRAM_UART_38400)
-    moveq r1, #0x27                              @ Baudrate 38400
-    movne r1, #0x03                              @ Baudrate 38400 , div13
-#endif
     str   r1, [r0]
 
     ldr   r0, =0x1e783004
@@ -233,6 +279,16 @@ check_pll_ld:
     str   r1, [r0]
     mov   r1, #0x2D                              @ '-'
     str   r1, [r0]
+    mov   r1, #0x4C                              @ 'L'
+    str   r1, [r0]
+    mov   r1, #0x50                              @ 'P'
+    str   r1, [r0]
+    ldr   r0, =0x1e783014
+wait_print_0:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_0
+    ldr   r0, =0x1e783000
     mov   r1, #0x44                              @ 'D'
     str   r1, [r0]
     mov   r1, #0x44                              @ 'D'
@@ -241,10 +297,6 @@ check_pll_ld:
     str   r1, [r0]
 /* Debug - UART console message */
 
-    /* Enable Timer separate clear mode */
-    ldr   r0, =0x1e782038
-    mov   r1, #0xAE
-    str   r1, [r0]
     clear_delay_timer
 
     /* Delay about 100us */
@@ -277,404 +329,280 @@ delay_0:
     str   r1, [r0]
 /* Debug - UART console message */
 
+    /* Reset MMC */
+reset_mmc:
+    ldr   r0, =0x1e6e2004
+    ldr   r1, [r0]
+    orr   r2, r1, #0x01
+    str   r2, [r0]
+    ldr   r2, [r0]
+    str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_reset:
+    check_delay_timer
+    bne   delay_reset
+    clear_delay_timer
+    /* end delay 10us */
+
+    ldr   r0, =0x1e6e2070
+    ldr   r1, [r0]
+    mov   r1, r1, lsr #4
+    and   r1, r1, #0x03
+    adrl  r5, TIME_TABLE_LPDDR3_600              @ Init DRAM parameter table
+    cmp   r1, #0x0
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_800              @ Init DRAM parameter table
+    cmp   r1, #0x1
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_1200             @ Init DRAM parameter table
+    cmp   r1, #0x2
+    beq   init_start
+    adrl  r5, TIME_TABLE_LPDDR3_1600             @ Init DRAM parameter table
+
+init_start:
     ldr   r0, =0x1e6e0000
     ldr   r1, =0xfc600309
     str   r1, [r0]
 
-    /* Reset MMC */
+    ldr   r0, =0x1e6e0030
+    ldr   r1, =0x00040080
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0034
     ldr   r1, =0x00000000
-    ldr   r0, =0x1e6e0004
-    ldr   r2, =0x1e6e00A0
-reset_mmc:
-    str   r1, [r0]
-    add   r0, r0, #4
-    cmp   r2, r0
-    bge   reset_mmc
-
-    ldr   r0, =0x1e6e0034                        @ disable SDRAM reset
-    ldr   r1, =0x00000080
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0004
-    ldr   r1, =0x00000107
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0008
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0010
-    ldr   r1, =0x12102725
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0014
-    ldr   r1, =0x52344420
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0018
-    ldr   r1, =0x00010000
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0038
-    ldr   r1, =0x00000000
+    ldr   r1, =0xFFFFFFFF
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e003C
+    ldr   r0, =0x1e6e003c
     ldr   r1, =0x00000000
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0040
     ldr   r1, =0x88888888
     str   r1, [r0]
-    add   r0, r0, #0x04
+    ldr   r0, =0x1e6e0044
     str   r1, [r0]
-    add   r0, r0, #0x04
+    ldr   r0, =0x1e6e0048
     str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x00000081
+    ldr   r0, =0x1e6e004c
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e000C
-    ldr   r1, =0x00000040
+    ldr   r0, =0x1e6e0070
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+    ldr   r0, =0x1e6e0074
+    str   r1, [r0]
+    ldr   r0, =0x1e6e0078
+    str   r1, [r0]
+    ldr   r0, =0x1e6e007c
     str   r1, [r0]
 
-    /* Delay about 400us */
-    ldr   r2, =0x00000190                        @ Set Timer3 Reload = 400 us
+    ldr   r0, =0x1e6e0004
+    ldr   r1, =0x00000021                        @ 4GbX2
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0010                        @ ACTIME1
+    ldr   r1, [r5, #ASTMMC_REG_MCR10]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0014                        @ ACTIME2
+    ldr   r1, [r5, #ASTMMC_REG_MCR14]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0018                        @ ACTIME3
+    ldr   r1, [r5, #ASTMMC_REG_MCR18]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e001c                        @ ACTIME4
+    ldr   r1, [r5, #ASTMMC_REG_MCR1C]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0020                        @ ACTIME5
+    ldr   r1, [r5, #ASTMMC_REG_MCR20]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0030                        @ PWRCTL, 1st enable CKE, wait at least 200 us
+    ldr   r1, =0x00060081
+    str   r1, [r0]
+
+    /* Delay about 200us */
+    ldr   r2, =0x000000CA                        @ Set Timer3 Reload = 200 us
     init_delay_timer
 delay_1:
     check_delay_timer
     bne   delay_1
     clear_delay_timer
-    /* end delay 400us */
+    /* end delay 200us */
 
-    ldr   r0, =0x1e6e002C
-    ldr   r1, =0x04001320
+    ldr   r0, =0x1e6e0024                        @ MRW Reset, wait at least 10 us for MRW command
+    ldr   r1, =0x00FC3F0D
+    str   r1, [r0]
+
+    /* Delay about 20us */
+    ldr   r2, =0x00000014                        @ Set Timer3 Reload = 20 us
+    init_delay_timer
+delay_2:
+    check_delay_timer
+    bne   delay_2
+    clear_delay_timer
+    /* end delay 20us */
+
+    ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done [CS0]
+    ldr   r1, =0x00FF0A05
+    str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_3:
+    check_delay_timer
+    bne   delay_3
+    clear_delay_timer
+    /* end delay 10us */
+
+    ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done [CS1]
+    ldr   r1, =0x00FF0A09
+    str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_4:
+    check_delay_timer
+    bne   delay_4
+    clear_delay_timer
+    /* end delay 10us */
+
+    ldr   r0, =0x1e6e0024                        @ set MR1
+    ldr   r1, [r5, #ASTMMC_REG_MRW01]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0024                        @ set MR2
+    ldr   r1, [r5, #ASTMMC_REG_MRW02]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0024                        @ set MR3
+    ldr   r1, [r5, #ASTMMC_REG_MRW03]
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0024                        @ set MR11
+    ldr   r1, [r5, #ASTMMC_REG_MRW11]
+    str   r1, [r0]
+
+check_MR0:
+    mov   r3, #0x0                               @ read MR0
+    b     read_MR_process
+read_MR0_done:
+    tst   r2, #0x01
+    bne   check_MR0
+
+    mov   r3, #0x4                               @ read MR4
+    b     read_MR_process
+read_MR4_done:
+    mov   r3, #0x5                               @ read MR5
+    b     read_MR_process
+read_MR5_done:
+    mov   r3, #0x6                               @ read MR6
+    b     read_MR_process
+read_MR6_done:
+    mov   r3, #0x7                               @ read MR7
+    b     read_MR_process
+read_MR7_done:
+    mov   r3, #0x8                               @ read MR8
+    b     read_MR_process
+read_MR8_done:
+
+    ldr   r0, =0x1e6e000C
+    ldr   r1, =0x200016A1
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0030
-    ldr   r1, =0x00000041
+    ldr   r1, =0x00034783
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e0028
-    ldr   r1, =0x00000005
-    str   r1, [r0]
-    ldr   r1, =0x00000007
-    str   r1, [r0]
-    ldr   r1, =0x00000003
-    str   r1, [r0]
-    ldr   r1, =0x00000001
-    str   r1, [r0]
+    b     Calibration_End
 
-    ldr   r0, =0x1e6e002C
-    ldr   r1, =0x04001220
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e000C
-    ldr   r1, =0x00005C48
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0028
-    ldr   r1, =0x00000001
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e000C
-    ldr   r1, =0x00005C01
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x00008081
-    str   r1, [r0]
-
+.LTORG
 /******************************************************************************
- CBR Start
+ Common Process
  *****************************************************************************/
+read_MR_process:
 /* Debug - UART console message */
-    ldr r0, =0x1e783000
-    mov r1, #0x43                                @ 'C'
-    str r1, [r0]
-    mov r1, #0x42                                @ 'B'
-    str r1, [r0]
-    mov r1, #0x52                                @ 'R'
-    str r1, [r0]
+    ldr   r0, =0x1e783000
+    mov   r1, #0x4D                              @ 'M'
+    str   r1, [r0]
+    mov   r1, #0x52                              @ 'R'
+    str   r1, [r0]
+    mov   r2, r3
+    print_hex_byte
+    mov   r1, #0x3D                              @ '='
+    str   r1, [r0]
 /* Debug - UART console message */
 
-CBR_START:
-/* Debug - UART console message */
-    ldr r0, =0x1e783000
-    mov r1, #0x23                                @ '#'
-    str r1, [r0]
-/* Debug - UART console message */
-    /* Calibrate PLL Read clock phase */
-    /* Reset PLL */
-    ldr   r0, =0x1e6e2050
-    ldr   r1, =0x00000026
-    str   r1, [r0]
-    mov   r1, #0x00
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    add   r0, r0, #0x04
-    str   r1, [r0]
-    ldr   r1, =0xAD000000
-    add   r0, r0, #0x04
+    ldr   r0, =0x1e6e0024
+    mov   r1, r3, lsl #8
+    orr   r1, r1, #0x2
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e204C
-check_pll_reset_done_1:
+read_MR_check_loop:
     ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    beq   check_pll_reset_done_1
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xDA000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e204C
-check_pll_reset_clear_1:
-    ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    bne   check_pll_reset_clear_1
-
-    mov   r6, #0x00                              @ init pass count
-    mov   r7, #0x01                              @ init PLL parameter index
-    ldr   r1, =0x000000ff
-    ldr   r0, =0x1e6e0088                        @ init dllmax,dllmin
-    str   r1, [r0]
-
-/****************************
- PLL delay margin test loop
- ***************************/
-cbr_next_pll_parameter:
-    ldr   r2, =0xFF                              @ parameter's max is to 0xFF
-    cmp   r7, r2
-    bge   CBR_END
-    add   r7, r7, #0x01
-
-    /* Phase shift */
-    ldr   r0, =0x1e6e2050
-    ldr   r1, =0x00000016
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xAD000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e204C
-check_pll_phase_done_1:
-    ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    beq   check_pll_phase_done_1
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xDA000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0074                        @ set the testing DRAM size = 16KB
-    ldr   r1, =0x00003FFF
-    str   r1, [r0]
-
-/* CBRScan() start */
-    mov   r9, #0x01                              @ init test status
-    adrl  r5, PATTERN_TABLE                      @ init pattern table index
-/****************************
- Test pattern iteration loop
- ***************************/
-cbr_next_test_pattern:
-    mov   r10, #3                                @ set the retry loop of each pattern
-    ldr   r1, [r5]                               @ load test pattern
-    ldr   r0, =0x1e6e007c
-    str   r1, [r0]
-    cmp   r1, #0x00                              @ the last data in pattern is 0x00
-    bne   cbr_test_single
-
-cbr_test_pattern_end:
-    cmp   r9, #0x00
-    bne   cbr_test_pass_dql
-    cmp   r6, #10
-    bge   CBR_END
-    b     cbr_next_pll_parameter                 @ CBRScan() end and test result fail, go to next step
-
-cbr_test_pass_dql:
-    and   r3, r7, #0xFF
-    sub   r3, r3, #0x01                          @ we add one after loop check so we need to decrease 1
-    add   r6, r6, #0x01                          @ increment pass count
-
-    ldr   r0, =0x1e6e0088
-    record_pll_pass_range
-    b     cbr_next_pll_parameter
-
-/****************************
- Test fail retry loop
- ***************************/
-cbr_pattern_fail_retry:
-
-/* CBRTest() start */
-cbr_test_single:
-    ldr   r0, =0x1e6e0070
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-    ldr   r1, =0x00000005
-    str   r1, [r0]
-    ldr   r3, =0x1000
-    ldr   r8, =0x10000
-cbr_wait_engine_idle_0:
-    subs  r8, r8, #1
-    beq   cbr_test_single_end
-    ldr   r2, [r0]
-    tst   r2, r3                                 @ D[12] = idle bit
-    beq   cbr_wait_engine_idle_0
-
-cbr_test_single_end:
-    ldr   r0, =0x1e6e0070                        @ read fail bit status
-    ldr   r3, =0x2000
-    ldr   r2, [r0]
-    tst   r2, r3
-    bne   cbr_test_fail
-
-cbr_test_burst:
-    ldr   r0, =0x1e6e0070
-    ldr   r2, =0x00000000
+    bic   r2, r1, #0xFFFFFF3F
+    cmp   r2, #0x80
+    bne   read_MR_check_loop
+    mov   r2, #0x0
     str   r2, [r0]
-    mov   r2, #0xC1
-    str   r2, [r0]
-    ldr   r3, =0x1000
-    ldr   r8, =0x10000
-cbr_wait_engine_idle_1:
-    subs  r8, r8, #1
-    beq   cbr_test_burst_end
-    ldr   r2, [r0]
-    tst   r2, r3                                 @ D[12] = idle bit
-    beq   cbr_wait_engine_idle_1
+    mov   r2, r1, lsr #24
 
-cbr_test_burst_end:
-    ldr   r0, =0x1e6e0070                        @ read fail bit status
-    ldr   r3, =0x2000
-    ldr   r2, [r0]
-    tst   r2, r3
-    bne   cbr_test_fail
-    b     cbr_next_test_burst_mode
-/* CBRTest() end */
-
-cbr_test_fail:
-    subs  r10, r10, #1
-    bne   cbr_pattern_fail_retry
-    mov   r9, #0x00
-    b     cbr_test_pattern_end                   @ CBRScan() return(0)
-
-cbr_next_test_burst_mode:
-    add   r5, r5, #0x04                          @ increase the test pattern index
-    b     cbr_next_test_pattern
-
-CBR_END:
-    ldr   r0, =0x1e6e0070
-    ldr   r1, =0x00000000
+/* Debug - UART console message */
+    print_hex_byte
+    mov   r1, #0x0D                              @ '\r'
     str   r1, [r0]
-
-    ldr   r0, =0x1e6e0088                        @ check PLL margin
+    mov   r1, #0x0A                              @ '\n'
+    str   r1, [r0]
+    ldr   r0, =0x1e783014
+wait_print_2:
     ldr   r1, [r0]
-    mov   r2, r1, lsr #8
-    and   r2, r2, #0xFF                          @ get dllmax
-    and   r1, r1, #0xFF                          @ get dllmin
-    subs  r5, r2, r1                             @ dllmax - dllmin
-    bmi   CBR_START                              @ no valid margin found, retry again
-    cmp   r5, #10                                @ (dllmax - dllmin) < 10
-    blt   CBR_START                              @ no enough margin found, retry again
-    add   r2, r1, r2                             @ (dllmin[1] + dllmax[1] + 1) >> 1
-    add   r2, r2, #0x01
-    mov   r5, r2, lsr #1
-    ldr   r0, =0x1e6e008c
-    str   r5, [r0]                               @ store the dll search result
+    tst   r1, #0x40
+    beq   wait_print_2
+/* Debug - UART console message */
 
-    /* Reset PLL */
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x00008080
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e2050
-    ldr   r1, =0x00000026
-    str   r1, [r0]
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xAD000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e204C
-check_pll_reset_done_2:
-    ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    beq   check_pll_reset_done_2
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xDA000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e204C
-check_pll_reset_clear_2:
-    ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    bne   check_pll_reset_clear_2
-
-    /* Phase shift */
-    ldr   r0, =0x1e6e2050
-    ldr   r1, =0x00000016
-    orr   r1, r1, r5, lsl #8
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xAD000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e204C
-check_pll_phase_done_2:
-    ldr   r1, [r0]
-    mov   r1, r1, lsr #24
-    and   r1, r1, #0x0F
-    cmp   r1, #0x00
-    beq   check_pll_phase_done_2
-
-    ldr   r0, =0x1e6e206C
-    ldr   r1, =0xDA000000
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x00008083
-    str   r1, [r0]
+    cmp   r3, #0x0
+    beq   read_MR0_done
+    cmp   r3, #0x4
+    beq   read_MR4_done
+    cmp   r3, #0x5
+    beq   read_MR5_done
+    cmp   r3, #0x6
+    beq   read_MR6_done
+    cmp   r3, #0x7
+    beq   read_MR7_done
+    cmp   r3, #0x8
+    beq   read_MR8_done
+    b     check_MR0
 
 /******************************************************************************
- CBR Finish
+ Other features configuration
  *****************************************************************************/
-/******************************************************************************
- Check DRAM Size
- 1Gb : 0x80000000 ~ 0x87FFFFFF
- 2Gb : 0x80000000 ~ 0x8FFFFFFF
- 4Gb : 0x80000000 ~ 0x9FFFFFFF
- 8Gb : 0x80000000 ~ 0xBFFFFFFF
- *****************************************************************************/
+Calibration_End:
+
+#if 0
+    /*******************************
+     Check DRAM Size
+     1Gb : 0x80000000 ~ 0x87FFFFFF
+     2Gb : 0x80000000 ~ 0x8FFFFFFF
+     4Gb : 0x80000000 ~ 0x9FFFFFFF
+     8Gb : 0x80000000 ~ 0xBFFFFFFF
+    *******************************/
     ldr   r0, =0x1e6e0004
-    ldr   r5, [r0]
-    bic   r5, r5, #0x00000003                    @ record MCR04
-    orr   r1, r5, #0x23
-    str   r1, [r0]                               @ set to 8Gbit
-    ldr   r6, =0x0020100B
+    ldr   r6, [r0]
+    bic   r6, r6, #0x00000003                    @ record MCR04
+    ldr   r7, [r5, #ASTMMC_REGIDX_RFC]
 
 check_dram_size:
     ldr   r0, =0xA0100000
@@ -693,50 +621,175 @@ check_dram_size:
     ldr   r1, =0x41424344
     ldr   r2, [r0]
     cmp   r2, r1                                 @ == 8Gbit
-    orreq r5, r5, #0x23
-    moveq r6, r6, lsr #16
+    orreq r6, r6, #0x03
+    moveq r7, r7, lsr #24
+    mov   r3, #0x38                              @ '8'
     beq   check_dram_size_end
     ldr   r0, =0x90100000
     ldr   r1, =0x35363738
     ldr   r2, [r0]
     cmp   r2, r1                                 @ == 4Gbit
-    orreq r5, r5, #0x02
-    moveq r6, r6, lsr #16
+    orreq r6, r6, #0x02
+    moveq r7, r7, lsr #16
+    mov   r3, #0x34                              @ '4'
     beq   check_dram_size_end
     ldr   r0, =0x88100000
     ldr   r1, =0x292A2B2C
     ldr   r2, [r0]
     cmp   r2, r1                                 @ == 2Gbit
-    orreq r5, r5, #0x01
-    moveq r6, r6, lsr #8
+    orreq r6, r6, #0x01
+    moveq r7, r7, lsr #8
+    mov   r3, #0x32                              @ '2'
     beq   check_dram_size_end
+    mov   r3, #0x31                              @ '1'
 
 check_dram_size_end:
     ldr   r0, =0x1e6e0004
-    str   r5, [r0]
+    str   r6, [r0]
     ldr   r0, =0x1e6e0014
     ldr   r1, [r0]
     bic   r1, r1, #0x000000FF
-    and   r6, r6, #0xFF
-    orr   r1, r1, r6
+    and   r7, r7, #0xFF
+    orr   r1, r1, r7
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e0120                        @ VGA Compatible Mode
-    ldr   r1, =0x000050C0                        @ 408 MHz
-    str   r1, [r0]
-
-/******************************************************************************
- Version Number
- *****************************************************************************/
+    /* Version Number */
     ldr   r0, =0x1e6e0004
     ldr   r1, [r0]
-    mov   r2, #0x01
+    mov   r2, #ASTMMC_INIT_VER
     orr   r1, r1, r2, lsl #20
     str   r1, [r0]
 
-/******************************************************************************
- Calibration Code End
- ******************************************************************************/
+    ldr   r0, =0x1e6e0088
+    ldr   r1, =ASTMMC_INIT_DATE
+    str   r1, [r0]
+
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, #0x2D                              @ '-'
+    str   r1, [r0]
+    str   r3, [r0]
+    mov   r1, #0x47                              @ 'G'
+    str   r1, [r0]
+    mov   r1, #0x62                              @ 'b'
+    str   r1, [r0]
+    mov   r1, #0x2D                              @ '-'
+    str   r1, [r0]
+/* Debug - UART console message */
+#endif
+
+    /********************************************
+     DDRTest
+    ********************************************/
+ddr_test_start:
+    ldr   r0, =0x1e6e0074
+    ldr   r1, =0x00FFFFFF                        @ test size = 16MB
+    str   r1, [r0]
+    ldr   r0, =0x1e6e007c
+    ldr   r1, =0xFF00FF00
+    str   r1, [r0]
+
+ddr_test_single:
+    mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+ddr_test_single_loop:
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, r6
+    print_hex_char
+/* Debug - UART console message */
+    ldr   r0, =0x1e6e0070
+    ldr   r2, =0x00000000
+    str   r2, [r0]
+    mov   r2, r6, lsl #3
+    orr   r2, r2, #0x85                          @ test command = 0x85 | (datagen << 3)
+    str   r2, [r0]
+    ldr   r3, =0x3000
+    ldr   r11, =0x500000
+ddr_wait_engine_idle_0:
+    subs  r11, r11, #1
+    beq   ddr_test_fail
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[12] = idle bit
+    beq   ddr_wait_engine_idle_0
+
+    ldr   r0, =0x1e6e0070                        @ read fail bit status
+    ldr   r3, =0x2000
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[13] = fail bit
+    bne   ddr_test_fail
+
+    add   r6, r6, #1                             @ increase the test mode index
+    cmp   r6, #0x08                              @ test 8 modes
+    bne   ddr_test_single_loop
+
+ddr_test_burst:
+    mov   r6, #0x00                              @ initialize loop index, r1 is loop index
+ddr_test_burst_loop:
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, r6
+    print_hex_char
+/* Debug - UART console message */
+    ldr   r0, =0x1e6e0070
+    ldr   r2, =0x00000000
+    str   r2, [r0]
+    mov   r2, r6, lsl #3
+    orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)
+    str   r2, [r0]
+    ldr   r3, =0x3000
+    ldr   r11, =0x500000
+ddr_wait_engine_idle_1:
+    subs  r11, r11, #1
+    beq   ddr_test_fail
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[12] = idle bit
+    beq   ddr_wait_engine_idle_1
+
+    ldr   r0, =0x1e6e0070                        @ read fail bit status
+    ldr   r3, =0x2000
+    ldr   r2, [r0]
+    tst   r2, r3                                 @ D[13] = fail bit
+    bne   ddr_test_fail
+
+    add   r6, r6, #1                             @ increase the test mode index
+    cmp   r6, #0x08                              @ test 8 modes
+    bne   ddr_test_burst_loop
+
+    ldr   r0, =0x1e6e0070
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+    b     set_scratch                            @ CBRTest() return(1)
+
+ddr_test_fail:
+/* Debug - UART console message */
+    ldr   r0, =0x1e783000
+    mov   r1, #0x46                              @ 'F'
+    str   r1, [r0]
+    mov   r1, #0x61                              @ 'a'
+    str   r1, [r0]
+    mov   r1, #0x69                              @ 'i'
+    str   r1, [r0]
+    mov   r1, #0x6C                              @ 'l'
+    str   r1, [r0]
+    mov   r1, #0x0D                              @ '\r'
+    str   r1, [r0]
+    mov   r1, #0x0A                              @ '\n'
+    str   r1, [r0]
+    ldr   r0, =0x1e783014
+wait_print_1:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_1
+/* Debug - UART console message */
+    b     reset_mmc
+
+set_scratch:
+    /*Set Scratch register Bit 6 after ddr initial finished */
+    ldr   r0, =0x1e6e2040
+    ldr   r1, [r0]
+    orr   r1, r1, #0x41
+    str   r1, [r0]
+
 /* Debug - UART console message */
     ldr   r0, =0x1e783000
     mov   r1, #0x44                              @ 'D'
@@ -755,20 +808,14 @@ check_dram_size_end:
 
 platform_exit:
 
-    ldr   r0, =0x1e6e2004                        @ enable CPUI DRAM request for ARM9
-    ldr   r1, [r0]
-    bic   r1, r1, #0x00020000
+    /*Set GPIO for SDMMC host  fpga */
+    ldr   r0, =0x1e780070
+    ldr   r1, =0x00400000
     str   r1, [r0]
-
-    ldr r0, =0x1e6e2040
-    ldr r1, [r0]
-    orr r1, r1, #0xC0
-    str r1, [r0]
-
-    ldr r0, =0x1e6e2070
-    ldr r1, [r0]
-    orr r1, r1, #0x20
-    str r1, [r0]
+    /* SDIO */
+    ldr   r0, =0x1e780000
+    ldr   r1, =0x80000000
+    str   r1, [r0]
 
     /* restore lr */
     mov   lr, r4

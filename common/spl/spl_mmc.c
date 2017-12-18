@@ -346,6 +346,10 @@ int spl_mmc_load_image(struct spl_image_info *spl_image,
 			return err;
 
 		break;
+	case MMCSD_MODE_FW_UPDATE: 
+		//STEP 1 : load from slot1 sd all.bin to dram SYS _LOAD ADDR
+		//STEP 2 : write SYS_LOAD_ADDR size to -> eMMC  slot1
+		break;
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 	default:
 		puts("spl: mmc: wrong boot mode\n");

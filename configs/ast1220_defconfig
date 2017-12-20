@@ -292,7 +292,7 @@ CONFIG_SPL_OS_BOOT=y
 # Command line interface
 #
 CONFIG_CMDLINE=y
-# CONFIG_HUSH_PARSER is not set
+CONFIG_HUSH_PARSER=y
 CONFIG_SYS_PROMPT="ast# "
 
 #

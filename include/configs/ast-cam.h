@@ -20,6 +20,16 @@
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
+	"sd_boot=fatload mmc 1:0 80000000 all.bin; mmc dev 1; mmc write 80000000 0 20000; run emmc_firmareupdate_done\0" \
+	"sd_update=fatload mmc 1:0 83000000 all.bin; mmc dev 0; mmc write 83000000 0 ${load; run emmc_firmareupdate_done\0" \
+	"emmc_firmareupdate=fatload mmc 0:1 80000000 all.bin; mmc dev 1; mmc write 80000000 0 20000; run emmc_firmareupdate_done\0"	\
+	"update_mode=0\0"	\
+	"boot_from_spi=0\0"	\
+	"emmc_firmareupdate_done=setenv update_mode 0; save; reset\0"	\
+	"updatemode_check=if test ${update_mode} -eq 1; then run emmc_firmareupdate; else run boot_to_emmc; fi\0"	\
+	"boot_to_emmc=mmc dev 1; mmc read 80700000 780 80; mmc read 80800000 800 2c00; bootm 80800000 - 80700000\0"	\
+	"boot_to_spi=bootm 20080000 - 20070000\0"	\
+	"boot_mode_check=if test ${boot_from_spi} -eq 1; then run boot_to_spi; else run updatemode_check; fi\0"	\
 	""
 
 /* mtdparts command line support */

@@ -20,16 +20,10 @@
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
-	"sd_boot=fatload mmc 1:0 80000000 all.bin; mmc dev 1; mmc write 80000000 0 20000; run emmc_firmareupdate_done\0" \
-	"sd_update=fatload mmc 1:0 83000000 all.bin; mmc dev 0; mmc write 83000000 0 ${load; run emmc_firmareupdate_done\0" \
-	"emmc_firmareupdate=fatload mmc 0:1 80000000 all.bin; mmc dev 1; mmc write 80000000 0 20000; run emmc_firmareupdate_done\0"	\
-	"update_mode=0\0"	\
-	"boot_from_spi=0\0"	\
-	"emmc_firmareupdate_done=setenv update_mode 0; save; reset\0"	\
-	"updatemode_check=if test ${update_mode} -eq 1; then run emmc_firmareupdate; else run boot_to_emmc; fi\0"	\
-	"boot_to_emmc=mmc dev 1; mmc read 80700000 780 80; mmc read 80800000 800 2c00; bootm 80800000 - 80700000\0"	\
-	"boot_to_spi=bootm 20080000 - 20070000\0"	\
-	"boot_mode_check=if test ${boot_from_spi} -eq 1; then run boot_to_spi; else run updatemode_check; fi\0"	\
+	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
+	"sd_boot=mmc dev 1;fatload mmc 1:0 80008000 zImage;fatload mmc 1:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
+	"mmc_boot=mmc dev 0;mmc read 80008000 69 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
+	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 
 /* mtdparts command line support */
@@ -80,16 +74,16 @@
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME            "ast1220.dtb"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME          "uImage"
 
-#define SYS_LOAD_IMAGE_ADDR					0x80800000
+#define SYS_LOAD_IMAGE_ADDR						0x80800000
 /* Address in RAM where the parameters must be copied by SPL. */
-#define CONFIG_SYS_SPL_ARGS_ADDR			0x80000100
+#define CONFIG_SYS_SPL_ARGS_ADDR				0x80000100
 /* Not using MMC raw mode - just for compilation purpose */
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	   	129
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS	  	18
-#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR 	147
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR		64
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS		60
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		104
 
 /* for booting directly linux */
 
 /* FIT load address for RAM boot */
-#define CONFIG_SPL_LOAD_FIT_ADDRESS	0x10000000
+#define CONFIG_SPL_LOAD_FIT_ADDRESS				0x10000000
 #endif	/* __CONFIG_H */

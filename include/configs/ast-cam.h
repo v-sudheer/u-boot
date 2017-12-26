@@ -17,12 +17,15 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
+	"mmcdev=0\0" \
+	"sddev=1\0" \
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
+	"sd_update=mmc dev ${sddev};fatload mmc ${sddev}:0 80800000 sd.scr;so 80800000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc 1:0 80008000 zImage;fatload mmc 1:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
-	"mmc_boot=mmc dev 0;mmc read 80008000 69 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
+	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
+	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 68 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 

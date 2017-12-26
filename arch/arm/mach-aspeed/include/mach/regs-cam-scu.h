@@ -21,13 +21,14 @@
 #define AST_SCU_CLK_STOP			0x0C		/*	clock stop control register	*/
 #define AST_SCU_CLK_STOP2			0xDC		/*	clock stop control register set 2*/
 #define AST_SCU_COUNT_CTRL			0x10		/*	frequency counter control register	*/
-#define AST_SCU_COUNT_PRANG		0x14		/*	Frequency counter comparison range 	*/
+#define AST_SCU_COUNT_PRANG			0x14		/*	Frequency counter comparison range 	*/
 
-#define AST_SCU_D2_PLL				0x1C		/*	D2-PLL Parameter  register	*/
-
+#define AST_SCU_E_PLL				0x18		/*	E-PLL Parameter  register	*/
+#define AST_SCU_A_PLL				0x1C		/*	A-PLL Parameter  register	*/
 #define AST_SCU_M_PLL				0x20		/*	M-PLL Parameter register		*/
 #define AST_SCU_H_PLL				0x24		/*	H-PLL Parameter register		*/
 #define AST_SCU_D_PLL				0x28		/*	D-PLL Parameter  register	*/
+
 #define AST_SCU_MISC1_CTRL			0x2C		/*	Misc. Control register */
 #define AST_SCU_PCI_CONF1			0x30		/*	PCI configuration setting register#1 */
 #define AST_SCU_PCI_CONF2			0x34		/*	PCI configuration setting register#2 */
@@ -134,27 +135,36 @@
 #define SCU_RESET_SDRAM_CTRL		(0x1 << 0)
 
 /*	AST_SCU_CLK_SEL	 : 0x08 - clock selection register	*/
-#define SCU_SDHCI_CLK_SOURCE(x)	((x) << 22)
-#define SCU_SDIO_CLK_SOURCE(x)		((x) << 20)
-#define SCU_H264_HEVCLK_SOURCE	((x) << 18)		
-#define SCU_JPEG_JCLK_SOURCE(x)	((x) << 16)
-#define SCU_PP_VCLK_SOURCE(x)		((x) << 14)
-#define SCU_ZSP_CLK_SOURCE(x)		((x) << 12)
-#define SCU_3D_ECLK_SOURCE(x)		((x) << 10)		
-
-#define SCU_APB_PCLK_DIV(x)			((x) << 6)
-#define SCU_GET_PCLK_DIV(x)			((x >> 6) & 0x7)
-#define SCU_APB_PCLK_DIV_MASK		(0x7 << 6)		//limitation on PCLK .. PCLK > 0.5*LCLK (33Mhz)
-#define SCU_CLK_CPU_AHB_SLOW_EN	(0x1 << 5)
-
-#define SCU_CPU_DYNAMIC_SLOW_DIV(x)	((x) << 2)
-
-#define SCU_CLK_CPU_AHB_SLOW_IDLE	(0x1 << 1)	/*0:128 HCLK idle, 1:256 HCLK idle */
-#define SCU_CLK_CPU_AHB_DYN_SLOW_EN	(0x1)
+#define SCU_PWM_CLK_SOURCE_MPLL_DIV4	(0x1 << 30)
+#define SCU_MIPI_CLK_20M_DIV_MASK		(0x3 << 28)
+#define SCU_MIPI_GET_CLK_20M_DIV(x)		(((x) >> 28) & 0x3)
+#define SCU_MIPI_CLK_120M_DIV_MASK		(0xf << 24)
+#define SCU_MIPI_GET_CLK_120M_DIV(x)	(((x) >> 24) & 0xf)
+#define SCU_SDHCI_CLK_SOURCE(x)			((x) << 22)
+#define SCU_SDHCI_GET_CLK_SOURCE(x)		(((x) >> 22) & 0x3)
+#define SCU_SDIO_CLK_SOURCE(x)			((x) << 20)
+#define SCU_SDIO_GET_CLK_SOURCE(x)		(((x) >> 20) & 0x3)
+#define SCU_H264_HEVCLK_SOURCE			((x) << 18)
+#define SCU_H264_GET_HEVCLK_SOURCE		(((x) >> 18) & 0x3)
+#define SCU_JPEG_JCLK_SOURCE(x)			((x) << 16)
+#define SCU_JPEG_GET_JCLK_SOURCE(x)		(((x) >> 16) & 0x3)
+#define SCU_PP_VCLK_SOURCE(x)			((x) << 14)
+#define SCU_PP_GET_VCLK_SOURCE(x)		(((x) >> 14) & 0x3)
+#define SCU_ZSP_CLK_SOURCE(x)			((x) << 12)
+#define SCU_ZSP_GET_CLK_SOURCE(x)		(((x) >> 12) & 0x3)
+#define SCU_3D_ECLK_SOURCE(x)			((x) << 10)
+#define SCU_3D_GET_ECLK_SOURCE(x)		(((x) >> 10) & 0x3)
+#define SCU_APB_PCLK_DIV(x)				((x) << 6)
+#define SCU_GET_PCLK_DIV(x)				(((x) >> 6) & 0x7)
+#define SCU_CLK_CPU_AHB_SLOW_EN			(0x1 << 5)
+#define SCU_CPU_DYNAMIC_SLOW_DIV(x)		((x) << 2)
+#define SCU_CLK_CPU_AHB_SLOW_IDLE		(0x1 << 1)	/*0:128 HCLK idle, 1:256 HCLK idle */
+#define SCU_CLK_CPU_AHB_DYN_SLOW_EN		(0x1)
 
 /*	AST_SCU_CLK_SEL2	: 0xD8 - clock selection register Set 2	*/
 #define SCU_MAC_AHB_CLK_DIV(x)	(x << 24)
 #define SCU_SDHCI_CLK_DIV(x)		(x << 20)
+#define SCU_SDHCI_GET_CLK_DIV(x)	((x >> 20) & 0xf)
 #define SCU_SDIO_CLK_DIV(x)			(x << 16)
 #define SCU_ZSP_CLK_DIV(x)			(x << 12)
 #define SCU_H264_HEVCLK_DIV(x)		(x << 9)
@@ -270,30 +280,23 @@
 #define SCU_M_PLL_GET_MNUM(x)			((x >> 5) & 0xff)
 #define SCU_M_PLL_GET_NNUM(x)			(x & 0x1f)
 
-/*	AST_SCU_H_PLL: 0x24- H-PLL Parameter register		*/
-#define SCU_H_PLL_PARAMETER0(x)			((x) << 22)
-#define SCU_H_PLL_GET_PARAMETER0(x)		((x >> 22) & 0x3ff)
-#define SCU_H_PLL_PARAMETER0_MASK(x)	(0x3ff << 22)
-#define SCU_H_PLL_GET_PARAMETER0(x)		((x >> 22) & 0x3ff)
-#define SCU_H_PLL_RESET					(0x1 << 21)
-#define SCU_H_PLL_BYPASS_EN			(0x1 << 20)
-#define SCU_H_PLL_OFF					(0x1 << 19)
-#define SCU_H_PLL_PNUM(x)				(x << 13)
-#define SCU_H_PLL_GET_PNUM(x)			((x >> 13) & 0x3f)
-#define SCU_H_PLL_PNUM_MASK			(0x3f << 13)
-#define SCU_H_PLL_MNUM(x)				(x << 5)
-#define SCU_H_PLL_GET_MNUM(x)			((x >> 5) & 0xff)
-#define SCU_H_PLL_MNUM_MASK			(0xff << 5)
-#define SCU_H_PLL_NNUM(x)				(x)
-#define SCU_H_PLL_GET_NNUM(x)			(x & 0xf)
-#define SCU_H_PLL_NNUM_MASK			(0xf)
+/*	AST_SCU_PLL: 0x18/0x1C/0x20/0x24/0x28	E/A/M/H/D-PLL Parameter register	*/
+#define SCU_PLL_ENSAT				(0x1 << 28)
+#define SCU_PLL_FAST				(0x1 << 27)
+#define SCU_PLL_TEST				(0x1 << 26)
+#define SCU_PLL_RESET				(0x1 << 25)
+#define SCU_PLL_BYPASS				(0x1 << 24)
+#define SCU_PLL_OFF					(0x1 << 23)
+#define SCU_PLL_PNUM(x)				(x << 19)
+#define SCU_PLL_GET_PNUM(x)			((x >> 19) & 0xf)
+#define SCU_PLL_PNUM_MASK			(0xf << 19)
+#define SCU_PLL_NNUM(x)				(x << 13)
+#define SCU_PLL_GET_NNUM(x)			((x >> 13) & 0x3f)
+#define SCU_PLL_NNUM_MASK			(0x3f << 5)
+#define SCU_PLL_MNUM(x)				(x)
+#define SCU_PLL_GET_MNUM(x)			(x & 0x1fff)
+#define SCU_PLL_MNUM_MASK			(0x1fff)
 
-
-/* 	AST_SCU_MH_PLL_EXTEND : 0x148 - Extended Parameter of M/H-PLL register */
-#define SCU_H_PLL_GET_PARAMETER1(x)		((x >> 16) & 0x3f)
-#define SCU_H_PLL_PARAMETER1_MASK(x)	(0x3f << 16)
-#define SCU_M_PLL_GET_PARAMETER1(x)		(x & 0x3f)
-#define SCU_M_PLL_PARAMETER1_MASK(x)	(0x3f)
 
 /*	AST_SCU_D_PLL : 0x28 - D-PLL Parameter  register	*/
 #define SCU_D_PLL_GET_SIP(x)				((x >>27) & 0x1f)
@@ -417,8 +420,8 @@
 #define SCU_HW_STRAP_SPI_MASTER			(0x1 << 12)
 #define SCU_HW_STRAP_SPI_M_S_EN			(0x2 << 12)
 #define SCU_HW_STRAP_SPI_PASS_THROUGH	(0x3 << 12)
-#define SCU_HW_STRAP_GET_AXI_AHB_RATIO(x)	((x >> 9) & 0x7)
-#define SCU_HW_STRAP_GET_CPU_AXI_RATIO(x)	((x >> 8) & 0x1)
+
+#define SCU_HW_STRAP_GET_AHB_RATIO(x)	((x >> 8) & 0x7)
 #define SCU_HW_STRAP_MAC1_RGMII		(0x1 << 7)
 #define SCU_HW_STRAP_MAC0_RGMII		(0x1 << 6)
 #define SCU_HW_STRAP_VGA_BIOS_ROM	(0x1 << 5)

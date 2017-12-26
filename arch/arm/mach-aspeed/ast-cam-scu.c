@@ -97,67 +97,6 @@ static struct soc_id soc_map_table[] = {
 };
 //***********************************Initial control***********************************
 extern void
-ast_scu_reset_jpeg(void)
-{
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_JPEG, AST_SCU_RESET);
-	udelay(100);
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_JPEG, AST_SCU_RESET);
-}
-
-
-extern void
-ast_scu_init_jpeg(u8 dynamic_en)
-{
-
-#if 0
-	//Video Engine Clock Enable and Reset
-	//  Enable Clock & ECLK = inverse of (M-PLL / 2)
-	if(dynamic_en)
-		ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_VIDEO_SLOW_MASK) | SCU_CLK_VIDEO_SLOW_EN | SCU_CLK_VIDEO_SLOW_SET(0), AST_SCU_CLK_SEL);
-	else {
-		if(GET_CHIP_REVISION(ast_scu_read(AST_SCU_REVISION_ID)) == 4)
-			ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~(SCU_ECLK_SOURCE_MASK | SCU_CLK_VIDEO_SLOW_MASK | SCU_CLK_VIDEO_SLOW_EN)), AST_SCU_CLK_SEL);
-		else
-			ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~(SCU_ECLK_SOURCE_MASK | SCU_CLK_VIDEO_SLOW_EN)) | SCU_ECLK_SOURCE(2), AST_SCU_CLK_SEL);
-	}
-#endif	
-	// Enable CLK
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~(SCU_JCLK_STOP_EN), AST_SCU_CLK_STOP);	
-	mdelay(10);
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_JPEG, AST_SCU_RESET);
-	udelay(100);
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_JPEG, AST_SCU_RESET);
-}
-
-#ifdef SCU_UART1CLK_STOP_EN
-extern void
-ast_scu_init_uart(u8 uart)
-{
-	u32 clk_stop_en = 0;	
-
-	//uart 1
-	if(uart & 0x2) {
-		clk_stop_en |= SCU_UART1CLK_STOP_EN;
-	}
-
-	if(uart & 0x4) {
-		clk_stop_en |= SCU_UART2CLK_STOP_EN;
-	}
-
-	if(uart & 0x8) {
-		clk_stop_en |= SCU_UART3CLK_STOP_EN;
-	}
-
-	if(uart & 0x10) {
-		clk_stop_en |= SCU_UART4CLK_STOP_EN;
-	}
-	
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~(clk_stop_en), AST_SCU_CLK_STOP);
-	
-}
-#endif
-
-extern void
 ast_scu_init_eth(u8 num)
 {
 	switch(num) {
@@ -193,9 +132,6 @@ ast_scu_init_usb_port1(void)
 	printf("TODO ast_scu_init_usb_port1 ~\n");
 }
 
-
-EXPORT_SYMBOL(ast_scu_init_usb_port1);
-
 extern void
 ast_scu_init_sdhci(void)
 {
@@ -208,7 +144,6 @@ ast_scu_init_sdhci(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDHCI, AST_SCU_RESET);
 }
 
-
 extern void
 ast_scu_init_i2c(void)
 {
@@ -216,37 +151,14 @@ ast_scu_init_i2c(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_I2C, AST_SCU_RESET);
 	udelay(3);
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_I2C, AST_SCU_RESET);
-	
-}
-
-
-extern void
-ast_scu_init_hace(void)
-{
-}
-
-extern void
-ast_scu_init_h264(void)
-{
 
 }
-
-extern void
-ast_scu_clk_stop(u32 clk_name,u8 stop_enable)
-{
-	switch(clk_name){
-		default:
-			SCUMSG("ERRO clk_name :%d \n",clk_name);
-			break;
-	}
-}
-
 
 //***********************************CLK Information***********************************
-
 extern u32
 ast_get_clk_source(void)
 {
+	return AST_PLL_24MHZ;
 }
 
 extern u32
@@ -255,19 +167,19 @@ ast_get_h_pll_clk(void)
 	u32 clk=0;
 	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
 
-	if(h_pll_set & SCU_H_PLL_OFF)
+	if(h_pll_set & SCU_PLL_OFF)
 		return 0;
 	
 	// Programming
 	clk = ast_get_clk_source();
-	if(h_pll_set & SCU_H_PLL_BYPASS_EN) {
+	if(h_pll_set & SCU_PLL_BYPASS) {
 		return clk;
 	} else {
-		//P = SCU24[18:13]
-		//M = SCU24[12:5]
-		//N = SCU24[4:0]
-		//hpll = 24MHz * [(M+1) /(N+1)] / (P+1)
-		clk = ((clk * (SCU_H_PLL_GET_MNUM(h_pll_set) + 1)) / (SCU_H_PLL_GET_NNUM(h_pll_set) + 1)) /(SCU_H_PLL_GET_PNUM(h_pll_set) + 1);
+		//P = SCU24[22:19]
+		//N = SCU24[18:13]
+		//M = SCU24[12:0]
+		//hpll = clkin * [(M+1) /(N+1)] / (P+1)
+		clk = ((clk * (SCU_PLL_GET_MNUM(h_pll_set) + 1)) / (SCU_PLL_GET_NNUM(h_pll_set) + 1)) /(SCU_PLL_GET_PNUM(h_pll_set) + 1);
 	}
 	SCUDBUG("h_pll = %d\n",clk);
 	return clk;
@@ -280,53 +192,59 @@ ast_get_m_pll_clk(void)
 	u32 clk=0;
 	u32 m_pll_set = ast_scu_read(AST_SCU_M_PLL);
 
-	if(m_pll_set & SCU_M_PLL_OFF)
+	if(m_pll_set & SCU_PLL_OFF)
 		return 0;
 	
 	// Programming
 	clk = ast_get_clk_source();
-	if(m_pll_set & SCU_M_PLL_BYPASS) {
+	if(m_pll_set & SCU_PLL_BYPASS) {
 		return clk;
 	} else {
-		//PD  == SCU20[13:18]
-		//M  == SCU20[5:12]	
-		//N  == SCU20[0:4]		
-		//mpll =  24MHz * [(M+1) /(N+1)] / (P+1)
-		clk = ((clk * (SCU_M_PLL_GET_MNUM(m_pll_set) + 1)) / (SCU_M_PLL_GET_NNUM(m_pll_set) + 1))/(SCU_M_PLL_GET_PDNUM(m_pll_set) + 1);
+		//P = SCU24[22:19]
+		//N = SCU24[18:13]
+		//M = SCU24[12:0]
+		//hpll = clkin * [(M+1) /(N+1)] / (P+1)
+		clk = ((clk * (SCU_PLL_GET_MNUM(m_pll_set) + 1)) / (SCU_PLL_GET_NNUM(m_pll_set) + 1)) /(SCU_PLL_GET_PNUM(m_pll_set) + 1);
 	}
-	SCUDBUG("m_pll = %d\n",clk);
+	SCUDBUG("h_pll = %d\n",clk);
 	return clk;
+
 }
 
 
 extern u32
 ast_get_ahbclk(void)
 {
+#ifdef CONFIG_FPGA_ASPEED
+	return 52000000;
+#else
 	unsigned int axi_div, ahb_div, hpll;
 
 	hpll = ast_get_h_pll_clk();
-	//AST2500 A1 fix 
-	axi_div = 2;
-	ahb_div = (SCU_HW_STRAP_GET_AXI_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) + 1); 
-	
-	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, (hpll/axi_div)/ahb_div);	
-	return ((hpll/axi_div)/ahb_div);
-
+	 
+ 	ahb_div = (SCU_HW_STRAP_GET_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) * 2); 
+	if(!ahb_div) ahb_div = 4;
+	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, hpll/ahb_div);	
+	return (hpll/ahb_div);
+#endif
 }
-
 
 extern u32
-ast_get_d2_pll_clk(void)
+ast_get_pclk(void)
 {
-	return 10000000;
+#ifdef CONFIG_FPGA_ASPEED
+		return 52000000;
+#else
+	unsigned int apb_div, hpll;
+
+	hpll = ast_get_h_pll_clk();
+	 
+	apb_div = ((SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL)) + 1) * 4); 
+
+	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, hpll/ahb_div);	
+	return (hpll/apb_div);
+#endif
 }
-
-
-extern void
-ast_set_d2_pll_clk(u32 pll_setting)
-{
-}
-
 
 extern u32
 ast_get_d_pll_clk(void)
@@ -336,52 +254,40 @@ ast_get_d_pll_clk(void)
 }
 
 extern u32
-ast_get_pclk(void)
-{
-
-	return (10000000);
-
-}
-
-extern u32
-ast_get_lhclk(void)
-{
-		return 0;
-}
-
-
-extern void
-ast_scu_osc_clk_output(void)
-{
-
-}
-
-extern void
-ast_scu_spi_master(u8 mode)
-{
-}
-
-extern u32
 ast_get_sd_clock_src(void)
 {
-	printf("TODO ~~ ast_get_sd_clock_src \n");
 #ifdef CONFIG_FPGA_ASPEED
-	return 50000000;
+	return 104000000;
 #else
-	return 108000000;
+	unsigned int apb_div, hpll;
+
+	hpll = ast_get_h_pll_clk();
+	apb_div = SCU_SDHCI_GET_CLK_DIV(ast_scu_read(AST_SCU_CLK_SEL2));
+	
+	if(apb_div & 0x8) {
+		apb_div = ((apb_div & 0x7) + 1) * 2;
+	} else {
+		apb_div = 1;
+	}
+
+	SCUDBUG("HPLL=%d, APB DIV =%d\n", hpll, apb_div);
+	return (hpll/apb_div);
 #endif
 }
 
 extern void
 ast_scu_show_system_info (void)
 {
-
-
 	return ;
 }
 
 
 //*********************************** Multi-function pin control ***********************************
+extern void
+ast_scu_spi_master(u8 mode)
+{
+}
+
 extern void
 ast_scu_multi_func_uart(u8 uart)
 {
@@ -392,30 +298,10 @@ ast_scu_multi_func_eth(u8 num)
 {
 }
 
-extern void
-ast_scu_multi_func_romcs(u8 num)
-{
-}
 
 extern void
 ast_scu_multi_func_i2c(u8 bus_no)
 {
-}	
-
-
-
-//0 : usb 2.0 hub mode, 1:usb 2.0 host2 controller
-extern void
-ast_scu_multi_func_usb_port1_mode(u8 mode)
-{
-}	
-
-
-//0 : 1.1 hid 1, 1.1 host , 2, 2.0 host 3, 2.0 device 
-extern void
-ast_scu_multi_func_usb_port2_mode(u8 mode)
-{
-
 }	
 
 
@@ -537,15 +423,6 @@ ast_scu_get_phy_interface(u8 mac_num)
 	return -1;
 }
 
-extern u32
-ast_scu_get_soc_dram_base(void)
-{
-	u32 rev_id = ast_scu_read(AST_SCU_REVISION_ID);
-	if((rev_id >> AST_SOC_GEN) > 3) 
-		return AST_DRAM_BASE_8;
-	else
-		return AST_DRAM_BASE_4;
-}
 
 extern int
 ast_scu_2nd_wdt_mode(void)
@@ -554,15 +431,6 @@ ast_scu_2nd_wdt_mode(void)
 		return 1;
 	else 
 		return 0;
-}
-
-extern u8
-ast_scu_get_superio_addr_config(void)
-{
-	if(ast_scu_read(AST_SCU_HW_STRAP1) & SCU_HW_STRAP_SUPER_IO_CONFIG)
-		return 0x4E;
-	else
-		return 0x2E;
 }
 
 extern void
@@ -591,14 +459,3 @@ ast_scu_set_hw_random_type(u8 type)
 {
 	ast_scu_write(((ast_scu_read(AST_SCU_RAMDOM_GEN) & ~RNG_TYPE_MASK) | RNG_SET_TYPE(type)), AST_SCU_RAMDOM_GEN);
 }
-
-#ifdef AST_SCU_OTP_READ_CTRL
-extern u8
-ast_scu_otp_read(u8 reg)
-{
-        ast_scu_write(SCU_OTP_TRIGGER | SCU_OTP_READ_ADDR(reg), AST_SCU_OTP_READ_CTRL);
-        while(SCU_OTP_TRIGGER_STS & ast_scu_read(AST_SCU_OTP_READ_CTRL));
-        return (SCU_OTP_READ_DATA(ast_scu_read(AST_SCU_OTP_READ_CTRL)));
-}
-
-#endif

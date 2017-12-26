@@ -99,6 +99,7 @@ choice
 
 config ARCH_AST1220
 	select CPU_ARM1176
+	select SUPPORT_SPL
 	bool "AST1220"
 
 endchoice

@@ -59,7 +59,7 @@ static int mmc_load_image_raw_sector(struct spl_image_info *spl_image,
 	struct image_header *header;
 	int ret = 0;
 
-	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+	header = (struct image_header *)(SYS_LOAD_IMAGE_ADDR -
 					 sizeof(struct image_header));
 
 	/* read image header to find the image size & load address */
@@ -345,6 +345,10 @@ int spl_mmc_load_image(struct spl_image_info *spl_image,
 		if (!err)
 			return err;
 
+		break;
+	case MMCSD_MODE_FW_UPDATE: 
+		//STEP 1 : load from slot1 sd all.bin to dram SYS _LOAD ADDR
+		//STEP 2 : write SYS_LOAD_ADDR size to -> eMMC  slot1
 		break;
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 	default:

@@ -24,7 +24,7 @@ CONFIG_SYS_CPU="arm1176"
 CONFIG_SYS_SOC="aspeed"
 CONFIG_SYS_VENDOR="aspeed"
 CONFIG_SYS_BOARD="ast-cam"
-CONFIG_SYS_CONFIG_NAME="ast-cam"
+CONFIG_SYS_CONFIG_NAME="ast-cam-mix"
 
 #
 # ARM architecture

@@ -89,7 +89,11 @@ int MMCTest(void)
 	pattern = readl( 0x1E6E2078 );
 	printf("Pattern = %08X : ",pattern);
 
+#ifdef CONFIG_ARCH_AST1220
+	writel(0x20ffffff, 0x1E6E0074);
+#else
 	writel((DRAM_MapAdr | 0x7fffff), 0x1E6E0074);
+#endif
 	writel(pattern, 0x1E6E007C);
   
 	if(!MMCTestBurst(0))    return(0);

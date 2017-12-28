@@ -13,7 +13,20 @@
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
 {
-	printf("AST1220 \n");
+	char buf[32];
+
+
+#ifdef CONFIG_FPGA_ASPEED
+	printf("AST1220 FPGA\n");
+#else
+	ast_scu_revision_id();
+
+	ast_scu_sys_rest_info();
+
+	printf("PLL :   %4s MHz\n", strmhz(buf, ast_get_clk_source()));
+	printf("CPU :   %4s MHz\n", strmhz(buf, ast_get_h_pll_clk()));
+	printf("MEM :	%4s MHz\n", strmhz(buf, ast_get_m_pll_clk() * 2));
+#endif
 
 	return 0;
 }

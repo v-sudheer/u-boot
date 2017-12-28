@@ -93,7 +93,7 @@ struct soc_id {
 #define SOC_ID(str, rev) { .name = str, .rev_id = rev, }
 
 static struct soc_id soc_map_table[] = {
-	SOC_ID("AST1220-A0", 0x40000003),
+	SOC_ID("AST1220-A0", 0x04000003),
 };
 //***********************************Initial control***********************************
 extern void
@@ -142,6 +142,9 @@ ast_scu_init_sdhci(void)
 	mdelay(10);
 
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDHCI, AST_SCU_RESET);
+
+	//set clk div 4
+	ast_scu_write((ast_scu_read(0xd8) & ~(0xf << 20)) | (0x9 << 20), 0xd8);
 }
 
 extern void
@@ -259,19 +262,19 @@ ast_get_sd_clock_src(void)
 #ifdef CONFIG_FPGA_ASPEED
 	return 104000000;
 #else
-	unsigned int apb_div, hpll;
+	unsigned int sdhci_div, hpll;
 
 	hpll = ast_get_h_pll_clk();
-	apb_div = SCU_SDHCI_GET_CLK_DIV(ast_scu_read(AST_SCU_CLK_SEL2));
+	sdhci_div = SCU_SDHCI_GET_CLK_DIV(ast_scu_read(AST_SCU_CLK_SEL2));
 
-	if(apb_div & 0x8) {
-		apb_div = ((apb_div & 0x7) + 1) * 2;
+	if(sdhci_div & 0x8) {
+		sdhci_div = ((sdhci_div & 0x7) + 1) * 2;
 	} else {
-		apb_div = 1;
+		sdhci_div = 1;
 	}
 
-	SCUDBUG("HPLL=%d, APB DIV =%d\n", hpll, apb_div);
-	return (hpll/apb_div);
+	SCUDBUG("HPLL=%d, SDHCI DIV =%d\n", hpll, sdhci_div);
+	return (hpll/sdhci_div);
 #endif
 }
 

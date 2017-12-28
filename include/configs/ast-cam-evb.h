@@ -25,7 +25,7 @@
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
 	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
-	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 1868 1800;mmc read 83000000 40 14;bootz 80008000 - 83000000\0" \
+	"mmc_boot=mmc dev 0;mmc read 80008000 90 1800;mmc read 90000000 40 14;bootz 80008000 - 90000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 

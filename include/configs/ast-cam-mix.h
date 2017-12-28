@@ -24,8 +24,8 @@
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
-	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 68 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
+	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
+	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 1868 1800;mmc read 83000000 40 14;bootz 80008000 - 83000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 
@@ -82,9 +82,9 @@
 #define CONFIG_SYS_SPL_ARGS_ADDR				0x80000100
 /* Not using MMC raw mode - just for compilation purpose */
 #define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR		64
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS		60
-#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		104
-
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS		40
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		6288
+						
 /* for booting directly linux */
 
 /* FIT load address for RAM boot */

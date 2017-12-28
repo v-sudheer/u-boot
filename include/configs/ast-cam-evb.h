@@ -13,19 +13,19 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/mmcblk0p1 rw rootfstype=ext2 init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
 	"mmcdev=0\0" \
 	"sddev=1\0" \
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
-	"sd_update=mmc dev ${sddev};fatload mmc ${sddev}:0 80800000 sd.scr;so 80800000\0" \
+	"sd_update=mmc dev 1;fatload mmc 1:1 80800000 all.bin;mmc dev 0;mmc write 80800000 0 20000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
-	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 68 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
+	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
+	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 1868 1800;mmc read 83000000 40 14;bootz 80008000 - 83000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 
@@ -41,7 +41,7 @@
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
+#define CONFIG_BOOTCOMMAND	"run mmc_boot"
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1
@@ -84,7 +84,7 @@
 #define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR		64
 #define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS		40
 #define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		6288
-
+						
 /* for booting directly linux */
 
 /* FIT load address for RAM boot */

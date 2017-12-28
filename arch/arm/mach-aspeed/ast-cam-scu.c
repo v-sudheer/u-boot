@@ -93,7 +93,7 @@ struct soc_id {
 #define SOC_ID(str, rev) { .name = str, .rev_id = rev, }
 
 static struct soc_id soc_map_table[] = {
-	SOC_ID("AST1220-A0", 0x04030000),
+	SOC_ID("AST1220-A0", 0x04000003),
 };
 //***********************************Initial control***********************************
 extern void
@@ -142,6 +142,9 @@ ast_scu_init_sdhci(void)
 	mdelay(10);
 
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDHCI, AST_SCU_RESET);
+
+	//set clk div 4
+	ast_scu_write((ast_scu_read(0xd8) & ~(0xf << 20)) | (0x9 << 20), 0xd8);
 }
 
 extern void
@@ -218,13 +221,13 @@ ast_get_ahbclk(void)
 #ifdef CONFIG_FPGA_ASPEED
 	return 52000000;
 #else
-	unsigned int axi_div, ahb_div, hpll;
+	unsigned int ahb_div, hpll;
 
 	hpll = ast_get_h_pll_clk();
 	 
  	ahb_div = (SCU_HW_STRAP_GET_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) * 2); 
 	if(!ahb_div) ahb_div = 4;
-	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, hpll/ahb_div);	
+	SCUDBUG("HPLL=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, ahb_div, hpll/ahb_div);	
 	return (hpll/ahb_div);
 #endif
 }
@@ -241,7 +244,7 @@ ast_get_pclk(void)
 	 
 	apb_div = ((SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL)) + 1) * 4); 
 
-	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, hpll/ahb_div);	
+	SCUDBUG("HPLL=%d, APB_DIV = %d, AHB CLK=%d\n", hpll, apb_div, hpll/apb_div);	
 	return (hpll/apb_div);
 #endif
 }
@@ -259,19 +262,19 @@ ast_get_sd_clock_src(void)
 #ifdef CONFIG_FPGA_ASPEED
 	return 104000000;
 #else
-	unsigned int apb_div, hpll;
+	unsigned int sdhci_div, hpll;
 
 	hpll = ast_get_h_pll_clk();
-	apb_div = SCU_SDHCI_GET_CLK_DIV(ast_scu_read(AST_SCU_CLK_SEL2));
-	
-	if(apb_div & 0x8) {
-		apb_div = ((apb_div & 0x7) + 1) * 2;
+	sdhci_div = SCU_SDHCI_GET_CLK_DIV(ast_scu_read(AST_SCU_CLK_SEL2));
+
+	if(sdhci_div & 0x8) {
+		sdhci_div = ((sdhci_div & 0x7) + 1) * 2;
 	} else {
-		apb_div = 1;
+		sdhci_div = 1;
 	}
 
-	SCUDBUG("HPLL=%d, APB DIV =%d\n", hpll, apb_div);
-	return (hpll/apb_div);
+	SCUDBUG("HPLL=%d, SDHCI DIV =%d\n", hpll, sdhci_div);
+	return (hpll/sdhci_div);
 #endif
 }
 
@@ -302,22 +305,23 @@ ast_scu_multi_func_eth(u8 num)
 extern void
 ast_scu_multi_func_i2c(u8 bus_no)
 {
-}	
-
+}
 
 extern void
 ast_scu_multi_func_sdhc_slot(void)
 {
+#ifdef CONFIG_FPGA_ASPEED
 	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_SD1 | SCU_FUC_PIN_SD2, 
-				AST_SCU_FUN_PIN_CTRL5);						
+				AST_SCU_FUN_PIN_CTRL5);
+#endif
+	//emmc 0x84[24:26~27], 0x88[0~7]
+	ast_scu_write(ast_scu_read(0x84) | (1 << 24) | (1 << 26) | (1 << 27), 0x84);						
+	ast_scu_write(ast_scu_read(0x88) | 0xff, 0x88);
+	//sd 0x84[16, 18~23]
+	ast_scu_write(ast_scu_read(0x84) | 0xff00 | (1 << 25), 0x84);
+	//sdio 0x04[8~15, 25]
+	ast_scu_write(ast_scu_read(0x84) | 0xfc0000 | (1 << 16), 0x84);
 }	
-
-
-extern void
-ast_scu_multi_nic_switch(u8 enable)
-{
-		
-}
 
 //***********************************Information ***********************************
 extern u32

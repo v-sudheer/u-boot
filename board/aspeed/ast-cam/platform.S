@@ -55,7 +55,7 @@
   r0, r1, r2, r3, r5, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
 #define ASTMMC_INIT_VER      0x01                @ 8bit verison number
-#define ASTMMC_INIT_DATE     0x20171228          @ Release date
+#define ASTMMC_INIT_DATE     0x20171229          @ Release date
 
 /* PATTERN_TABLE,
    init_delay_timer,
@@ -109,7 +109,7 @@ TIME_TABLE_LPDDR3_1866:
     .word   0x003C6161       @ MCRFCab
 TIME_TABLE_PHY_1600:
     .word   0x1e6e0100       @ start address
-    .word   0x82402000       @ phyr000 : 0x16000400
+    .word   0x02402000       @ phyr000 : 0x16000400
     .word   0x0400004c       @ phyr004
     .word   0x55e00a0a       @ phyr008
     .word   0x55e00a0a       @ phyr00c
@@ -174,8 +174,8 @@ TIME_TABLE_PHY_1600:
     .word   0x00000000       @ phyr200
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0194       @ new address
-    .word   0x80215AF6       @ phyr094
-    .word   0x09090000       @ phyr098
+    .word   0x802152F6       @ phyr094
+    .word   0x07090000       @ phyr098
     .word   0x20202020       @ phyr09c
     .word   0x20202020       @ phyr0a0
     .word   0x00002020       @ phyr0a4
@@ -183,10 +183,10 @@ TIME_TABLE_PHY_1600:
     .word   0x00000001       @ phyr0ac
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e027c       @ new address
-    .word   0x00080000       @ phyr17c
+    .word   0x00000000       @ phyr17c
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0140       @ new address
-    .word   0x00000F00       @ phyr040
+    .word   0x00003F00       @ phyr040
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0148       @ new address
     .word   0x00000704       @ phyr048
@@ -278,7 +278,7 @@ TIME_TABLE_PHY_1600:
     .word   0xaeededed       @ end
 TIME_TABLE_PHY_1866:
     .word   0x1e6e0100       @ start address
-    .word   0x82402000       @ phyr000 : 0x08002000
+    .word   0x02402000       @ phyr000 : 0x08002000
     .word   0x0400004c       @ phyr004
     .word   0x55e00a0a       @ phyr008
     .word   0x55e00a0a       @ phyr00c
@@ -343,8 +343,8 @@ TIME_TABLE_PHY_1866:
     .word   0x00000000       @ phyr200
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0194       @ new address
-    .word   0x80215AF6       @ phyr094
-    .word   0x09090000       @ phyr098
+    .word   0x802152F6       @ phyr094
+    .word   0x07090000       @ phyr098
     .word   0x20202020       @ phyr09c
     .word   0x20202020       @ phyr0a0
     .word   0x00002020       @ phyr0a4
@@ -352,10 +352,10 @@ TIME_TABLE_PHY_1866:
     .word   0x00000001       @ phyr0ac
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e027c       @ new address
-    .word   0x00080000       @ phyr17c
+    .word   0x00000000       @ phyr17c
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0140       @ new address
-    .word   0x00000F00       @ phyr040
+    .word   0x00003F00       @ phyr040
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0148       @ new address
     .word   0x00000704       @ phyr048
@@ -747,7 +747,7 @@ init_start:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0004
-    ldr   r1, =0x00000002                        @ 16Gb
+    ldr   r1, =0x00000502                        @ 16Gb
     str   r1, [r0]
 
 #ifdef ASTMMC_PARAM_1600

@@ -145,6 +145,19 @@ ast_scu_init_sdhci(void)
 
 	//set clk div 4
 	ast_scu_write((ast_scu_read(0xd8) & ~(0xf << 20)) | (0x9 << 20), 0xd8);
+
+	//SDIO
+	//SDHCI Host's Clock Enable and Reset
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_SDIO, AST_SCU_RESET);
+	
+	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_SDIO_CLK_STOP_EN, AST_SCU_CLK_STOP);
+	mdelay(10);
+
+	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SDIO, AST_SCU_RESET);
+
+	//set clk div 4
+	ast_scu_write((ast_scu_read(0xd8) & ~(0xf << 16)) | (0x9 << 16), 0xd8);
+
 }
 
 extern void

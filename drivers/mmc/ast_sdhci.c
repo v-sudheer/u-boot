@@ -28,7 +28,10 @@ int ast_sdhi_init(u32 regbase, u32 max_clk, u32 min_clk)
 
 	host->name = "ast_sdhci";
 	host->ioaddr = (void *)regbase;
-
+#ifdef CONFIG_ARCH_AST1220
+	printf("write 0xf0 == 0x00");
+	writel((readl(regbase + 0xf0) | 0x2), regbase + 0xf0);
+#endif
 	add_sdhci(host, max_clk, min_clk);
 	
 	return 0;

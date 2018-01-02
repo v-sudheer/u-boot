@@ -16,7 +16,6 @@ int print_cpuinfo(void)
 	char buf[32];
 
 #ifdef AST_SOC_CAM
-
 #ifdef CONFIG_FPGA_ASPEED
 	printf("AST1220 FPGA\n");
 #else

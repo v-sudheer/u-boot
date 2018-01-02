@@ -23,11 +23,11 @@
 #define AST_SCU_COUNT_CTRL			0x10		/*	frequency counter control register	*/
 #define AST_SCU_COUNT_PRANG			0x14		/*	Frequency counter comparison range 	*/
 
-#define AST_SCU_E_PLL				0x18		/*	E-PLL Parameter  register	*/
-#define AST_SCU_A_PLL				0x1C		/*	A-PLL Parameter  register	*/
-#define AST_SCU_M_PLL				0x20		/*	M-PLL Parameter register		*/
-#define AST_SCU_H_PLL				0x24		/*	H-PLL Parameter register		*/
-#define AST_SCU_D_PLL				0x28		/*	D-PLL Parameter  register	*/
+#define AST_SCU_E_PLL				0x18		/*	E-PLL Parameter register	*/
+#define AST_SCU_A_PLL				0x1C		/*	A-PLL Parameter register	*/
+#define AST_SCU_M_PLL				0x20		/*	M-PLL Parameter register	*/
+#define AST_SCU_H_PLL				0x24		/*	H-PLL Parameter register	*/
+#define AST_SCU_D_PLL				0x28		/*	D-PLL Parameter register	*/
 
 #define AST_SCU_MISC1_CTRL			0x2C		/*	Misc. Control register */
 #define AST_SCU_PCI_CONF1			0x30		/*	PCI configuration setting register#1 */

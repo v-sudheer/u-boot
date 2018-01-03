@@ -328,13 +328,13 @@ ast_scu_multi_func_sdhc_slot(void)
 				AST_SCU_FUN_PIN_CTRL5);
 #endif
 	//emmc 0x84[24:26~27], 0x88[0~7]
-	ast_scu_write(ast_scu_read(0x84) | (1 << 24) | (1 << 26) | (1 << 27), 0x84);						
+	ast_scu_write(ast_scu_read(0x84) | (1 << 24) | (1 << 26) | (1 << 27), 0x84);
 	ast_scu_write(ast_scu_read(0x88) | 0xff, 0x88);
-	//sd 0x84[16, 18~23]
+	//sd 0x84[8~15, 25] 
 	ast_scu_write(ast_scu_read(0x84) | 0xff00 | (1 << 25), 0x84);
-	//sdio 0x04[8~15, 25]
-	ast_scu_write(ast_scu_read(0x84) | 0xfc0000 | (1 << 16), 0x84);
-}	
+	//sdio 0x84[16~23] 
+	ast_scu_write(ast_scu_read(0x84) | 0xff0000, 0x84);
+}
 
 //***********************************Information ***********************************
 extern u32

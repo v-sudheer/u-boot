@@ -120,6 +120,10 @@ int board_mmc_init(bd_t *bis)
 	ast_scu_init_sdhci();
 	ast_scu_multi_func_sdhc_slot();
 
+	
+	//1e7600f0[17:16] = 0x3 //slot0 clock delay mode
+	//1e7600f0[24:20] = 0x4 //slot0 delay
+	writel((readl(AST_SDHCI_BASE + 0xf0) & ~0x01f30000) | (0x3 << 16) | (0x4 << 20), AST_SDHCI_BASE + 0xf0);
 	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], ast_get_sd_clock_src(), 100000))

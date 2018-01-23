@@ -24,8 +24,9 @@
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootm 80008000 - 83000000\0" \
-	"mmc_boot=mmc dev ${mmcdev};mmc read 80008000 68 1800;mmc read 83000000 40 14;bootm 80008000 - 83000000\0" \
+	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
+	"mmc_load=mmc read 80008000 90 1800;mmc read 83300000 3090 4000;mmc read 90000000 68 15\0"\
+	"mmc_boot=mmc dev 0;run mmc_load;bootz 80008000 83300000 90000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	""
 
@@ -53,20 +54,18 @@
 #define CONFIG_SPL_FRAMEWORK
 
 #define CONFIG_SPL_TEXT_BASE					0x1e7d0000
-#define CONFIG_SPL_MAX_SIZE						0x00020000
+#define CONFIG_SPL_MAX_SIZE						0x00010000
 
-#if 1
 #define CONFIG_SPL_STACK                    	0x1e7c8000
-#else 
-#define CONFIG_SPL_STACK                    	0x90000000
-#endif
+
 #define CONFIG_SYS_SPL_MALLOC_START     		0x88000000
 #define CONFIG_SYS_SPL_MALLOC_SIZE      		0x00100000
 
 #define CONFIG_SPL_RAM_DEVICE
 
 /* BSS setup */
-#define CONFIG_SPL_LDSCRIPT     "arch/arm/mach-aspeed/u-boot-spl.lds"
+
+#define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-cam/u-boot-spl.lds"
 
 /* MMC support */
 #ifdef CONFIG_AST_SDHCI

@@ -61,7 +61,7 @@
   r0, r1, r2, r3, r5, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
 #define ASTMMC_INIT_VER      0x01                @ 8bit verison number
-#define ASTMMC_INIT_DATE     0x20180116          @ Release date
+#define ASTMMC_INIT_DATE     0x20180123          @ Release date
 
 /* PATTERN_TABLE,
    init_delay_timer,
@@ -581,17 +581,14 @@ init_start:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e003c
-    ldr   r1, =0x00000000
+    ldr   r1, =0xFFFFFFFF
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0040
-    ldr   r1, =0x88888888
+    ldr   r1, =0x2228486E
     str   r1, [r0]
     ldr   r0, =0x1e6e0044
-    str   r1, [r0]
-    ldr   r0, =0x1e6e0048
-    str   r1, [r0]
-    ldr   r0, =0x1e6e004c
+    ldr   r1, =0x22222222
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0070
@@ -606,7 +603,7 @@ init_start:
 
     ldr   r0, =0x1e6e0004
 //  ldr   r1, =0x00000502                        @ 16Gb
-    ldr   r1, =0x00000402                        @ 16Gb
+    ldr   r1, =0x00004402                        @ 16Gb
     str   r1, [r0]
 
 #ifdef ASTMMC_PARAM_1600

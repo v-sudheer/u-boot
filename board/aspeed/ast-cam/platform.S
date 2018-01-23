@@ -24,26 +24,32 @@
 //#define CONFIG_DRAM_1866
 
 #if   defined(CONFIG_DRAM_1333)
+  #define CONFIG_MPLL_PARAM0 0x1018206E
   #define CONFIG_MPLL_PARAM1 0x1008206E
   #define CONFIG_MPLL_PARAM2 0x00000037
   #define ASTMMC_PARAM_1600
 #elif defined(CONFIG_DRAM_1600)
+  #define CONFIG_MPLL_PARAM0 0x10084063
   #define CONFIG_MPLL_PARAM1 0x10004063
   #define CONFIG_MPLL_PARAM2 0x00000031
   #define ASTMMC_PARAM_1600
 #elif defined(CONFIG_DRAM_1700)
+  #define CONFIG_MPLL_PARAM0 0x100961A8
   #define CONFIG_MPLL_PARAM1 0x100161A8
   #define CONFIG_MPLL_PARAM2 0x000000D4
   #define ASTMMC_PARAM_1866
 #elif defined(CONFIG_DRAM_1800)
+  #define CONFIG_MPLL_PARAM0 0x1008204A
   #define CONFIG_MPLL_PARAM1 0x1000204A
   #define CONFIG_MPLL_PARAM2 0x00000025
   #define ASTMMC_PARAM_1866
 #elif defined(CONFIG_DRAM_1824)
+  #define CONFIG_MPLL_PARAM0 0x10080025
   #define CONFIG_MPLL_PARAM1 0x10000025
   #define CONFIG_MPLL_PARAM2 0x00000012
   #define ASTMMC_PARAM_1866
 #else      // CONFIG_DRAM_1866
+  #define CONFIG_MPLL_PARAM0 0x1008E136
   #define CONFIG_MPLL_PARAM1 0x1000E136
   #define CONFIG_MPLL_PARAM2 0x0000009B
   #define ASTMMC_PARAM_1866
@@ -55,7 +61,7 @@
   r0, r1, r2, r3, r5, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
 #define ASTMMC_INIT_VER      0x01                @ 8bit verison number
-#define ASTMMC_INIT_DATE     0x20171229          @ Release date
+#define ASTMMC_INIT_DATE     0x20180116          @ Release date
 
 /* PATTERN_TABLE,
    init_delay_timer,
@@ -80,36 +86,36 @@
 #define ASTMMC_REG_RFCab     0x30
 
 TIME_TABLE_LPDDR3_1600:
-    .word   0x030C0406       @ MCR10
-    .word   0x11272353       @ MCR14
-    .word   0x07080407       @ MCR18
-    .word   0x02130014       @ MCR1C
-    .word   0x00000024       @ MCR20
-    .word   0x0043010D       @ MRW01
+    .word   0x040D0608       @ MCR10
+    .word   0x12272558       @ MCR14
+    .word   0x07080507       @ MCR18
+    .word   0x03230015       @ MCR1C
+    .word   0x00000026       @ MCR20
+    .word   0x0083010D       @ MRW01
     .word   0x001A020D       @ MRW02
-    .word   0x0001030D       @ MRW03
+    .word   0x0002030D       @ MRW03
     .word   0x00000B0D       @ MRW11
     .word   0x200060A1       @ MCR0C
-    .word   0x00021783       @ MCR30
-    .word   0x00172323       @ MCRFCpb
-    .word   0x00335353       @ MCRFCab
+    .word   0x00021083       @ MCR30
+    .word   0x00192525       @ MCRFCpb
+    .word   0x00365858       @ MCRFCab
 TIME_TABLE_LPDDR3_1866:
-    .word   0x040E0508       @ MCR10
-    .word   0x14492961       @ MCR14
-    .word   0x08090508       @ MCR18
-    .word   0x03240018       @ MCR1C
-    .word   0x0000002A       @ MCR20
-    .word   0x0083010D       @ MRW01
+    .word   0x040F080A       @ MCR10
+    .word   0x15492C66       @ MCR14
+    .word   0x080A0508       @ MCR18
+    .word   0x03240019       @ MCR1C
+    .word   0x0000002C       @ MCR20
+    .word   0x00C3010D       @ MRW01
     .word   0x001C020D       @ MRW02
-    .word   0x0001030D       @ MRW03
+    .word   0x0002030D       @ MRW03
     .word   0x00000B0D       @ MRW11
     .word   0x200060A1       @ MCR0C
     .word   0x00023083       @ MCR30
-    .word   0x001B2929       @ MCRFCpb
-    .word   0x003C6161       @ MCRFCab
-TIME_TABLE_PHY_1600:
+    .word   0x001D2C2C       @ MCRFCpb
+    .word   0x003F6666       @ MCRFCab
+TIME_TABLE_PHY_1:
     .word   0x1e6e0100       @ start address
-    .word   0x02402000       @ phyr000 : 0x16000400
+    .word   0x02402000       @ phyr000
     .word   0x0400004c       @ phyr004
     .word   0x55e00a0a       @ phyr008
     .word   0x55e00a0a       @ phyr00c
@@ -121,28 +127,29 @@ TIME_TABLE_PHY_1600:
     .word   0x20000000       @ phyr024
     .word   0x00000008       @ phyr028
     .word   0x00000000       @ phyr02c
-    .word   0x00007400       @ phyr030
+//  .word   0x00007400       @ phyr030
+    .word   0x00017400       @ phyr030
     .word   0x00000000       @ phyr034
     .word   0x00000400       @ phyr038
     .word   0x20000000       @ phyr03c
-    .word   0x00000300       @ phyr040
-    .word   0x0a0a0000       @ phyr044
+    .word   0x00003F00       @ phyr040
+    .word   0x20200000       @ phyr044
     .word   0x00000000       @ phyr048
     .word   0x00003080       @ phyr04c
-    .word   0x02001000       @ phyr050
-    .word   0x0000000a       @ phyr054
+    .word   0x030010C0       @ phyr050
+    .word   0x0001000c       @ phyr054
     .word   0x00000043       @ phyr058
     .word   0x04000000       @ phyr05c
     .word   0x00000000       @ phyr060
     .word   0x00000000       @ phyr064
     .word   0x000a000a       @ phyr068
-    .word   0x38800190       @ phyr06c
-    .word   0x000c160c       @ phyr070
-    .word   0x00fa0000       @ phyr074
-    .word   0x00011105       @ phyr078
-    .word   0x080e0408       @ phyr07c
-    .word   0x54000900       @ phyr080
-    .word   0x14400618       @ phyr084
+    .word   0x5B310200       @ phyr06c
+    .word   0x000E000A       @ phyr070
+    .word   0x01234000       @ phyr074
+    .word   0x00014107       @ phyr078
+    .word   0x0E160805       @ phyr07c
+    .word   0x62000B00       @ phyr080
+    .word   0x09000E37       @ phyr084
     .word   0x00001000       @ phyr088
     .word   0x05701018       @ phyr08c
     .word   0x00000000       @ phyr090
@@ -155,26 +162,26 @@ TIME_TABLE_PHY_1600:
     .word   0x00000001       @ phyr0ac
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e01cc       @ new address
-    .word   0x08080808       @ phyr0cc
-    .word   0x08080808       @ phyr0d0
-    .word   0x08080808       @ phyr0d4
-    .word   0x08080808       @ phyr0d8
+    .word   0x09090909       @ phyr0cc
+    .word   0x09090909       @ phyr0d0
+    .word   0x48484848       @ phyr0d4
+    .word   0x48484848       @ phyr0d8
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0280       @ new address
     .word   0x1e1e1e1e       @ phyr180
     .word   0x1e1e1e1e       @ phyr184
-    .word   0x9b9b9b9b       @ phyr188
-    .word   0x9b9b9b9b       @ phyr18c
-    .word   0x9b9b9b9b       @ phyr190
-    .word   0x9b9b9b9b       @ phyr194
+    .word   0x87878787       @ phyr188
+    .word   0x87878787       @ phyr18c
+    .word   0x87878787       @ phyr190
+    .word   0x87878787       @ phyr194
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e02f8       @ new address
-    .word   0x83838383       @ phyr1f8
-    .word   0x83838383       @ phyr1fc
+    .word   0x88888888       @ phyr1f8
+    .word   0x88888888       @ phyr1fc
     .word   0x00000000       @ phyr200
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0194       @ new address
-    .word   0x802152F6       @ phyr094
+    .word   0x8021FFE0       @ phyr094
     .word   0x07090000       @ phyr098
     .word   0x20202020       @ phyr09c
     .word   0x20202020       @ phyr0a0
@@ -204,7 +211,8 @@ TIME_TABLE_PHY_1600:
     .word   0x0114ff2c       @ phyr0c8
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e01dc       @ new address
-    .word   0x00000000       @ phyr0dc
+    .word   0x006f0000       @ phyr0dc
+//  .word   0x00000000       @ phyr0dc
     .word   0x00000000       @ phyr0e0
     .word   0xaa55aa55       @ phyr0e4
     .word   0x55aa55aa       @ phyr0e8
@@ -276,174 +284,15 @@ TIME_TABLE_PHY_1600:
     .word   0xc0300c03       @ phyr210
     .word   0xa0500a05       @ phyr214
     .word   0xaeededed       @ end
-TIME_TABLE_PHY_1866:
-    .word   0x1e6e0100       @ start address
-    .word   0x02402000       @ phyr000 : 0x08002000
-    .word   0x0400004c       @ phyr004
-    .word   0x55e00a0a       @ phyr008
-    .word   0x55e00a0a       @ phyr00c
-    .word   0x55e00a0a       @ phyr010
-    .word   0x55e00a0a       @ phyr014
-    .word   0x20000000       @ phyr018
-    .word   0x20000000       @ phyr01c
-    .word   0x20000000       @ phyr020
-    .word   0x20000000       @ phyr024
-    .word   0x00000008       @ phyr028
-    .word   0x00000000       @ phyr02c
-    .word   0x00007400       @ phyr030
-    .word   0x00000000       @ phyr034
-    .word   0x00000400       @ phyr038
-    .word   0x20000000       @ phyr03c
-    .word   0x00000300       @ phyr040
-    .word   0x0a0a0000       @ phyr044
-    .word   0x00000000       @ phyr048
-    .word   0x00003080       @ phyr04c
+TIME_TABLE_PHY_2:
+    .word   0x1e6e0150       @ start address
     .word   0x02001000       @ phyr050
-    .word   0x0001000c       @ phyr054
-    .word   0x00000043       @ phyr058
-    .word   0x04000000       @ phyr05c
-    .word   0x00000000       @ phyr060
-    .word   0x00000000       @ phyr064
-    .word   0x000a000a       @ phyr068
-    .word   0x5B310200       @ phyr06c
-    .word   0x000E000A       @ phyr070
-    .word   0x01234000       @ phyr074
-    .word   0x00014107       @ phyr078
-    .word   0x0E160805       @ phyr07c
-    .word   0x62000B00       @ phyr080
-    .word   0x09000E37       @ phyr084
+    .word   0xaeeddeea       @ change register address
+    .word   0x1e6e0188       @ new address
     .word   0x00001010       @ phyr088
-    .word   0x05701018       @ phyr08c
-    .word   0x00000000       @ phyr090
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e019c       @ new address
-    .word   0x20202020       @ phyr09c
-    .word   0x20202020       @ phyr0a0
-    .word   0x00002020       @ phyr0a4
-    .word   0x80000000       @ phyr0a8
-    .word   0x00000001       @ phyr0ac
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e01cc       @ new address
-    .word   0x09090909       @ phyr0cc
-    .word   0x09090909       @ phyr0d0
-    .word   0x48484848       @ phyr0d4
-    .word   0x48484848       @ phyr0d8
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0280       @ new address
-    .word   0x1e1e1e1e       @ phyr180
-    .word   0x1e1e1e1e       @ phyr184
-    .word   0x87878787       @ phyr188
-    .word   0x87878787       @ phyr18c
-    .word   0x87878787       @ phyr190
-    .word   0x87878787       @ phyr194
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e02f8       @ new address
-    .word   0x88888888       @ phyr1f8
-    .word   0x88888888       @ phyr1fc
-    .word   0x00000000       @ phyr200
     .word   0xaeeddeea       @ change register address
     .word   0x1e6e0194       @ new address
-    .word   0x802152F6       @ phyr094
-    .word   0x07090000       @ phyr098
-    .word   0x20202020       @ phyr09c
-    .word   0x20202020       @ phyr0a0
-    .word   0x00002020       @ phyr0a4
-    .word   0x80000000       @ phyr0a8
-    .word   0x00000001       @ phyr0ac
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e027c       @ new address
-    .word   0x00000000       @ phyr17c
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0140       @ new address
-    .word   0x00003F00       @ phyr040
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0148       @ new address
-    .word   0x00000704       @ phyr048
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e01b0       @ new address
-    .word   0x00000000       @ phyr0b0
-    .word   0x00000000       @ phyr0b4
-    .word   0x00000000       @ phyr0b8
-    .word   0x00000000       @ phyr0bc
-    .word   0x00000000       @ phyr0c0
-    .word   0x00000000       @ phyr0c4
-    .word   0x00000000       @ phyr0c8
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e01c8       @ new address
-    .word   0x0114ff2c       @ phyr0c8
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e01dc       @ new address
-    .word   0x00000000       @ phyr0dc
-    .word   0x00000000       @ phyr0e0
-    .word   0xaa55aa55       @ phyr0e4
-    .word   0x55aa55aa       @ phyr0e8
-    .word   0xaaaa5555       @ phyr0ec
-    .word   0x5555aaaa       @ phyr0f0
-    .word   0xaa55aa55       @ phyr0f4
-    .word   0x55aa55aa       @ phyr0f8
-    .word   0xaaaa5555       @ phyr0fc
-    .word   0x5555aaaa       @ phyr100
-    .word   0xaa55aa55       @ phyr104
-    .word   0x55aa55aa       @ phyr108
-    .word   0xaaaa5555       @ phyr10c
-    .word   0x5555aaaa       @ phyr110
-    .word   0xaa55aa55       @ phyr114
-    .word   0x55aa55aa       @ phyr118
-    .word   0xaaaa5555       @ phyr11c
-    .word   0x5555aaaa       @ phyr120
-    .word   0x3f3f3f3f       @ phyr124
-    .word   0x3f3f3f3f       @ phyr128
-    .word   0x3f3f3f3f       @ phyr12c
-    .word   0x3f3f3f3f       @ phyr130
-    .word   0x3f3f3f3f       @ phyr134
-    .word   0x3f3f3f3f       @ phyr138
-    .word   0x3f3f3f3f       @ phyr13c
-    .word   0x3f3f3f3f       @ phyr140
-    .word   0x3f3f3f3f       @ phyr144
-    .word   0x3f3f3f3f       @ phyr148
-    .word   0x3f3f3f3f       @ phyr14c
-    .word   0x3f3f3f3f       @ phyr150
-    .word   0x3f3f3f3f       @ phyr154
-    .word   0x3f3f3f3f       @ phyr158
-    .word   0x3f3f3f3f       @ phyr15c
-    .word   0x3f3f3f3f       @ phyr160
-    .word   0x3f3f3f3f       @ phyr164
-    .word   0x3f3f3f3f       @ phyr168
-    .word   0x3f3f3f3f       @ phyr16c
-    .word   0x3f3f3f3f       @ phyr170
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0298       @ new address
-    .word   0x3f3f0000       @ phyr198
-    .word   0x3f3f3f3f       @ phyr19c
-    .word   0x3f3f3f3f       @ phyr1a0
-    .word   0x3f3f3f3f       @ phyr1a4
-    .word   0x3f3f3f3f       @ phyr1a8
-    .word   0x3f3f3f3f       @ phyr1ac
-    .word   0x3f3f3f3f       @ phyr1b0
-    .word   0x3f3f3f3f       @ phyr1b4
-    .word   0x3f3f3f3f       @ phyr1b8
-    .word   0x3f3f3f3f       @ phyr1bc
-    .word   0x3f3f3f3f       @ phyr1c0
-    .word   0x3f3f3f3f       @ phyr1c4
-    .word   0x3f3f3f3f       @ phyr1c8
-    .word   0x3f3f3f3f       @ phyr1cc
-    .word   0x3f3f3f3f       @ phyr1d0
-    .word   0x3f3f3f3f       @ phyr1d4
-    .word   0x3f3f3f3f       @ phyr1d8
-    .word   0x3f3f3f3f       @ phyr1dc
-    .word   0x3f3f3f3f       @ phyr1e0
-    .word   0x3f3f3f3f       @ phyr1e4
-    .word   0x00003f3f       @ phyr1e8
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0344       @ new address
-    .word   0x2aa00000       @ phyr244
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e033c       @ new address
-    .word   0x01100000       @ phyr23c
-    .word   0xaeeddeea       @ change register address
-    .word   0x1e6e0310       @ new address
-    .word   0xc0300c03       @ phyr210
-    .word   0xa0500a05       @ phyr214
+    .word   0x802152E6       @ phyr094
     .word   0xaeededed       @ end
 
 PATTERN_TABLE:
@@ -554,12 +403,21 @@ lowlevel_init:
     mov   r1, #0
     str   r1, [r0]
 
+    /* Check Scratch Register Bit 6 */
+    ldr   r0, =0x1e6e2040
+    ldr   r1, [r0]
+    bic   r1, r1, #0xFFFFFFBF
+    mov   r2, r1, lsr #6
+    cmp   r2, #0x01
+    beq   platform_exit
+
+    /* Reset MMC */
     ldr   r0, =0x1e6e2004
     ldr   r1, [r0]
     orr   r2, r1, #0x01
 
-    /* Set M-PLL */
-    ldr   r3, =CONFIG_MPLL_PARAM1
+    /* Set M-PLL = half rate for ZQ calibration */
+    ldr   r3, =CONFIG_MPLL_PARAM0
     ldr   r2, =0x03000000
     orr   r2, r2, r3
     ldr   r0, =0x1e6e2020
@@ -649,10 +507,10 @@ wait_mpll_lock:
     mov   r1, #'P'                               @ 'P'
     str   r1, [r0]
     ldr   r0, =0x1e783014
-wait_print_0:
+wait_print_header:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_0
+    beq   wait_print_header
     ldr   r0, =0x1e783000
     mov   r1, #'D'                               @ 'D'
     str   r1, [r0]
@@ -747,7 +605,8 @@ init_start:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0004
-    ldr   r1, =0x00000502                        @ 16Gb
+//  ldr   r1, =0x00000502                        @ 16Gb
+    ldr   r1, =0x00000402                        @ 16Gb
     str   r1, [r0]
 
 #ifdef ASTMMC_PARAM_1600
@@ -776,14 +635,12 @@ init_start:
     ldr   r1, [r5, #ASTMMC_REG_MCR20]
     str   r1, [r0]
 
+    mov   r9, #0                                 @ init count for phy training
+    adrl  r3, TIME_TABLE_PHY_1                   @ phyr init value
+ddrphy_train_process:
     /* Init DDR PHY */
     ldr   r2, =0xaeededed                        @ phyr end pattern
     ldr   r6, =0xaeeddeea                        @ phyr change address
-#ifdef ASTMMC_PARAM_1600
-    adrl  r3, TIME_TABLE_PHY_1600                @ phyr init value
-#else
-    adrl  r3, TIME_TABLE_PHY_1866                @ phyr init value
-#endif
     ldr   r0, [r3]                               @ phyr start address
     add   r3, r3, #4
 ddrphy_init_start:
@@ -804,18 +661,27 @@ ddrphy_init_change_address:
     b     ddrphy_init_start
 
 ddrphy_init_end:
-    /* Delay about 500us */
-    ldr   r2, =0x00000200                        @ Set Timer3 Reload = 500 us
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
     init_delay_timer
-delay_phypll_reset:
+delay_phypll_reset1:
     check_delay_timer
-    bne   delay_phypll_reset
+    bne   delay_phypll_reset1
     clear_delay_timer
-    /* end delay 500us */
+    /* end delay 10us */
 
     ldr   r0, =0x1e6e0060                        @ Release PHY reset
     ldr   r1, =0x00000004
     str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_phypll_reset2:
+    check_delay_timer
+    bne   delay_phypll_reset2
+    clear_delay_timer
+    /* end delay 10us */
 
     ldr   r0, =0x1e6e0060                        @ Fire PHY Init
     ldr   r1, =0x00000005
@@ -900,6 +766,84 @@ check_phyinit_done:
     str   r1, [r0]
 /* Debug - UART console message */
 
+    cmp   r9, #0
+    bne   ddrphy_train_done
+    add   r9, r9, #1
+
+    ldr   r0, =0x1e6e0430                        @ read calibrated IO driving
+    ldr   r1, [r0]
+    mov   r3, r1, lsr #16
+    and   r2, r1, #0x0F                          @ IO PU
+    and   r3, r2, #0x0F                          @ IO PD
+
+/* Debug - UART console message */
+    ldr   r0, =0x1e783014
+wait_print_io:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_io
+    ldr   r0, =0x1e783000
+    mov   r1, #'I'                               @ 'I'
+    str   r1, [r0]
+    mov   r1, #'O'                               @ 'O'
+    str   r1, [r0]
+    mov   r1, #' '                               @ ' '
+    str   r1, [r0]
+    mov   r1, #'P'                               @ 'P'
+    str   r1, [r0]
+    mov   r1, #'D'                               @ 'D'
+    str   r1, [r0]
+    mov   r1, #':'                               @ ':'
+    str   r1, [r0]
+    mov   r1, #'P'                               @ 'P'
+    str   r1, [r0]
+    mov   r1, #'U'                               @ 'U'
+    str   r1, [r0]
+    mov   r1, #' '                               @ ' '
+    str   r1, [r0]
+    mov   r1, #'='                               @ '='
+    str   r1, [r0]
+    mov   r1, #' '                               @ ' '
+    str   r1, [r0]
+    mov   r1, r3
+    print_hex_char
+    mov   r1, #':'                               @ ':'
+    str   r1, [r0]
+    mov   r1, r2
+    print_hex_char
+    mov   r1, #'\r'                              @ '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              @ '\n'
+    str   r1, [r0]
+/* Debug - UART console message */
+
+    ldr   r0, =0x1e6e0198
+    mov   r1, r2, lsl #16
+    orr   r1, r3, lsl #24
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0060
+    mov   r1, #0
+    str   r1, [r0]
+
+    /* Set MPLL to normal clock rate */
+    ldr   r0, =0x1e6e2020
+    ldr   r1, =CONFIG_MPLL_PARAM1
+    str   r1, [r0]
+
+    /* Delay about 10us */
+    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_mpll_reset2:
+    check_delay_timer
+    bne   delay_mpll_reset2
+    clear_delay_timer
+    /* end delay 10us */
+
+    adrl  r3, TIME_TABLE_PHY_2                   @ phyr init value
+    b     ddrphy_train_process
+
+ddrphy_train_done:
     ldr   r0, =0x1e6e0030                        @ PWRCTL, 1st enable CKE, wait at least 200 us
     ldr   r1, =0x00060081
     str   r1, [r0]
@@ -913,17 +857,17 @@ delay_1:
     clear_delay_timer
     /* end delay 200us */
 
-    ldr   r0, =0x1e6e0024                        @ MRW Reset, wait at least 10 us for MRW command
+/*  ldr   r0, =0x1e6e0024                        @ MRW Reset, wait at least 10 us for MRW command
     ldr   r1, =0x00FC3F0D
     str   r1, [r0]
-
+*/
     /* Delay about 10us */
-    ldr   r2, =0x0000000B                        @ Set Timer3 Reload = 10 us
+/*  ldr   r2, =0x0000000B                        @ Set Timer3 Reload = 10 us
     init_delay_timer
 delay_2:
     check_delay_timer
     bne   delay_2
-    clear_delay_timer
+    clear_delay_timer */
     /* end delay 10us */
 
     ldr   r0, =0x1e6e0024                        @ ZQinit, wait at least 1 us for ZQinit done [CS0]
@@ -1026,10 +970,10 @@ read_MR_check_loop:
     mov   r1, #0x0A                              @ '\n'
     str   r1, [r0]
     ldr   r0, =0x1e783014
-wait_print_2:
+wait_print_mrr:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_2
+    beq   wait_print_mrr
 /* Debug - UART console message */
 
     cmp   r3, #0x0
@@ -1251,10 +1195,10 @@ ddr_test_fail:
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
     ldr   r0, =0x1e783014
-wait_print_1:
+wait_print_fail:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_1
+    beq   wait_print_fail
 /* Debug - UART console message */
     add   r10, r10, #1
     cmp   r10, #5

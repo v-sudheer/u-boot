@@ -11,6 +11,9 @@
 /*#define DEBUG 1*/
 #include "aspeed-common.h"
 
+#define CONFIG_SYS_TEXT_BASE			0x0
+#define CONFIG_SYS_UBOOT_BASE			CONFIG_SYS_TEXT_BASE
+
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
 #define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc"

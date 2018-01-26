@@ -20,15 +20,14 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
-	"mmcdev=0\0" \
-	"sddev=1\0" \
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
-	"sd_update=mmc dev 1;fatload mmc 1:1 80800000 all.bin;mmc dev 0;mmc write 80800000 0 20000\0" \
+	"sd_update=mmc dev 1;fatload mmc 1 80800000 all.bin;mmc dev 0;mmc write 80800000 0 20000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
-	"mmc_load=mmc read 80008000 90 1800;mmc read 83300000 3090 4000;mmc read 90000000 68 15\0"\
+	"sd_load=fatload mmc 1 80008000 zImage;fatload mmc 1 83300000 uinitrd32m;fatload mmc 1 83000000 ast1220_evb.dtb\0" \
+	"sd_boot=mmc dev 1;run sd_load;bootz 80008000 83300000 90000000\0" \
+	"mmc_load=mmc read 80008000 d1 1800;mmc read 83300000 30d1 3FF0;mmc read 90000000 a9 20\0"\
 	"mmc_boot=mmc dev 0;run mmc_load;bootz 80008000 83300000 90000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
 	"get_sd_file=mmc dev 1;fatload mmc 1 83000000 all.bin\0" \

@@ -33,9 +33,6 @@
 #define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE + 0x300000
 #define CONFIG_SYS_MEMTEST_END			(CONFIG_SYS_MEMTEST_START + (80*1024*1024))
 /*-----------------------------------------------------------------------*/
-#define CONFIG_SYS_TEXT_BASE			0
-#define CONFIG_SYS_UBOOT_BASE			CONFIG_SYS_TEXT_BASE
-
 /* Memory Info  */
 #define CONFIG_SYS_MALLOC_LEN   		(0x1000 + 4*1024*1024) /* malloc() len */
 

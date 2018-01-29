@@ -11,23 +11,33 @@
 /*#define DEBUG 1*/
 #include "aspeed-common.h"
 
+#define CONFIG_SYS_TEXT_BASE			0x0
+#define CONFIG_SYS_UBOOT_BASE			CONFIG_SYS_TEXT_BASE
+
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
 #define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"	\
-	"mmcdev=0\0" \
-	"sddev=1\0" \
 	"update=tftp 80800000 ast1220.scr; so 80800000\0" \
-	"sd_update=mmc dev 1;fatload mmc 1:1 80800000 all.bin;mmc dev 0;mmc write 80800000 0 20000\0" \
+	"sd_update=mmc dev 1;fatload mmc 1 80800000 all.bin;mmc dev 0;mmc write 80800000 0 20000\0" \
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	"ext2fs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock1 rw rootfstype=ext2 init=/linuxrc\0"\
-	"sd_boot=mmc dev 1;fatload mmc ${sddev}:0 80008000 zImage;fatload mmc ${sddev}:0 83000000 ast1220.dtb;bootz 80008000 - 83000000\0" \
-	"mmc_load=mmc read 80008000 90 1800;mmc read 83300000 3090 4000;mmc read 90000000 68 14\0"\
+	"sd_load=fatload mmc 1 80008000 zImage;fatload mmc 1 83300000 uinitrd32m;fatload mmc 1 83000000 ast1220_evb.dtb\0" \
+	"sd_boot=mmc dev 1;run sd_load;bootz 80008000 83300000 90000000\0" \
+	"mmc_load=mmc read 80008000 d1 1800;mmc read 83300000 30d1 3FF0;mmc read 90000000 a9 20\0"\
 	"mmc_boot=mmc dev 0;run mmc_load;bootz 80008000 83300000 90000000\0" \
 	"spi_boot=bootm 20080000 20400000 20070000\0" \
+	"get_sd_file=mmc dev 1;fatload mmc 1 83000000 all.bin\0" \
+	"emmc_update=" \
+		"if run get_sd_file; then " \
+			"setexpr fw_sz ${filesize} / 0x200; " \
+			"setexpr fw_sz ${fw_sz} + 1; "	\
+			"mmc dev 0;" \
+			"mmc write 83000000 0 ${fw_sz}; " \
+		"fi\0" \
 	""
 
 /* mtdparts command line support */
@@ -54,20 +64,21 @@
 #define CONFIG_SPL_FRAMEWORK
 
 #define CONFIG_SPL_TEXT_BASE					0x1e7d0000
-#define CONFIG_SPL_MAX_SIZE						0x00020000
+#define CONFIG_SPL_MAX_SIZE						0x00010000
 
-#if 1
 #define CONFIG_SPL_STACK                    	0x1e7c8000
-#else 
-#define CONFIG_SPL_STACK                    	0x90000000
-#endif
+
+#define CONFIG_SPL_BSS_START_ADDR				0x90000000
+#define CONFIG_SPL_BSS_MAX_SIZE         		0x00080000
 #define CONFIG_SYS_SPL_MALLOC_START     		0x88000000
 #define CONFIG_SYS_SPL_MALLOC_SIZE      		0x00100000
+
 
 #define CONFIG_SPL_RAM_DEVICE
 
 /* BSS setup */
-#define CONFIG_SPL_LDSCRIPT     "arch/arm/mach-aspeed/u-boot-spl.lds"
+
+#define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-cam/u-boot-spl.lds"
 
 /* MMC support */
 #ifdef CONFIG_AST_SDHCI
@@ -82,9 +93,9 @@
 /* Address in RAM where the parameters must be copied by SPL. */
 #define CONFIG_SYS_SPL_ARGS_ADDR				0x80000100
 /* Not using MMC raw mode - just for compilation purpose */
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR		64
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR		129
 #define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS		40
-#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		6288
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR		6353
 						
 /* for booting directly linux */
 

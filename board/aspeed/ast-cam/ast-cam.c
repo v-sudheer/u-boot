@@ -1,22 +1,4 @@
 /*
- * (C) Copyright 2002
- * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
- * Marius Groeger <mgroeger@sysgo.de>
- *
- * (C) Copyright 2002
- * David Mueller, ELSOFT AG, <d.mueller@elsoft.ch>
- *
- * (C) Copyright 2003
- * Texas Instruments, <www.ti.com>
- * Kshitij Gupta <Kshitij@ti.com>
- *
- * (C) Copyright 2004
- * ARM Ltd.
- * Philippe Robin, <philippe.robin@arm.com>
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -58,7 +40,7 @@ int board_init(void)
 	return 0;
 }
 
-int misc_init_r (void)
+int misc_init_r(void)
 {
 #ifdef CONFIG_CPU1
 	//uart 3/4 shar pin
@@ -87,7 +69,6 @@ int misc_init_r (void)
 #endif
 
 	return 0;
-
 }
 
 int dram_init(void)
@@ -119,11 +100,7 @@ int board_mmc_init(bd_t *bis)
 
 	ast_scu_init_sdhci();
 	ast_scu_multi_func_sdhc_slot();
-
 	
-	//1e7600f0[17:16] = 0x3 //slot0 clock delay mode
-	//1e7600f0[24:20] = 0x4 //slot0 delay
-	writel((readl(AST_SDHCI_BASE + 0xf0) & ~0x01f30000) | (0x3 << 16) | (0x4 << 20), AST_SDHCI_BASE + 0xf0);
 	//multipin.
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], ast_get_sd_clock_src(), 100000))

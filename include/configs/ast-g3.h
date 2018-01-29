@@ -23,6 +23,9 @@
 
 /*#define DEBUG 1*/
 
+#define CONFIG_SYS_TEXT_BASE			0x0
+#define CONFIG_SYS_UBOOT_BASE			CONFIG_SYS_TEXT_BASE
+
 #define CONFIG_MACH_TYPE		MACH_TYPE_ASPEED
 
 #include <asm/arch/platform.h>

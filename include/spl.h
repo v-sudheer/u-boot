@@ -200,10 +200,6 @@ struct spl_image_loader {
 int spl_load_image_fat(struct spl_image_info *spl_image,
 		       struct blk_desc *block_dev, int partition,
 		       const char *filename);
-int spl_load_all_image_fat(struct spl_image_info *spl_image,
-		       struct blk_desc *block_dev, int partition,
-		       const char *filename);
-
 int spl_load_image_fat_os(struct spl_image_info *spl_image,
 			  struct blk_desc *block_dev, int partition);
 

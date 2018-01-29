@@ -26,7 +26,8 @@ if [ "$2" == "bmc" ]; then
 	rm -f $1/arch/arm/cpu/ast-common/spl.c
 	rm -f $1/board/ast-g5/spl.c
 	rm -f $1/arch/arm/include/asm/arch-aspee/spl.h
-	rm -f $1/include/configs/ast-cam.h
+	rm -f $1/include/configs/ast-cam*.h
+	rm -f $1/include/configs/dt-bindings/reset/ast-cam*.h
 	rm -f $1/configs/ast1220_fpga_defconfig
 	rm -f $1/configs/ast1220_defconfig
 	rm -f $1/drivers/usb/gadget/ast_udc.c
@@ -36,9 +37,11 @@ if [ "$2" == "bmc" ]; then
 	rm -f $1/configs/ast2500_spl_defconfig
 	rm -f $1/configs/ast2500_defconfig
 	rm -f $1/configs/ast2400_defconfig
+	rm -f $1/configs/ast1220*
 	rm -f $1/arch/arm/mach-aspeed/include/mach/boot0.h
 	rm -f $1/arch/arm/mach-aspeed/spl.c
 	rm -f $1/arch/arm/mach-aspeed/u-boot-spl.lds
+	rm -f $1/arch/arm/dts/ast1220.*
 fi
 
 #CAM

@@ -19,8 +19,6 @@
 #define MMCSD_MODE_RAW		1
 #define MMCSD_MODE_FS		2
 #define MMCSD_MODE_EMMCBOOT	3
-#define MMCSD_MODE_FW_UPDATE	4
-
 
 struct spl_image_info {
 	const char *name;
@@ -202,6 +200,10 @@ struct spl_image_loader {
 int spl_load_image_fat(struct spl_image_info *spl_image,
 		       struct blk_desc *block_dev, int partition,
 		       const char *filename);
+int spl_load_all_image_fat(struct spl_image_info *spl_image,
+		       struct blk_desc *block_dev, int partition,
+		       const char *filename);
+
 int spl_load_image_fat_os(struct spl_image_info *spl_image,
 			  struct blk_desc *block_dev, int partition);
 

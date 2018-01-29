@@ -69,13 +69,16 @@
 #define CONFIG_SPL_RAM_DEVICE
 
 /* BSS setup */
-#define CONFIG_SPL_LDSCRIPT     "arch/arm/mach-aspeed/u-boot-spl.lds"
+#define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-g5/u-boot-spl.lds"
 
 /* MMC support */
 #ifdef CONFIG_AST_SDHCI
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION     1
 /*#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME     "u-boot.img"*/
 #endif
+
+#define CONFIG_SPL_BSS_START_ADDR			0x90000000
+#define CONFIG_SPL_BSS_MAX_SIZE				0x00100000
 
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME		"ast2500.dtb"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME		"uImage"

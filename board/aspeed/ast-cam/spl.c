@@ -15,27 +15,41 @@ DECLARE_GLOBAL_DATA_PTR;
 
 void board_init_f(ulong dummy)
 {
+#if defined(CONFIG_SPL_SERIAL_SUPPORT)
 	preloader_console_init();
+#endif
 	timer_init();
 }
 
 u32 spl_boot_device(void)
 {
-	return BOOT_DEVICE_MMC1;
+	if((readl(0x1e780070) & 0x600) == 0x600) {	
+		return BOOT_DEVICE_MMC2;
+	} else {
+		return BOOT_DEVICE_MMC1;
+	}
 }
 
 #ifdef CONFIG_SPL_MMC_SUPPORT
 u32 spl_boot_mode(const u32 boot_device)
 {
-	return MMCSD_MODE_RAW;
+	//check GPIOJ1 & J2 for force SD boot 	
+	if((readl(0x1e780070) & 0x600) == 0x600) {
+		return MMCSD_MODE_FS;
+	} else {
+		return MMCSD_MODE_RAW;
+	}
 }
 #endif
 
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
-	/* boot linux */
-	return 0;
+	/* boot linux 1: boot os , 0: boot u-boot*/
+	if((readl(0x1e780070) & 0x600) == 0x600)
+		return 1;
+	else 
+		return 0;
 }
 #endif
 

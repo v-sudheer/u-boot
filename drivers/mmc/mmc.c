@@ -1568,6 +1568,7 @@ static int mmc_startup(struct mmc *mmc)
 #if !defined(CONFIG_SPL_BUILD) || \
 		(defined(CONFIG_SPL_LIBCOMMON_SUPPORT) && \
 		!defined(CONFIG_USE_TINY_PRINTF))
+#if defined(CONFIG_SPL_SERIAL_SUPPORT)
 	sprintf(bdesc->vendor, "Man %06x Snr %04x%04x",
 		mmc->cid[0] >> 24, (mmc->cid[2] & 0xffff),
 		(mmc->cid[3] >> 16) & 0xffff);
@@ -1577,6 +1578,7 @@ static int mmc_startup(struct mmc *mmc)
 		(mmc->cid[2] >> 24) & 0xff);
 	sprintf(bdesc->revision, "%d.%d", (mmc->cid[2] >> 20) & 0xf,
 		(mmc->cid[2] >> 16) & 0xf);
+#endif
 #else
 	bdesc->vendor[0] = 0;
 	bdesc->product[0] = 0;

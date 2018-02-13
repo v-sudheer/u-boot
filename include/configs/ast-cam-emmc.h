@@ -81,10 +81,8 @@
 #define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-cam/u-boot-spl.lds"
 
 /* MMC support */
-#ifdef CONFIG_AST_SDHCI
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION     1
-/*#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME     "u-boot.img"*/
-#endif
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME     "u-boot.img"
 
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME            "ast1220.dtb"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME          "uImage"

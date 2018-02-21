@@ -21,6 +21,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"spi_dma=no\0"\
+	"mmcdev=1\0"\
 	"update=tftp 80800000 ast2500.scr; so 80800000\0"\
 	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
 	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\

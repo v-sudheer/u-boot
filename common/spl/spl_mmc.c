@@ -349,7 +349,36 @@ int spl_mmc_load_image(struct spl_image_info *spl_image,
 #if 0
 	case MMCSD_MODE_FW_UPDATE: 
 		//STEP 1 : load from slot1 sd all.bin to dram SYS _LOAD ADDR
-		//STEP 2 : write SYS_LOAD_ADDR size to -> eMMC  slot1
+
+		err = spl_load_all_image_fat(spl_image, mmc_get_blk_desc(mmc), 1, "all.bin");
+		if(err < 0) {
+			printf("while MMCSD_MODE_FW_UPDATE file size %d \n", err);
+			while(1);
+		} else {
+			count = err;
+			printf("read file size %d \n", count);
+		}
+		//STEP 2 : write file size - 512kbytes to -> SCU44
+		printk("done count %d \n ----", count);
+		if((count - 0x80000) <= 0) 
+			return 1;
+		else
+			count -= 0x80000;
+		
+		if(count % 512) {
+			blkcnt = (count/512) + 1;
+		} else {
+			blkcnt = (count/512);
+		}
+		printk("blk count %d todo write scu \n", blkcnt);
+		
+		//go u-boot 
+		spl_image->entry_point = SYS_LOAD_IMAGE_ADDR;
+		spl_image->os = IH_OS_U_BOOT;
+		spl_image->name = "U-Boot";
+		
+		*((volatile ulong*) 0x1e6e2044) = blkcnt;
+		err = 0;
 		break;
 #endif
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT

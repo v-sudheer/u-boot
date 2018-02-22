@@ -65,8 +65,7 @@ int spl_load_image_fat(struct spl_image_info *spl_image,
 	if (err)
 		goto end;
 
-	//Fix for if CONFIG_SYS_TEXT_BASE is zero modify CONFIG_SYS_TEXT_BASE -> CONFIG_SYS_SPL_ARGS_ADDR
-	header = (struct image_header *)(CONFIG_SYS_SPL_ARGS_ADDR -
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
 						sizeof(struct image_header));
 
 	err = file_fat_read(filename, header, sizeof(struct image_header));

@@ -16,6 +16,8 @@
 #include <config.h>
 #include <version.h>
 
+//#define PRINT_DEBUG
+
 //#define CONFIG_DRAM_1333
 //#define CONFIG_DRAM_1600
 //#define CONFIG_DRAM_1700
@@ -452,6 +454,7 @@ wait_mpll_lock:
     str   r3, [r0]
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e78300c
     mov   r1, #0x83
     str   r1, [r0]
@@ -518,6 +521,7 @@ wait_print_header:
     str   r1, [r0]
     mov   r1, #'R'                               @ 'R'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     clear_delay_timer
@@ -533,6 +537,7 @@ delay_0:
 /**************************************************************************************************/
 /**************************************************************************************************/
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'3'                               @ '3'
     str   r1, [r0]
@@ -540,6 +545,7 @@ delay_0:
     str   r1, [r0]
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     mov   r10, #0                                @ init reset retry count
@@ -691,6 +697,7 @@ check_phypll_lock:
     beq   check_phypll_lock
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'P'                               @ 'P'
     str   r1, [r0]
@@ -722,6 +729,7 @@ check_phypll_lock:
     str   r1, [r0]
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     ldr   r0, =0x1e6e0060
@@ -732,6 +740,7 @@ check_phyinit_done:
     bne   check_phyinit_done
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'P'                               @ 'P'
     str   r1, [r0]
@@ -761,6 +770,7 @@ check_phyinit_done:
     str   r1, [r0]
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     cmp   r9, #0
@@ -774,6 +784,7 @@ check_phyinit_done:
     and   r3, r2, #0x0F                          @ IO PD
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783014
 wait_print_io:
     ldr   r1, [r0]
@@ -812,6 +823,7 @@ wait_print_io:
     str   r1, [r0]
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     ldr   r0, =0x1e6e0198
@@ -935,6 +947,7 @@ read_MR8_done:
  *****************************************************************************/
 read_MR_process:
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'M'                               @ 'M'
     str   r1, [r0]
@@ -944,6 +957,7 @@ read_MR_process:
     print_hex_byte
     mov   r1, #'='                               @ '='
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     ldr   r0, =0x1e6e0024
@@ -961,6 +975,7 @@ read_MR_check_loop:
     mov   r2, r1, lsr #24
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     print_hex_byte
     mov   r1, #0x0D                              @ '\r'
     str   r1, [r0]
@@ -971,6 +986,7 @@ wait_print_mrr:
     ldr   r1, [r0]
     tst   r1, #0x40
     beq   wait_print_mrr
+#endif
 /* Debug - UART console message */
 
     cmp   r3, #0x0
@@ -1071,6 +1087,7 @@ check_dram_size_end:
     str   r1, [r0]
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'S'                               @ 'S'
     str   r1, [r0]
@@ -1092,6 +1109,7 @@ check_dram_size_end:
     str   r1, [r0]
     mov   r1, #'-'                               @ '-'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
     /********************************************
@@ -1109,9 +1127,11 @@ ddr_test_single:
     mov   r6, #0x00                              @ initialize loop index, r1 is loop index
 ddr_test_single_loop:
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, r6
     print_hex_char
+#endif
 /* Debug - UART console message */
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
@@ -1142,9 +1162,11 @@ ddr_test_burst:
     mov   r6, #0x00                              @ initialize loop index, r1 is loop index
 ddr_test_burst_loop:
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, r6
     print_hex_char
+#endif
 /* Debug - UART console message */
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
@@ -1178,6 +1200,7 @@ ddr_wait_engine_idle_1:
 
 ddr_test_fail:
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'F'                               @ 'F'
     str   r1, [r0]
@@ -1196,6 +1219,7 @@ wait_print_fail:
     ldr   r1, [r0]
     tst   r1, #0x40
     beq   wait_print_fail
+#endif
 /* Debug - UART console message */
     add   r10, r10, #1
     cmp   r10, #5
@@ -1210,6 +1234,7 @@ set_scratch:
     str   r1, [r0]
 
 /* Debug - UART console message */
+#ifdef PRINT_DEBUG
     ldr   r0, =0x1e783000
     mov   r1, #'D'                               @ 'D'
     str   r1, [r0]
@@ -1223,6 +1248,7 @@ set_scratch:
     str   r1, [r0]
     mov   r1, #'\n'                              @ '\n'
     str   r1, [r0]
+#endif
 /* Debug - UART console message */
 
 platform_exit:

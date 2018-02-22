@@ -12,11 +12,11 @@ if [ "$2" == "" ]; then
 fi
 
 #Patch replace ...
-find $1/. -name  '*.patch' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/.patch//'`"; done
+find $1/. -name  '*.patch' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/\.patch//'`"; done
 
 #BMC
 if [ "$2" == "bmc" ]; then
-        find $1/. -name  '*.bmc' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/.bmc//'`"; done
+        find $1/. -name  '*.bmc' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/\.bmc//'`"; done
 	find $1/. -name  '*.cam' | while read filename; do rm -f "${filename}"; done
 	rm -rf $1/board/aspeed/ast1*
 	rm -f $1/arch/arm/mach-aspeed/*cam*.c
@@ -48,7 +48,7 @@ fi
 
 #CAM
 if [ "$2" == "cam" ]; then
-	find $1/. -name  '*.cam' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/.cam//'`"; done
+	find $1/. -name  '*.cam' | while read filename; do mv -v "${filename}" "`echo "${filename}" | sed -e 's/\.cam//'`"; done
 	find $1/. -name  '*.bmc' | while read filename; do rm -f "${filename}"; done
 	rm -f $1/arch/arm/mach-aspeed/ast-bmc-scu.c
 	rm -f $1/arch/arm/mach-aspeed/include/mach/ast-bmc-scu.h

@@ -633,6 +633,7 @@ void i2c_init(int speed, int slaveaddr)
 	debug("i2c_init(speed=%u, slaveaddr=0x%x)\n", speed, slaveaddr);
 
 	for(i = 0; i < CONFIG_SYS_MAX_I2C_BUS; i++) {
+		i2c_bus_num = i;
 		i2c_bus = &ast_i2c[i];
 		i2c_bus->reg_base = i2c_get_base(i);
 

@@ -21,8 +21,8 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"update=tftp 40800000 ast2400.scr; so 40800000\0"\
-	"ramfs=set bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0" \
-	"squashfs=set bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
+	"ramfs=setenv bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0" \
+	"squashfs=setenv bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR		0x50

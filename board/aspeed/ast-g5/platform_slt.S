@@ -17,40 +17,69 @@
  *
  * Gary Hsu, <gary_hsu@aspeedtech.com>
  *
- * Version     : 8
- * Release date: 2016.02.15
+ * Version     : 18
+ * Release date: 2018.04.13
+ *
+ * Priority of fix item:
+ * [P1] = critical
+ * [P2] = nice to have
+ * [P3] = minor
  *
  * Change List :
- * V2|2014.07.25 : 1. Modify HPLL config sequence
- * V2|2014.07.30 : 1. Modify DDR3 AC parameters table
- *   |             2. Turn on ZQCS mode
- * V2|2014.08.13 : 1. Add disable XDMA
- * V2|2014.09.09 : 1. Disable CKE dynamic power down
- * V2|2014.10.31 : 1. Enable VGA wide screen support (SCU40[0]=1)
- * V2|2015.03.26 : 1. Revise AC timing table
- *   |             2. Add check code to bypass A0 patch
- *   |             3. Add MPLL parameter of A1
- *   |             4. Set X-DMA into VGA memory domain
- * V2|2015.04.24 : 1. Add disabling all DRAM requests during PHY init
- *   |             2. Set MCR1C & MCR38
- * V3|2015.05.13 : 1. Modify DDR4 PHY Vref training algorithm
- *   |             2. Enable CKE dynamic power down
- * V4|2015.06.15 : 1. Add MAC timing setting
- * V5|2015.07.09 : 1. Modify MHCLK divider ratio
- *   |             2. Add DDR read margin report
- * V6|2015.08.13 : 1. Disable MMC password before exit
- * V6|2015.08.24 : 1. Fix SCU160 parameter value for CLKIN=25MHz condition
- * V7|2015.09.18 : 1. Clear AHB bus lock condition at power up time
- *   |             2. Add reset MMC controller to solve init DRAM again during VGA ON
- * V7|2015.09.22 : 1. Add watchdog full reset for resolving reset incomplete issue at fast reset condition
- *   |             2. Add DRAM stress test after train complete, and redo DRAM initial if stress fail
- *   |             3. Enable JTAG master mode
- *   |             4. Add DDR4 Vref trainig retry timeout
- * V8|2015.11.02 : 1. Clear software strap flag before doing watchdog full reset
- *   |2015.12.10 : 1. Add USB PHY initial code
- *   |2016.01.27 : 1. Modify the first reset from full chip reset to SOC reset
- *   |             2. Remove HPLL/MPLL patch code for revision A0
- *   |             3. Move the reset_mmc code to be after MPLL initialized
+ * V2 |2014.07.25 : 1.[P1] Modify HPLL config sequence
+ * V2 |2014.07.30 : 1.[P1] Modify DDR3 AC parameters table
+ *    |             2.[P1] Turn on ZQCS mode
+ * V2 |2014.08.13 : 1.[P1] Add disable XDMA
+ * V2 |2014.09.09 : 1.[P1] Disable CKE dynamic power down
+ * V2 |2014.10.31 : 1.[P2] Enable VGA wide screen support (SCU40[0]=1)
+ * V2 |2015.03.26 : 1.[P1] Revise AC timing table
+ *    |             2.[P1] Add check code to bypass A0 patch
+ *    |             3.[P1] Add MPLL parameter of A1
+ *    |             4.[P1] Set X-DMA into VGA memory domain
+ * V2 |2015.04.24 : 1.[P1] Add disabling all DRAM requests during PHY init
+ *    |             2.[P1] Set MCR1C & MCR38
+ * V3 |2015.05.13 : 1.[P1] Modify DDR4 PHY Vref training algorithm
+ *    |             2.[P2] Enable CKE dynamic power down
+ * V4 |2015.06.15 : 1.[P1] Add MAC timing setting
+ * V5 |2015.07.09 : 1.[P1] Modify MHCLK divider ratio
+ *    |             2.[P2] Add DDR read margin report
+ * V6 |2015.08.13 : 1.[P3] Disable MMC password before exit
+ * V6 |2015.08.24 : 1.[P1] Fix SCU160 parameter value for CLKIN=25MHz condition
+ * V7 |2015.09.18 : 1.[P1] Clear AHB bus lock condition at power up time
+ *    |             2.[P1] Add reset MMC controller to solve init DRAM again during VGA ON
+ * V7 |2015.09.22 : 1.[P1] Add watchdog full reset for resolving reset incomplete issue at fast reset condition
+ *    |             2.[P1] Add DRAM stress test after train complete, and redo DRAM initial if stress fail
+ *    |             3.[P2] Enable JTAG master mode
+ *    |             4.[P2] Add DDR4 Vref trainig retry timeout
+ * V8 |2015.11.02 : 1.[P2] Clear software strap flag before doing watchdog full reset
+ *    |2015.12.10 : 1.[P1] Add USB PHY initial code
+ *    |2016.01.27 : 1.[P3] Modify the first reset from full chip reset to SOC reset
+ *    |             2.[P3] Remove HPLL/MPLL patch code for revision A0
+ *    |             3.[P2] Move the reset_mmc code to be after MPLL initialized
+ * V9 |2016.02.19 : 1.[P3] Remove definition "CONFIG_FIRMWARE_2ND_BOOT"
+ * V10|2016.04.21 : 1.[P1] Add USB PHY initial code - port B, to prevent wrong state on USB pins
+ * V11|2016.05.10 : 1.[P3] Add DRAM Extended temperature range support
+ * V12|2016.06.24 : 1.[P1] Modify LPC Reset input source when eSPI mode enabled
+ *    |2016.07.12 : 2.[P1] Modify DDR4 read path ODT from 60 ohm to 48 ohm, at address 0x1e6e0204
+ *    |           : 3.[P1] Modify DDR4 Ron calibration to manual mode to fix Vix issue, set Ron_pu = 0
+ *    |           : 4.[P2] Modify read timing margin report policy, change DDR4 min value from 0.35 to 0.3. Add "Warning" while violated.
+ * V13|2016.08.29 : 1.[P3] Add option to route debug message output port from UART5 to UART1
+ *    |2016.09.02 : 2.[P2] Add range control for cache function when ECC enabled
+ *    |2016.09.06 : 3.[P1] Enable full mask setting for first SOC reset, since the coverage of original default setting is not enough
+ * V14|2016.10.25 : 1.[P2] Change Ron manual calibration to default OFF, customer can enable it to do fine-tuning of the Vix issue
+ *    |2016.11.07 : 2.[P3] Add log information of DDR4 PHY Vref training
+ * V15|2017.04.06 : 1.[P1] Modify USB portA initial sequence, this is to prevent DMA lock condition of USB Virtual Hub device for some chips.
+ *    |2017.04.13 : 2.[P2] Add initial sequence for LPC controller
+ * V16|2017.06.15 : 1.[P1] Add margin check/retry for DDR4 Vref training margin.
+ *    |2017.06.15 : 2.[P1] Add margin check/retry for DDR3/DDR4 read timing training margin.
+ *    |2017.06.19 : 3.[P2] Add initial sequence for LPC controller
+ *    |2017.06.19 : 4.[P2] Add initial full-chip reset option
+ *    |2017.06.19 : 5.[P3] Add 10ms delay after DDR reset
+ * V17|2017.09.25 : 1.[P1] Modify DDR4 side ODT value from 60ohm to 48ohm.
+ *    |2017.09.25 : 2.[P1] Add Hynix DDR4 frequency slow down option.
+ * V18|2017.10.26 : 1.[P3] Include the change of DDR4 side ODT value at V17 into Hynix DDR4 configuration.
+ *    |2017.10.26 : 2.[P2] Enhance initial sequence for LPC controller
+ *    |           :   Note : Read timing report is only a reference, it is not a solid rule for stability.
  *
  * Optional define variable
  * 1. DRAM Speed             //
@@ -82,8 +111,10 @@
   Free registers:
   r0, r1, r2, r3, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
-#define ASTMMC_INIT_VER      0x08                @ 8bit verison number
-#define ASTMMC_INIT_DATE     0x20160215          @ Release date
+#define ASTMMC_INIT_VER      0x12                @ 8bit verison number
+#define ASTMMC_INIT_DATE     0x20180413          @ Release date
+
+#define CONFIG_FIRMWARE_2ND_BOOT
 
 #define ASTMMC_REGIDX_010    0x00
 #define ASTMMC_REGIDX_014    0x04
@@ -238,7 +269,7 @@ TIME_TABLE_DDR4_1600:
     .word   0x08000000       @ 0x020
     .word   0x00000400       @ 0x024
     .word   0x00000410       @ 0x02C
-    .word   0x00000101       @ 0x030
+    .word   0x00000501       @ 0x030
     .word   0x00000024       @ 0x214
     .word   0x03002900       @ 0x2E0
     .word   0x0E0000A0       @ 0x2E4
@@ -400,6 +431,9 @@ init_dram:
     ldr   r1, [r0]
     and   r1, r1, #0x01
     str   r1, [r0]
+    ldr   r0, =0x1e78501c                        @ restore normal mask setting
+    ldr   r1, =0x023FFFF3                        @ added 2016.09.06
+    str   r1, [r0]
     b     bypass_first_reset
 
 start_first_reset:
@@ -412,7 +446,10 @@ start_first_reset:
     ldr   r0, =0x1e785008
     ldr   r1, =0x00004755
     str   r1, [r0]
-    ldr   r0, =0x1e78500c                        @ enable soc reset
+    ldr   r0, =0x1e78501c                        @ enable full mask of SOC reset
+    ldr   r1, =0x03FFFFFF                        @ added 2016.09.06
+    str   r1, [r0]
+    ldr   r0, =0x1e78500c                        @ enable SOC reset
     ldr   r1, =0x00000013
     str   r1, [r0]
 wait_first_reset:
@@ -496,10 +533,16 @@ bypass_config_hpll:
     str   r1, [r0]
 
     /* Configure USB ports to the correct pin state */
-    ldr   r0, =0x1e6e200c
+    ldr   r0, =0x1e6e200c                        @ enable portA clock
     ldr   r2, =0x00004000
     ldr   r1, [r0]
     orr   r1, r1, r2
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2090                        @ set portA as host mode
+    ldr   r1, =0x2000A000
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2094                        @ set portB as host mode
+    ldr   r1, =0x00004000
     str   r1, [r0]
     ldr   r0, =0x1e6e2070
     ldr   r2, =0x00800000
@@ -963,6 +1006,31 @@ ddr3_init:
 
 ddr3_phyinit_done:
 
+    /********************************************
+     Check Read training margin
+    ********************************************/
+    ldr   r0, =0x1e6e03a0                        @ check Gate Training Pass Window
+    ldr   r1, [r0]
+    ldr   r2, =0x150
+    bic   r0, r1, #0xFF000000
+    bic   r0, r0, #0x00FF0000
+    cmp   r0, r2
+    blt   ddr_test_fail
+    mov   r0, r1, lsr #16
+    cmp   r0, r2
+    blt   ddr_test_fail
+
+    ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window
+    ldr   r1, [r0]
+    ldr   r2, =0x90
+    bic   r0, r1, #0x0000FF00
+    cmp   r0, r2
+    blt   ddr_test_fail
+    mov   r0, r1, lsr #8
+    cmp   r0, r2
+    blt   ddr_test_fail
+    /*******************************************/
+
 /* Debug - UART console message */
     ldr   r0, =0x1e784000
     mov   r1, #0x31                              @ '1'
@@ -1104,7 +1172,7 @@ ddr4_init:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0204
-    ldr   r1, =0x09002000
+    ldr   r1, =0x09002800
     str   r1, [r0]
 
     ldr   r0, =0x1e6e020c
@@ -1229,6 +1297,11 @@ ddr4_vref_phy_phyinit_done:
     b     cbr_test_start
 
 ddr4_vref_phy_cbrtest_done:
+    ldr   r0, =0x1e6e03d0                        @ read eye pass window
+    ldr   r1, [r0]
+    ldr   r0, =0x1e720000
+    add   r0, r0, r10, lsl #2
+    str   r1, [r0]
     cmp   r9, #0x01
     bne   ddr4_vref_phy_test_fail
     add   r8, r8, #0x01
@@ -1251,8 +1324,14 @@ ddr4_vref_phy_test_fail:
     b     ddr4_vref_phy_loop
 
 ddr4_vref_phy_loop_end:
+    cmp   r8, #16                                @ check phyvref margin >= 16
+    blt   ddr_test_fail
     ldr   r0, =0x1e6e02cc
     orr   r1, r6, r6, lsl #8
+    str   r1, [r0]
+    ldr   r0, =0x1e720010
+    orr   r1, r6, r7, lsl #8
+    orr   r1, r1, r8, lsl #16
     str   r1, [r0]
 
     /********************************************
@@ -1334,12 +1413,18 @@ ddr4_vref_ddr_loop_end:
     ldr   r1, =0x00000000
     str   r1, [r0]
 
+    cmp   r8, #16                                @ check ddrvref margin >= 16
+    blt   ddr_test_fail
     ldr   r0, =0x1e6e02c0
     add   r1, r6, r7
     add   r1, r1, #0x01
     mov   r2, r1, lsr #1
     mov   r1, r2, lsl #8
     orr   r1, r1, #0x06
+    str   r1, [r0]
+    ldr   r0, =0x1e720014
+    orr   r1, r6, r7, lsl #8
+    orr   r1, r1, r8, lsl #16
     str   r1, [r0]
 
 /* Debug - UART console message */
@@ -1358,6 +1443,32 @@ ddr4_vref_ddr_loop_end:
     b     ddr_phy_init_process
 
 ddr4_phyinit_done:
+
+    /********************************************
+     Check Read training margin
+    ********************************************/
+    ldr   r0, =0x1e6e03a0                        @ check Gate Training Pass Window
+    ldr   r1, [r0]
+    ldr   r2, =0x150
+    bic   r0, r1, #0xFF000000
+    bic   r0, r0, #0x00FF0000
+    cmp   r0, r2
+    blt   ddr_test_fail
+    mov   r0, r1, lsr #16
+    cmp   r0, r2
+    blt   ddr_test_fail
+
+    ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window
+    ldr   r1, [r0]
+    ldr   r2, =0x90
+    bic   r0, r1, #0x0000FF00
+    cmp   r0, r2
+    blt   ddr_test_fail
+    mov   r0, r1, lsr #8
+    cmp   r0, r2
+    blt   ddr_test_fail
+    /*******************************************/
+
     /*******************************************/
 /* Debug - UART console message */
     ldr   r0, =0x1e784000
@@ -1793,10 +1904,18 @@ wait_print_2:
 
     ldr   r7, =0x000001FE                        @ divide by 510
     mov   r8, #10                                @ multiply by 10
+    mov   r9, #0                                 @ record violation
+    ldr   r0, =0x1e6e0004
+    ldr   r1, [r0]
+    tst   r1, #0x10                              @ bit[4]=1 => DDR4
+    movne r10, #0x9A                             @ DDR4 min = 0x99 (0.30)
+    moveq r10, #0xB3                             @ DDR3 min = 0xB3 (0.35)
 print_DQL_eye_margin:
     ldr   r0, =0x1e6e03d0
     ldr   r2, [r0]
     and   r2, r2, #0xFF
+    cmp   r2, r10                                @ check violation
+    movlt r9, #1
     ldr   r0, =0x1e784000
     mov   r1, #0x30                              @ '0'
     str   r1, [r0]
@@ -1849,6 +1968,8 @@ wait_print_3:
     ldr   r2, [r0]
     mov   r2, r2, lsr #8
     and   r2, r2, #0xFF
+    cmp   r2, r10                                @ check violation
+    movlt r9, #1
     ldr   r0, =0x1e784000
     mov   r1, #0x30                              @ '0'
     str   r1, [r0]
@@ -1889,6 +2010,12 @@ print_DQ_eye_margin_last:
     mov   r1, #0x4B                              @ 'K'
     str   r1, [r0]
 
+    ldr   r0, =0x1e6e0004
+    ldr   r1, [r0]
+    tst   r1, #0x10                              @ bit[4]=1 => DDR4
+    movne r10, #0x30                             @ DDR4 min = 0.30
+    moveq r10, #0x35                             @ DDR4 min = 0.35
+
     ldr   r0, =0x1e784014
 wait_print_4:
     ldr   r1, [r0]
@@ -1914,8 +2041,7 @@ wait_print_4:
     str   r1, [r0]
     mov   r1, #0x33                              @ '3'
     str   r1, [r0]
-    mov   r1, #0x35                              @ '5'
-    str   r1, [r0]
+    str   r10, [r0]
     mov   r1, #0x29                              @ ')'
     str   r1, [r0]
     mov   r1, #0x0D                              @ '\r'
@@ -1927,8 +2053,9 @@ wait_print_4:
 platform_exit:
 #ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0004
+    ldr   r2, =0x00000880                        @ add cache range control, 2016.09.02
     ldr   r1, [r0]
-    orr   r1, r1, #0x80
+    orr   r1, r1, r2
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0054

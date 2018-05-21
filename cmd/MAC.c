@@ -8,6 +8,16 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+//#define MAC_DEBUG_REGRW_MAC
+//#define MAC_DEBUG_REGRW_PHY
+//#define MAC_DEBUG_REGRW_SCU
+//#define MAC_DEBUG_REGRW_WDT
+//#define MAC_DEBUG_REGRW_SDR
+//#define MAC_DEBUG_REGRW_SMB
+//#define MAC_DEBUG_REGRW_TIMER
+//#define MAC_DEBUG_REGRW_GPIO
+//#define MAC_DEBUG_MEMRW_Dat
+//#define MAC_DEBUG_MEMRW_Des
 
 #define MAC_C
 static const char ThisFile[] = "MAC.c";
@@ -17,7 +27,9 @@ static const char ThisFile[] = "MAC.c";
 #if defined(SLT_UBOOT)
   #include <common.h>
   #include <command.h>
+#ifdef  UBOOT_FOR_LINUX_4_9 
   #include <malloc.h>
+#endif  
   #include "STDUBOOT.H"
   #include "COMMINF.H"
 #endif
@@ -81,15 +93,27 @@ const  ULONG   ARP_org_data[16] = {
 // Read Memory
 //------------------------------------------------------------
 ULONG Read_Mem_Dat_NCSI_DD (ULONG addr) {
+#ifdef MAC_DEBUG_MEMRW_Dat
+	printf("[MEMRd-Dat] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
+#endif
 	return ( SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
 }
 ULONG Read_Mem_Des_NCSI_DD (ULONG addr) {
+#ifdef MAC_DEBUG_MEMRW_Des
+	printf("[MEMRd-Des] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
+#endif
 	return ( SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
 }
 ULONG Read_Mem_Dat_DD (ULONG addr) {
+#ifdef MAC_DEBUG_MEMRW_Dat
+	printf("[MEMRd-Dat] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
+#endif
 	return ( SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
 }
 ULONG Read_Mem_Des_DD (ULONG addr) {
+#ifdef MAC_DEBUG_MEMRW_Des
+	printf("[MEMRd-Des] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
+#endif
 	return ( SWAP_4B_LEDN_MEM( ReadSOC_DD(addr) ) );
 }
 
@@ -97,35 +121,51 @@ ULONG Read_Mem_Des_DD (ULONG addr) {
 // Read Register
 //------------------------------------------------------------
 ULONG Read_Reg_MAC_DD (MAC_ENGINE *eng, ULONG addr) {
-//printf("[RegRd-MAC] %08lx = %08lx\n", eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->run.MAC_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_MAC
+	printf("[RegRd-MAC] %08lx = %08lx\n", eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->run.MAC_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( eng->run.MAC_BASE + addr ) ) );
 }
 ULONG Read_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr) {
-//printf("[RegRd-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_PHY
+	printf("[RegRd-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
 }
 ULONG Read_Reg_SCU_DD (ULONG addr) {
-//printf("[RegRd-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_SCU
+	printf("[RegRd-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
 }
 ULONG Read_Reg_WDT_DD (ULONG addr) {
-//printf("[RegRd-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( WDT_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_WDT
+	printf("[RegRd-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( WDT_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( WDT_BASE + addr ) ) );
 }
 ULONG Read_Reg_SDR_DD (ULONG addr) {
-//printf("[RegRd-SDR] %08lx = %08lx\n", SDR_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SDR_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_SDR
+	printf("[RegRd-SDR] %08lx = %08lx\n", SDR_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SDR_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SDR_BASE + addr ) ) );
 }
 ULONG Read_Reg_SMB_DD (ULONG addr) {
-//printf("[RegRd-SMB] %08lx = %08lx\n", SMB_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SMB_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_SMB
+	printf("[RegRd-SMB] %08lx = %08lx\n", SMB_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SMB_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SMB_BASE + addr ) ) );
 }
 ULONG Read_Reg_TIMER_DD (ULONG addr) {
-//printf("[RegRd-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( TIMER_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_TIMER
+	printf("[RegRd-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( TIMER_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( TIMER_BASE + addr ) ) );
 }
 ULONG Read_Reg_GPIO_DD (ULONG addr) {
-//printf("[RegRd-GPIO] %08lx = %08lx\n", GPIO_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( GPIO_BASE + addr ) ) );
+#ifdef MAC_DEBUG_REGRW_GPIO
+	printf("[RegRd-GPIO] %08lx = %08lx\n", GPIO_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( GPIO_BASE + addr ) ) );
+#endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( GPIO_BASE + addr ) ) );
 }
 
@@ -133,15 +173,27 @@ ULONG Read_Reg_GPIO_DD (ULONG addr) {
 // Write Memory
 //------------------------------------------------------------
 void Write_Mem_Dat_NCSI_DD (ULONG addr, ULONG data) {
+#ifdef MAC_DEBUG_MEMRW_Dat
+	printf("[MEMWr-Dat] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( data ) );
+#endif
 	WriteSOC_DD( addr, SWAP_4B_LEDN_MEM( data ) );
 }
 void Write_Mem_Des_NCSI_DD (ULONG addr, ULONG data) {
+#ifdef MAC_DEBUG_MEMRW_Des
+	printf("[MEMWr-Des] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( data ) );
+#endif
 	WriteSOC_DD( addr, SWAP_4B_LEDN_MEM( data ) );
 }
 void Write_Mem_Dat_DD (ULONG addr, ULONG data) {
+#ifdef MAC_DEBUG_MEMRW_Dat
+	printf("[MEMWr-Dat] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( data ) );
+#endif
 	WriteSOC_DD( addr, SWAP_4B_LEDN_MEM( data ) );
 }
 void Write_Mem_Des_DD (ULONG addr, ULONG data) {
+#ifdef MAC_DEBUG_MEMRW_Des
+	printf("[MEMWr-Des] %08lx = %08lx\n", addr, SWAP_4B_LEDN_MEM( data ) );
+#endif
 	WriteSOC_DD( addr, SWAP_4B_LEDN_MEM( data ) );
 }
 
@@ -149,27 +201,39 @@ void Write_Mem_Des_DD (ULONG addr, ULONG data) {
 // Write Register
 //------------------------------------------------------------
 void Write_Reg_MAC_DD (MAC_ENGINE *eng, ULONG addr, ULONG data) {
-//printf("[RegWr-MAC] %08lx = %08lx\n", eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_MAC
+	printf("[RegWr-MAC] %08lx = %08lx\n", eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( eng->run.MAC_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr, ULONG data) {
-//printf("[RegWr-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_PHY
+	printf("[RegWr-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_SCU_DD (ULONG addr, ULONG data) {
-//printf("[RegWr-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_SCU
+	printf("[RegWr-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( SCU_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_WDT_DD (ULONG addr, ULONG data) {
-//printf("[RegWr-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_WDT
+	printf("[RegWr-WDT] %08lx = %08lx\n", WDT_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( WDT_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_TIMER_DD (ULONG addr, ULONG data) {
-//printf("[RegWr-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_TIMER
+	printf("[RegWr-TIMER] %08lx = %08lx\n", TIMER_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( TIMER_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 void Write_Reg_GPIO_DD (ULONG addr, ULONG data) {
-//printf("[RegWr-GPIO]%08lx: %08lx\n", GPIO_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#ifdef MAC_DEBUG_REGRW_GPIO
+	printf("[RegWr-GPIO]%08lx: %08lx\n", GPIO_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
 	WriteSOC_DD( GPIO_BASE + addr, SWAP_4B_LEDN_REG( data ) );
 }
 
@@ -293,13 +357,19 @@ void init_iodelay (MAC_ENGINE *eng) {
 	// [IO]setup Dly_stage_in
 	// [IO]setup Dly_stage_out
 	// [IO]setup Dly_step
-	// [IO]setup Dly_mask
+	// [IO]setup Dly_mask_bit_in
+	// [IO]setup Dly_mask_bit_out
 	//------------------------------
+#ifdef AST2500_IOMAP
+	eng->io.Dly_stage_shf_i = (eng->arg.GEn_FullRange) ? 0 : AST2500_IOStageShiftBit_In ;
+	eng->io.Dly_stage_shf_o = (eng->arg.GEn_FullRange) ? 0 : AST2500_IOStageShiftBit_Out;
+#endif
+
 #ifdef AST2500_IOMAP
 	eng->io.Dly_stagebit  = 6;
 	eng->io.Dly_stage     =   ( 1 << eng->io.Dly_stagebit );
-	eng->io.Dly_stage_in  = ( eng->io.Dly_stage >> AST2500_IOStageShiftBit_In );
-	eng->io.Dly_stage_out = ( eng->io.Dly_stage >> AST2500_IOStageShiftBit_Out );
+	eng->io.Dly_stage_in  = ( eng->io.Dly_stage >> eng->io.Dly_stage_shf_i );
+	eng->io.Dly_stage_out = ( eng->io.Dly_stage >> eng->io.Dly_stage_shf_o );
 	eng->io.Dly_step      = AST2500_IOStageStep;
 #else
 	eng->io.Dly_stagebit  = 4;
@@ -308,7 +378,11 @@ void init_iodelay (MAC_ENGINE *eng) {
 	eng->io.Dly_stage_out = eng->io.Dly_stage;
 	eng->io.Dly_step      = 1;
 #endif
-	eng->io.Dly_mask  = (1 << eng->io.Dly_stagebit)-1;
+	eng->io.Dly_mask_bit_in = eng->io.Dly_stage - 1;
+	if ( eng->env.MAC_RMII )
+		eng->io.Dly_mask_bit_out = 1;
+	else
+		eng->io.Dly_mask_bit_out = eng->io.Dly_mask_bit_in;
 
 	//------------------------------
 	// IO-Delay Register Bit Position
@@ -352,6 +426,14 @@ void init_iodelay (MAC_ENGINE *eng) {
 	eng->io.Dly_out_shf_regH = eng->io.Dly_out_shf + eng->io.Dly_stagebit - 1;
 
 	//------------------------------
+	// [IO]setup Dly_mask_pos
+	// [Reg]setup SCU_048_mix
+	//------------------------------
+	eng->io.Dly_mask_pos = ( eng->io.Dly_mask_bit_in  << eng->io.Dly_in_shf  )
+	                     | ( eng->io.Dly_mask_bit_out << eng->io.Dly_out_shf );
+	eng->reg.SCU_048_mix = eng->reg.SCU_048_mix | ( eng->reg.SCU_048_check & ( ~eng->io.Dly_mask_pos ) );
+
+	//------------------------------
 	// [IO]setup value_ary
 	//------------------------------
 	if ( eng->env.AST2300 && (eng->reg.SCU_07c == 0x01000003) ) {
@@ -371,6 +453,9 @@ void init_iodelay (MAC_ENGINE *eng) {
 //------------------------------------------------------------
 int get_iodelay (MAC_ENGINE *eng) {
 	int        index;
+#ifdef AST2500_IOMAP
+	int        index_max;
+#endif
 
 #ifdef  DbgPrn_FuncHeader
 	printf("get_iodelay\n");
@@ -420,14 +505,8 @@ int get_iodelay (MAC_ENGINE *eng) {
 	//------------------------------
 	// Get current clock delay value of TX(out) and RX(in) in the SCU48 register
 	// and setting test range
-	if ( eng->env.MAC_RMII ) {
-		eng->io.Dly_in_reg  = ( eng->io.Dly_reg_value >> eng->io.Dly_in_shf  ) & eng->io.Dly_mask;
-		eng->io.Dly_out_reg = ( eng->io.Dly_reg_value >> eng->io.Dly_out_shf ) & 0x1;
-	}
-	else {
-		eng->io.Dly_in_reg  = ( eng->io.Dly_reg_value >> eng->io.Dly_in_shf  ) & eng->io.Dly_mask;
-		eng->io.Dly_out_reg = ( eng->io.Dly_reg_value >> eng->io.Dly_out_shf ) & eng->io.Dly_mask;
-	} // End if ( eng->env.MAC_RMII )
+	eng->io.Dly_in_reg  = ( eng->io.Dly_reg_value >> eng->io.Dly_in_shf  ) & eng->io.Dly_mask_bit_in;
+	eng->io.Dly_out_reg = ( eng->io.Dly_reg_value >> eng->io.Dly_out_shf ) & eng->io.Dly_mask_bit_out;
 
 	//------------------------------
 	// [IO]setup Dly_in_reg_idx
@@ -438,14 +517,24 @@ int get_iodelay (MAC_ENGINE *eng) {
 	// [IO]setup Dly_out_max
 	//------------------------------
 	// Find the coordinate in X-Y axis
+#ifdef AST2500_IOMAP
+	index_max = ( eng->io.Dly_stage_in << eng->io.Dly_stage_shf_i );
+	for ( index = 0; index < index_max; index++ )
+#else
 	for ( index = 0; index < eng->io.Dly_stage_in; index++ )
+#endif
 		if ( eng->io.Dly_in_reg == eng->io.value_ary[ index ] ) {
 			eng->io.Dly_in_reg_idx = index;
 			eng->io.Dly_in_min     = index - ( eng->run.IO_Bund >> 1 );
 			eng->io.Dly_in_max     = index + ( eng->run.IO_Bund >> 1 );
 			break;
 		}
+#ifdef AST2500_IOMAP
+	index_max = ( eng->io.Dly_stage_out << eng->io.Dly_stage_shf_o );
+	for ( index = 0; index < index_max; index++ )
+#else
 	for ( index = 0; index < eng->io.Dly_stage_out; index++ )
+#endif
 		if ( eng->io.Dly_out_reg == eng->io.value_ary[ index ] ) {
 			eng->io.Dly_out_reg_idx = index;
 			if ( eng->env.MAC_RMII ) {
@@ -459,19 +548,25 @@ int get_iodelay (MAC_ENGINE *eng) {
 			break;
 		}
 
+	if ( eng->run.IO_MrgChk ) {
+		if ( eng->io.Dly_in_reg_idx >= eng->io.Dly_stage_in )
+			return( ( eng->flg.Err_Flag = eng->flg.Err_Flag | Err_Flag_IOMarginOUF ) );
+		if ( eng->io.Dly_out_reg_idx >= eng->io.Dly_stage_out )
+			return( ( eng->flg.Err_Flag = eng->flg.Err_Flag | Err_Flag_IOMarginOUF ) );
 #ifdef Enable_No_IOBoundary
-	if ( eng->io.Dly_in_min  <  0                     ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_in_min  = 0                     ;}
-	if ( eng->io.Dly_in_max  >= eng->io.Dly_stage_in  ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_in_max  = eng->io.Dly_stage_in-1;}
+		if ( eng->io.Dly_in_min  <  0                     ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_in_min  = 0                     ;}
+		if ( eng->io.Dly_in_max  >= eng->io.Dly_stage_in  ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_in_max  = eng->io.Dly_stage_in-1;}
 
-	if ( eng->io.Dly_out_min <  0                     ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_out_min = 0                      ;}
-	if ( eng->io.Dly_out_max >= eng->io.Dly_stage_out ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_out_max = eng->io.Dly_stage_out-1;}
+		if ( eng->io.Dly_out_min <  0                     ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_out_min = 0                      ;}
+		if ( eng->io.Dly_out_max >= eng->io.Dly_stage_out ) { eng->flg.Wrn_Flag = eng->flg.Wrn_Flag | Wrn_Flag_IOMarginOUF; eng->io.Dly_out_max = eng->io.Dly_stage_out-1;}
 #else
-	if ( ( eng->io.Dly_in_min < 0 ) || ( eng->io.Dly_in_max >= eng->io.Dly_stage_in ) )
-		return( Finish_Check( eng, Err_Flag_IOMarginOUF ) );
+		if ( ( eng->io.Dly_in_min < 0 ) || ( eng->io.Dly_in_max >= eng->io.Dly_stage_in ) )
+			return( ( eng->flg.Err_Flag = eng->flg.Err_Flag | Err_Flag_IOMarginOUF ) );
 
-	if ( ( eng->io.Dly_out_min < 0 ) || ( eng->io.Dly_out_max >= eng->io.Dly_stage_out ) )
-		return( Finish_Check( eng, Err_Flag_IOMarginOUF ) );
+		if ( ( eng->io.Dly_out_min < 0 ) || ( eng->io.Dly_out_max >= eng->io.Dly_stage_out ) )
+			return( ( eng->flg.Err_Flag = eng->flg.Err_Flag | Err_Flag_IOMarginOUF ) );
 #endif
+	}
 
 	//------------------------------
 	// IO Delay Testing Boundary
@@ -528,28 +623,21 @@ void recov_scu (MAC_ENGINE *eng) {
 	//MAC
 //	Write_Reg_MAC_DD( eng, 0x08, eng->reg.MAC_008 );
 //	Write_Reg_MAC_DD( eng, 0x0c, eng->reg.MAC_00c );
-	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040 );
+//	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040 );
 
 	//SCU
 //	Write_Reg_SCU_DD( 0x004, eng->reg.SCU_004 );
 	Write_Reg_SCU_DD( 0x008, eng->reg.SCU_008 );
 //	Write_Reg_SCU_DD( 0x00c, eng->reg.SCU_00c );
 	Write_Reg_SCU_DD( 0x048, eng->reg.SCU_048 );
-#ifdef AST2500_IOMAP
-  #ifdef SLT_UBOOT
-	Write_Reg_SCU_DD( 0x070, ( eng->reg.SCU_070 & 0xFFFFFFFE) );
-  #else
-	Write_Reg_SCU_DD( 0x070,   eng->reg.SCU_070  );
-  #endif
-	Write_Reg_SCU_DD( 0x07c, (~eng->reg.SCU_070) );
-#elif ( AST1010_IOMAP == 1 )
-#else
-  #ifdef SLT_UBOOT
-	Write_Reg_SCU_DD( 0x070, ( eng->reg.SCU_070 & 0xFFFFFFFE) );
-  #else
-	Write_Reg_SCU_DD( 0x070,   eng->reg.SCU_070  );
-  #endif
-#endif
+//#if defined(SLT_UBOOT) || defined(Enable_MAC_ExtLoop)
+//#elif ( AST1010_IOMAP == 1 )
+//#else
+//  #ifdef AST2500_IOMAP
+//	Write_Reg_SCU_DD( 0x07c, (~eng->reg.SCU_070) );
+//  #endif
+//	Write_Reg_SCU_DD( 0x070, eng->reg.SCU_070  );
+//#endif
 	Write_Reg_SCU_DD( 0x074, eng->reg.SCU_074 );
 	Write_Reg_SCU_DD( 0x080, eng->reg.SCU_080 );
 	Write_Reg_SCU_DD( 0x088, eng->reg.SCU_088 );
@@ -601,19 +689,6 @@ void read_scu (MAC_ENGINE *eng) {
 #endif
 		eng->reg.SCU_0f0 = Read_Reg_SCU_DD( 0x0f0 );
 
-#ifdef AST1010_CHIP
-		eng->reg.SCU_048_mix   = ( eng->reg.SCU_048 & 0xfefff0ff );
-		eng->reg.SCU_048_check = ( eng->reg.SCU_048 & 0x01000f00 );
-#else
-  #ifdef AST2500_IOMAP
-		eng->reg.SCU_048_mix   = ( eng->reg.SCU_048 & 0xfc000000 );
-		eng->reg.SCU_048_check = ( eng->reg.SCU_048 & 0x03ffffff );
-  #else
-		eng->reg.SCU_048_mix   = ( eng->reg.SCU_048 & 0xf0000000 );
-		eng->reg.SCU_048_check = ( eng->reg.SCU_048 & 0x0fffffff );
-  #endif
-#endif
-
 		//WDT
 		eng->reg.WDT_00c = Read_Reg_WDT_DD( 0x00c );
 		eng->reg.WDT_02c = Read_Reg_WDT_DD( 0x02c );
@@ -632,7 +707,9 @@ void Setting_scu (MAC_ENGINE *eng) {
 	Debug_delay();
 #endif
 
-	//SCU
+	//------------------------------
+	// [SCU]Disable CPU
+	//------------------------------
 #if defined(SLT_UBOOT) || defined(Enable_MAC_ExtLoop)
 #else
   #ifdef AST1010_CHIP
@@ -653,14 +730,30 @@ void Setting_scu (MAC_ENGINE *eng) {
   #endif
 #endif
 
-	//WDT
+	//------------------------------
+	// [WDT]Disable Timer
+	//------------------------------
+#ifdef AST1010_CHIP
+	Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffffdf ); //[5] Watchdog Reset for MAC
+#else
+	if ( eng->env.AST2400 ) {
+		Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffff9f ); //[5:6]Watchdog Reset for MAC
+	}
+#endif
+
 	Write_Reg_WDT_DD( 0x00c, eng->reg.WDT_00c & 0xfffffffc );
 	Write_Reg_WDT_DD( 0x02c, eng->reg.WDT_02c & 0xfffffffc );
 #ifdef AST2500_IOMAP
 	Write_Reg_WDT_DD( 0x04c, eng->reg.WDT_04c & 0xfffffffc );
+
+	Write_Reg_WDT_DD( 0x01c, Read_Reg_WDT_DD( 0x01c ) & 0xffffff9f );
+	Write_Reg_WDT_DD( 0x03c, Read_Reg_WDT_DD( 0x03c ) & 0xffffff9f );
+	Write_Reg_WDT_DD( 0x05c, Read_Reg_WDT_DD( 0x05c ) & 0xffffff9f );
 #endif
 
-	//Cache
+	//------------------------------
+	// [SCU]Disable Cache
+	//------------------------------
 #ifdef AST1010_CHIP
   #if( AST1010_IOMAP == 1 )
 	Write_Reg_SCU_DD( 0x11C, 0x00000000 ); // Disable Cache functionn
@@ -675,22 +768,39 @@ void init_scu1 (MAC_ENGINE *eng) {
 	Debug_delay();
 #endif
 
-#ifdef AST1010_CHIP
-  #if defined(PHY_GPIO)
-	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xff000000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
-  #else
-	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xffc00000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
-  #endif
-	Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffffdf ); //Watchdog Reset for MAC
-	eng->reg.SCU_00c_clkbit = 0x00000040;
-	Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c & (~eng->reg.SCU_00c_clkbit) ) );//Clock Stop Control
-#else
+	if ( eng->ModeSwitch == MODE_DEDICATED )
+		init_scu_macio ( eng );
+
+#ifndef AST1010_CHIP
 	if ( eng->env.AST2300 ) {
   #ifdef Enable_BufMerge
 		Write_Reg_SCU_DD( 0xf0, 0x66559959 );//MAC buffer merge
   #endif
   #ifdef Enable_Int125MHz
   #endif
+	}
+	else {
+	} // End if ( eng->env.AST2300 )
+#endif /* End AST1010_CHIP */
+} // End void init_scu1 (MAC_ENGINE *eng)
+
+//------------------------------------------------------------
+void init_scu_macio (MAC_ENGINE *eng) {
+#ifdef  DbgPrn_FuncHeader
+	printf("init_scu_macio\n");
+	Debug_delay();
+#endif
+//------------------------------
+// MDC/MDIO, LINK
+//------------------------------
+#ifdef AST1010_CHIP
+  #if defined(PHY_GPIO)
+	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xff000000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
+  #else
+	Write_Reg_SCU_DD( 0x88, ((eng->reg.SCU_088 & 0x003fffff ) | 0xffc00000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
+  #endif
+#else
+	if ( eng->env.AST2300 ) {
 		switch ( eng->run.MAC_idx_PHY ) {
   #if defined(PHY_GPIO)
 			case 0  : Write_Reg_SCU_DD( 0x88, (eng->reg.SCU_088 & 0x3fffffff)              ); break;//[31]MAC1 MDIO, [30]MAC1 MDC
@@ -701,49 +811,28 @@ void init_scu1 (MAC_ENGINE *eng) {
   #endif
 			default : break;
 		}
-
-		if ( eng->env.AST2400 )
-			Write_Reg_SCU_DD( 0x9c, eng->reg.SCU_09c & 0xffffff9f ); //Watchdog Reset for MAC
-#ifdef AST2500_IOMAP
-		Write_Reg_WDT_DD( 0x01c, Read_Reg_WDT_DD( 0x01c ) & 0xffffff9f );
-		Write_Reg_WDT_DD( 0x03c, Read_Reg_WDT_DD( 0x03c ) & 0xffffff9f );
-		Write_Reg_WDT_DD( 0x05c, Read_Reg_WDT_DD( 0x05c ) & 0xffffff9f );
-#endif
 //		Write_Reg_SCU_DD( 0x80, (eng->reg.SCU_080 & 0xfffffff0) | 0x0000000f );//MAC1LINK/MAC2LINK
-		if ( eng->arg.GEn_PHYAdrInv ) {
-			if ( eng->env.MAC34_vld )
-				eng->reg.SCU_00c_clkbit = 0x00f00000; //Clock Stop Control
-			else
-				eng->reg.SCU_00c_clkbit = 0x00300000; //Clock Stop Control
-		}
-		else {
-			switch ( eng->run.MAC_idx ) {
-				case 3: eng->reg.SCU_00c_clkbit = 0x00800000; break; //Clock Stop Control
-				case 2: eng->reg.SCU_00c_clkbit = 0x00400000; break; //Clock Stop Control
-				case 1: eng->reg.SCU_00c_clkbit = 0x00200000; break; //Clock Stop Control
-				case 0: eng->reg.SCU_00c_clkbit = 0x00100000; break; //Clock Stop Control
-			}
-		}
-		Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c & (~eng->reg.SCU_00c_clkbit) ) );//Clock Stop Control
 	}
 	else {
 		switch ( eng->run.MAC_idx_PHY ) {
 //			case 0  :
-//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfdffffff) | 0x02000000;//[25]MAC1 PHYLINK
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xfdffffff) | 0x02000000;//[25]MAC1 PHYLINK
 //				break;
 			case 1  :
-#if defined(PHY_GPIO)
-//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfbefffff) | 0x04000000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
-				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xffefffff)             ;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
-#else
-//				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xfbefffff) | 0x04100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
-				eng->reg.SCU_074_mix = (eng->reg.SCU_074 & 0xffefffff) | 0x00100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
-#endif /* End defined(PHY_GPIO) */
+  #if defined(PHY_GPIO)
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xfbefffff) | 0x04000000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+				eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xffefffff)             ;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+  #else
+//				eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xfbefffff) | 0x04100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+				eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xffefffff) | 0x00100000;//[26]MAC2 PHYLINK, [20]MAC2 MDC/MDIO
+  #endif
 				break;
 			default : 
-				eng->reg.SCU_074_mix = eng->reg.SCU_074;
 				break;
 		} // End switch ( eng->run.MAC_idx_PHY )
+		//------------------------------
+		// MAC2 MII Interface
+		//------------------------------
 		switch ( eng->run.MAC_idx ) {
 			case 1  :
 				if ( eng->env.MAC2_RMII )
@@ -751,13 +840,12 @@ void init_scu1 (MAC_ENGINE *eng) {
 				else
 					eng->reg.SCU_074_mix = (eng->reg.SCU_074_mix & 0xffdfffff) | 0x00200000;//[21]MAC2 MII
 			default :
-				Write_Reg_SCU_DD( 0x74, eng->reg.SCU_074_mix);
 				break;
 		} // End switch ( eng->run.MAC_idx )
-		eng->reg.SCU_00c_clkbit = 0x00000000;
+		Write_Reg_SCU_DD( 0x74, eng->reg.SCU_074_mix);
 	} // End if ( eng->env.AST2300 )
-#endif /* End AST1010_CHIP */
-} // End void init_scu1 (MAC_ENGINE *eng)
+#endif
+} // End void init_scu_macio (MAC_ENGINE *eng)
 
 //------------------------------------------------------------
 void init_scu_macrst (MAC_ENGINE *eng) {
@@ -772,7 +860,7 @@ void init_scu_macrst (MAC_ENGINE *eng) {
 #endif
 	Write_Reg_SCU_DD( 0x04, eng->reg.SCU_004_en );//Enable Engine
 
-#ifndef AST2500_IOMAP
+#ifndef AST2500_IOMAP //MAC40h is SCU reset before AST2500
   #ifdef MAC_040_def
 	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040_new | MAC_040_def );
   #else
@@ -780,6 +868,46 @@ void init_scu_macrst (MAC_ENGINE *eng) {
   #endif
 #endif
 } // End void init_scu_macrst (MAC_ENGINE *eng)
+
+//------------------------------------------------------------
+void init_scu_macdis (MAC_ENGINE *eng) {
+#ifdef  DbgPrn_FuncHeader
+	printf("init_scu_macdis\n");
+	Debug_delay();
+#endif
+
+	Write_Reg_SCU_DD( 0x04, eng->reg.SCU_004_dis );//Rst
+	Read_Reg_SCU_DD( 0x04 );//delay
+
+	Write_Reg_SCU_DD( 0x0c, eng->reg.SCU_00c_dis );//Clock
+	Read_Reg_SCU_DD( 0x0c );//delay
+} // End void init_scu_macdis (MAC_ENGINE *eng)
+
+//------------------------------------------------------------
+void init_scu_macen (MAC_ENGINE *eng) {
+	int i;
+
+#ifdef  DbgPrn_FuncHeader
+	printf("init_scu_macen\n");
+	Debug_delay();
+#endif
+
+	Read_Reg_SCU_DD( 0x0c );//delay
+	Write_Reg_SCU_DD( 0x0c, eng->reg.SCU_00c_en );//Clock
+	Read_Reg_SCU_DD( 0x0c );//delay
+
+	Read_Reg_SCU_DD( 0x04 );//delay
+	Write_Reg_SCU_DD( 0x04, eng->reg.SCU_004_en );//Enable Engine
+	Read_Reg_SCU_DD( 0x04 );//delay
+
+#ifndef AST2500_IOMAP
+  #ifdef MAC_040_def
+	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040_new | MAC_040_def );
+  #else
+	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040_new );
+  #endif
+#endif
+} // End void init_scu_macen (MAC_ENGINE *eng)
 
 //------------------------------------------------------------
 void init_scu2 (MAC_ENGINE *eng) {
@@ -834,6 +962,15 @@ void get_mac_info (MAC_ENGINE *eng) {
 		eng->reg.MAC_008 = 0x0000000a;//MSB(0x00)
 		eng->reg.MAC_00c = 0xf7837dd4;//LSB(0xd4)
 	}
+
+#if defined( MELLANOX_CONNECTX_4 )
+	eng->reg.MAC_008 = 0x00000000;//MSB(0x00)  20170523
+	eng->reg.MAC_00c = 0x00000000;//LSB(0xd4)	20170523
+
+	Write_Reg_MAC_DD( eng, 0x08, eng->reg.MAC_008 ); // 20170523
+	Write_Reg_MAC_DD( eng, 0x0c, eng->reg.MAC_00c ); // 20170523
+#endif
+
 	eng->inf.SA[ 0 ] = ( eng->reg.MAC_008 >>  8 ) & 0xff;//MSB
 	eng->inf.SA[ 1 ] = ( eng->reg.MAC_008       ) & 0xff;
 	eng->inf.SA[ 2 ] = ( eng->reg.MAC_00c >> 24 ) & 0xff;
@@ -850,7 +987,7 @@ void get_mac_info (MAC_ENGINE *eng) {
 	else
 		eng->reg.MAC_040_new = eng->reg.MAC_040;
 
-#ifdef AST2500_IOMAP
+#ifdef AST2500_IOMAP //MAC40h is power-on reset in AST2500
   #ifdef MAC_040_def
 	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040_new | MAC_040_def );
   #else
@@ -990,6 +1127,10 @@ void FPri_RegValue (MAC_ENGINE *eng, BYTE option) {
 
 //------------------------------------------------------------
 void FPri_End (MAC_ENGINE *eng, BYTE option) {
+#ifdef  DbgPrn_FuncHeader
+	printf("FPri_End\n");
+	Debug_delay();
+#endif
 	if ( eng->env.MAC_RMII && ( eng->phy.RMIICK_IOMode != 0 ) && eng->run.IO_MrgChk && eng->flg.AllFail ) {
 		if ( eng->arg.GEn_RMIIPHY_IN == 0 ) {
 			PRINTF( option, "\n\n\n\n\n\n[Info] The PHY's RMII reference clock pin is setting to the OUTPUT mode now.\n" );
@@ -1018,24 +1159,6 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 			PRINTF( option, "\n[Warning] PHY Address change from %d to %d !!!\n", eng->arg.GPHYADR, eng->phy.Adr );
 	}
 
-#ifdef AST1010_CHIP
-	//------------------------------
-	//[Warning] IO Strength
-	//------------------------------
-	if ( eng->io.init_done && eng->io.Str_reg_value ) {
-		PRINTF( option, "\n[Warning] SCU%02lX[%2d:%2d] == 0x%02lx is not the suggestion value 0.\n", eng->io.Str_reg_idx, eng->io.Str_reg_Hbit, eng->io.Str_reg_Lbit, eng->io.Str_reg_value );
-		PRINTF( option, "          This change at this platform must been proven again by the ASPEED.\n" );
-	}
-
-	//------------------------------
-	//[Warning] IO Timing
-	//------------------------------
-	eng->reg.SCU_048_default = SCU_48h_AST1010 & 0x01000f00;
-	if ( ( eng->reg.SCU_048_check != eng->reg.SCU_048_default ) ) {
-		PRINTF( option, "\n[Warning] SCU48 == 0x%08lx is not the suggestion value 0x%08lx.\n", eng->reg.SCU_048, eng->reg.SCU_048_default );
-		PRINTF( option, "          This change at this platform must been proven again by the ASPEED.\n" );
-	}
-#else
 	if ( eng->env.AST2300 ) {
 		//------------------------------
 		//[Warning] IO Strength
@@ -1048,19 +1171,11 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 		//------------------------------
 		//[Warning] IO Timing
  		//------------------------------
- #ifdef AST2500_IOMAP
-		eng->reg.SCU_048_default = SCU_48h_AST2500 & 0x03ffffff;
-  #else
-		if ( eng->env.MAC34_vld )
-			eng->reg.SCU_048_default = SCU_48h_AST2300 & 0x0fffffff;
-		else
-			eng->reg.SCU_048_default = SCU_48h_AST2300 & 0x0300ffff;
-  #endif
 		if ( ( eng->reg.SCU_048_check != eng->reg.SCU_048_default ) ) {
 			PRINTF( option, "\n[Warning] SCU48 == 0x%08lx is not the suggestion value 0x%08lx.\n", eng->reg.SCU_048, eng->reg.SCU_048_default );
 			PRINTF( option, "          This change at this platform must been proven again by the ASPEED.\n" );
 		}
-  #ifdef AST2500_IOMAP
+#ifdef AST2500_IOMAP
 		if ( eng->env.AST2500A1 ) {
 			if ( ( eng->reg.SCU_0b8 != SCU_B8h_AST2500 ) ) {
 				PRINTF( option, "\n[Warning] SCUB8 == 0x%08lx is not the suggestion value 0x%08x.\n", eng->reg.SCU_0b8, SCU_B8h_AST2500 );
@@ -1071,12 +1186,11 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 				PRINTF( option, "          This change at this platform must been proven again by the ASPEED.\n" );
 			}
 		}
-  #endif
-	} // End if ( eng->env.AST2300 )
 #endif
+	} // End if ( eng->env.AST2300 )
 
 	if ( eng->ModeSwitch == MODE_NSCI ) {
-		PRINTF( option, "\n[Arg] %d %d %d %d %d %ld %d (%s){%d}\n", eng->arg.GRun_Mode, eng->arg.GPackageTolNum, eng->arg.GChannelTolNum, eng->arg.GTestMode, eng->arg.GChk_TimingBund, ( eng->arg.GARPNumCnt | (ULONG)eng->arg.GEn_PrintNCSI ), eng->arg.GCtrl, eng->env.ASTChipName, TIME_OUT_NCSI );
+		PRINTF( option, "\n[Arg] %d %d %d %d %d %d %ld (%s){%d}\n", eng->arg.GRun_Mode, eng->arg.GPackageTolNum, eng->arg.GChannelTolNum, eng->arg.GTestMode, eng->arg.GChk_TimingBund, eng->arg.GCtrl, eng->arg.GARPNumCnt, eng->env.ASTChipName, TIME_OUT_NCSI );
 
 		switch ( eng->ncsi_cap.PCI_DID_VID ) {
 			case PCI_DID_VID_Intel_82574L             : { PRINTF( option, "[NC]%08lx %08lx: Intel 82574L       \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
@@ -1098,7 +1212,9 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 			case PCI_DID_VID_Intel_I350_1521          : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Intel_I350_1523          : { PRINTF( option, "[NC]%08lx %08lx: Intel I350         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Intel_X540               : { PRINTF( option, "[NC]%08lx %08lx: Intel X540         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_X550               : { PRINTF( option, "[NC]%08lx %08lx: Intel X550         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Intel_Broadwell_DE       : { PRINTF( option, "[NC]%08lx %08lx: Intel Broadwell-DE \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Intel_X722_37d0          : { PRINTF( option, "[NC]%08lx %08lx: Intel X722         \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Broadcom_BCM5718         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5718   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Broadcom_BCM5719         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5719   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Broadcom_BCM5720         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM5720   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
@@ -1106,6 +1222,7 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 			case PCI_DID_VID_Broadcom_BCM57810S       : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57810S \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Broadcom_Cumulus         : { PRINTF( option, "[NC]%08lx %08lx: Broadcom Cumulus   \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Broadcom_BCM57302        : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM57302  \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
+			case PCI_DID_VID_Broadcom_BCM957452       : { PRINTF( option, "[NC]%08lx %08lx: Broadcom BCM957452 \n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Mellanox_ConnectX_3_1003 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-3\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Mellanox_ConnectX_3_1007 : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-3\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
 			case PCI_DID_VID_Mellanox_ConnectX_4      : { PRINTF( option, "[NC]%08lx %08lx: Mellanox ConnectX-4\n", eng->ncsi_cap.ManufacturerID, eng->ncsi_cap.PCI_DID_VID ); break; }
@@ -1140,12 +1257,16 @@ void FPri_End (MAC_ENGINE *eng, BYTE option) {
 
 //------------------------------------------------------------
 void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option) {
+#ifdef  DbgPrn_FuncHeader
+	printf("FPri_ErrFlag\n");
+	Debug_delay();
+#endif
 	if ( eng->flg.Flag_PrintEn ) {
 		if ( eng->flg.Wrn_Flag ) {
 			if ( eng->flg.Wrn_Flag & Wrn_Flag_IOMarginOUF ) {
 				PRINTF( option, "[Warning] IO timing testing range out of boundary\n" );
 				if ( eng->env.MAC_RMII ) {
-					PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
+					PRINTF( option, "      (reg:%d,%d) %dx1(%d~%d,%d)\n", eng->io.Dly_in_reg_idx,
 											      eng->io.Dly_out_reg_idx,
 											      eng->run.IO_Bund,
 											      eng->io.Dly_in_min,
@@ -1153,7 +1274,7 @@ void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option) {
 											      eng->io.Dly_out_min );
 				}
 				else {
-					PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
+					PRINTF( option, "      (reg:%d,%d) %dx%d(%d~%d,%d~%d)\n", eng->io.Dly_in_reg_idx,
 												  eng->io.Dly_out_reg_idx,
 												  eng->run.IO_Bund,
 												  eng->run.IO_Bund,
@@ -1214,7 +1335,7 @@ void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option) {
 			if ( eng->flg.Err_Flag & Err_Flag_IOMarginOUF ) {
 				PRINTF( option, "[Err] IO timing testing range out of boundary\n");
 				if ( eng->env.MAC_RMII ) {
-					PRINTF( option, "      (%d,%d): %dx1 [%d:%d]x[%d]\n", eng->io.Dly_in_reg_idx,
+					PRINTF( option, "      (reg:%d,%d) %dx1(%d~%d,%d)\n", eng->io.Dly_in_reg_idx,
 											      eng->io.Dly_out_reg_idx,
 											      eng->run.IO_Bund,
 											      eng->io.Dly_in_min,
@@ -1222,7 +1343,7 @@ void FPri_ErrFlag (MAC_ENGINE *eng, BYTE option) {
 											      eng->io.Dly_out_min );
 				}
 				else {
-					PRINTF( option, "      (%d,%d): %dx%d [%d:%d]x[%d:%d]\n", eng->io.Dly_in_reg_idx,
+					PRINTF( option, "      (reg:%d,%d) %dx%d(%d~%d,%d~%d)\n", eng->io.Dly_in_reg_idx,
 												  eng->io.Dly_out_reg_idx,
 												  eng->run.IO_Bund,
 												  eng->run.IO_Bund,
@@ -1572,6 +1693,10 @@ void setup_framesize (MAC_ENGINE *eng) {
 void setup_arp (MAC_ENGINE *eng) {
 	int        i;
 
+#ifdef  DbgPrn_FuncHeader
+	printf("setup_arp\n");
+	Debug_delay();
+#endif
 	for (i = 0; i < 16; i++ )
 		eng->dat.ARP_data[ i ] = ARP_org_data[ i ];
 
@@ -2320,12 +2445,17 @@ void PrintSpeed (MAC_ENGINE *eng) {
 
 //------------------------------------------------------------
 void PrintCtrl (MAC_ENGINE *eng) {
-	printf("ctrl[dec]        | bit0~2: Reserved\n");
-	printf("(default:%3d)    | bit3  : 1->Enable PHY init     0->Disable PHY init\n", DEF_GCTRL);
-	printf("                 | bit4  : 1->Enable PHY int-loop 0->Disable PHY int-loop\n");
-	printf("                 | bit5  : 1->Ignore PHY ID       0->Check PHY ID\n");
+	printf("ctrl[dec]        | bit0  : Reserved\n");
+	printf("(default:%3d)    | bit1  : Enable to use the other MAC's MDC/MDIO\n", DEF_GCTRL);
+	printf("                 | bit2  : Disable recovery PHY's status\n");
+	printf("                 | bit3  : 1->Enable PHY init       0->Disable PHY init\n");
+	printf("                 | bit4  : 1->PHY internal loopback 0->PHY external loopback\n");
+	printf("                 | bit5  : 1->Ignore PHY ID         0->Check PHY ID\n");
+	if ( eng->env.AST2500 ) {
+	printf("                 | bit6  : 1->Enable MAC int-loop   0->Disable MAC int-loop\n");
+	}
 	if ( eng->env.AST2400 ) {
-		printf("                 | bit6  : 1->Enable MAC int-loop 0->Disable MAC int-loop\n");
+	printf("                 | bit7  : 1->Enable MAC int-loop   0->Disable MAC int-loop\n");
 	}
 }
 
@@ -2365,7 +2495,7 @@ void PrintPHYAdr (MAC_ENGINE *eng) {
 //------------------------------------------------------------
 void PrintIOTimingBund (MAC_ENGINE *eng) {
 	if ( eng->env.AST2300 )
-		printf("IO margin[dec]   | 0/1/3/5 (default:%d)\n", DEF_GIOTIMINGBUND);
+		printf("IO margin[dec]   | 0/1/3/5/7/... (default:%d)\n", DEF_GIOTIMINGBUND);
 }
 
 //------------------------------------------------------------
@@ -2512,6 +2642,10 @@ void PrintIO_Line_LOG (MAC_ENGINE *eng) {
 // main
 //------------------------------------------------------------
 void Calculate_LOOP_CheckNum (MAC_ENGINE *eng) {
+#ifdef  DbgPrn_FuncHeader
+	printf("Calculate_LOOP_CheckNum\n");
+	Debug_delay();
+#endif
 
 #define ONE_MBYTE    1048576
 

@@ -73,14 +73,16 @@
 //#define Disable_VGA
 //#define Enable_ShowBW
 
-#define AST2500_IOStageStep                      1
-#define AST2500_IOStageShiftBit_In               2 //0~2
-#define AST2500_IOStageShiftBit_Out              2 //0~2
+#ifdef AST2500_IOMAP
+  #define AST2500_IOStageStep                    1
+  #define AST2500_IOStageShiftBit_In             2 //0~2
+  #define AST2500_IOStageShiftBit_Out            2 //0~2
+#endif
 
 //#define SelectSimpleBoundary                                    //[off] Using in debug
 //#define SelectSimpleData                                        //[off] Using in debug
 //#define SelectSimpleLength                       1514           //[off] 60(0x3c) ~ 1514(0x5ea); 1512(0x5e8)
-//#define SelectDesNumber                          8              //[off] 1 ~
+//#define SelectDesNumber                          8             //[off] 1 ~
 //#define SelectSimpleDA                                          //[off] Using in debug
 //#define SelectSimpleDes                                         //[off]
 //#define SelectLengthInc                                         //[off] Using in debug

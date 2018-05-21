@@ -588,7 +588,12 @@ typedef struct {
 	unsigned short       Response_Code;
 	unsigned short       Reason_Code;
 	unsigned char        Payload_Data[64];
+#if !defined(SLT_UBOOT)
 }  NCSI_Command_Packet;
+#else
+}  __attribute__ ((__packed__)) NCSI_Command_Packet;
+#endif
+
 //NC-SI Response Packet
 typedef struct {
 	unsigned char        DA[6];
@@ -611,7 +616,12 @@ typedef struct {
 	unsigned short       Response_Code;
 	unsigned short       Reason_Code;
 	unsigned char        Payload_Data[64];
+#if !defined(SLT_UBOOT)
 }  NCSI_Response_Packet;
+#else
+}  __attribute__ ((__packed__)) NCSI_Response_Packet;
+#endif
+
 typedef struct {
 	unsigned char        All_ID                                   ;//__attribute__ ((aligned (4)));
 	unsigned char        Package_ID                               ;//__attribute__ ((aligned (4)));
@@ -645,7 +655,10 @@ typedef struct {
 	ULONG                SCU_004_en                    ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_008                       ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_00c                       ;//__attribute__ ((aligned (4)));
+	ULONG                SCU_00c_mix                   ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_00c_clkbit                ;//__attribute__ ((aligned (4)));
+	ULONG                SCU_00c_dis                   ;//__attribute__ ((aligned (4)));
+	ULONG                SCU_00c_en                    ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_048                       ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_048_mix                   ;//__attribute__ ((aligned (4)));
 	ULONG                SCU_048_default               ;//__attribute__ ((aligned (4)));
@@ -718,11 +731,12 @@ typedef struct {
 	CHAR                 GLOOP_INFINI                  ;//__attribute__ ((aligned (4)));//argv[4]
 	ULONG                GLOOP_MAX                     ;//__attribute__ ((aligned (4)));//argv[4]
 
-	CHAR                 GEn_SkipRxEr                  ;//__attribute__ ((aligned (4)));//GCtrl[0]
-	CHAR                 GEn_PrintNCSI                 ;//__attribute__ ((aligned (4)));//GARPNumCnt[0]
-
-	CHAR                 GEn_RMIIPHY_IN                ;//__attribute__ ((aligned (4)));//GCtrl[7]
-	CHAR                 GEn_MACLoopback               ;//__attribute__ ((aligned (4)));//GCtrl[6]
+	CHAR                 GEn_SkipRxEr                  ;//__attribute__ ((aligned (4)));//GCtrl    [1]
+	CHAR                 GEn_PrintNCSI                 ;//__attribute__ ((aligned (4)));//GCtrl    [0]
+	CHAR                 GEn_RMIIPHY_IN                ;//__attribute__ ((aligned (4)));//GCtrl[9]
+	CHAR                 GEn_RMII_50MOut               ;//__attribute__ ((aligned (4)));//GCtrl[8] [8]
+	CHAR                 GEn_MACLoopback               ;//__attribute__ ((aligned (4)));//GCtrl[7] [7]
+	CHAR                 GEn_FullRange                 ;//__attribute__ ((aligned (4)));//GCtrl[6] [6]
 	CHAR                 GEn_SkipChkPHY                ;//__attribute__ ((aligned (4)));//GCtrl[5]
 	CHAR                 GEn_IntLoopPHY                ;//__attribute__ ((aligned (4)));//GCtrl[4]
 	CHAR                 GEn_InitPHY                   ;//__attribute__ ((aligned (4)));//GCtrl[3]
@@ -821,12 +835,18 @@ typedef struct {
 	BYTE                 Dly_stage_in                  ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_stage_out                 ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_step                      ;//__attribute__ ((aligned (4)));
-	ULONG                Dly_mask                      ;//__attribute__ ((aligned (4)));
+	ULONG                Dly_mask_bit_in               ;//__attribute__ ((aligned (4)));
+	ULONG                Dly_mask_bit_out              ;//__attribute__ ((aligned (4)));
+	ULONG                Dly_mask_pos                  ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_in_shf                    ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_out_shf                   ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_in_shf_regH               ;//__attribute__ ((aligned (4)));
 	BYTE                 Dly_out_shf_regH              ;//__attribute__ ((aligned (4)));
 	BYTE                 value_ary[64]                 ;//__attribute__ ((aligned (4)));
+#ifdef AST2500_IOMAP
+	BYTE                 Dly_stage_shf_i               ;//__attribute__ ((aligned (4)));
+	BYTE                 Dly_stage_shf_o               ;//__attribute__ ((aligned (4)));
+#endif
 
 	ULONG                Dly_reg_idx                   ;//__attribute__ ((aligned (4)));
 	ULONG                Dly_reg_value                 ;//__attribute__ ((aligned (4)));
@@ -1034,7 +1054,10 @@ GLOBAL void    Finish_Close (MAC_ENGINE *eng);
 GLOBAL void    Calculate_LOOP_CheckNum (MAC_ENGINE *eng);
 GLOBAL char    Finish_Check (MAC_ENGINE *eng, int value);
 GLOBAL void    init_scu1 (MAC_ENGINE *eng);
+GLOBAL void    init_scu_macio (MAC_ENGINE *eng);
 GLOBAL void    init_scu_macrst (MAC_ENGINE *eng);
+GLOBAL void    init_scu_macdis (MAC_ENGINE *eng);
+GLOBAL void    init_scu_macen (MAC_ENGINE *eng);
 GLOBAL void    setup_arp (MAC_ENGINE *eng);
 GLOBAL void    TestingSetup (MAC_ENGINE *eng);
 GLOBAL void    init_scu2 (MAC_ENGINE *eng);

@@ -21,22 +21,29 @@
 //---------------------------------------------------------
 //#define PHY_GPIO
 //#define PHY_SPECIAL
+//#define MELLANOX_CONNECTX_4 // for Mellanox ConnectX-4 OCP card
 
-#ifdef PHY_SPECIAL
-  /* PHY in SPECIAL mode */
-  #if defined(PHY_GPIO)
-    #define    VER_NAME    "Verification @2016/07/21 1524 [GPIO]PHY_SPECIAL"
-  #else
-    #define    VER_NAME    "Verification @2016/07/21 1524 PHY_SPECIAL"
-  #endif /* End defined(PHY_GPIO) */
+#if defined(MELLANOX_CONNECTX_4)
+      #define    VER_NAME    "Ver 0.75 version @2017/05/25 1338 for Mellanox ConnectX-4 OCP card"
 #else
-  /* PHY in Normal mode */
-  #if defined(PHY_GPIO)
-    #define    VER_NAME    "Ver 0.69 version @2016/07/21 1524 [GPIO]"
+  #ifdef PHY_SPECIAL
+    /* PHY in SPECIAL mode */
+    #if defined(PHY_GPIO)
+      #define    VER_NAME    "Verification @2016/07/21 1524 [GPIO]PHY_SPECIAL"
+    #else
+      #define    VER_NAME    "Verification @2016/07/21 1524 PHY_SPECIAL"
+    #endif /* End defined(PHY_GPIO) */
   #else
-    #define    VER_NAME    "Ver 0.72 version @2017/03/16 0817"
-  #endif /* End defined(PHY_GPIO) */
-#endif
+    /* PHY in Normal mode */
+    #if defined(PHY_GPIO)
+      #define    VER_NAME    "Ver 0.75 version @2017/05/25 1338 [GPIO]"
+    #else
+      #define    VER_NAME    "Ver 0.77 version @2017/12/20 1310"
+    #endif /* End defined(PHY_GPIO) */
+  #endif
+#endif // End MELLANOX_CONNECTX_4
+
+//#define  UBOOT_FOR_LINUX_4_9
 
 /* == Auto setting ==========================================  */
 /* ====  Support OS system                                     */
@@ -49,11 +56,6 @@
 /*        "SPI_BUS" or "USE_LPC" or "USE_P2A"                  */
 /* ====  Support Chip                                          */
 /*        "AST1010_CHIP" or "AST2500_IOMAP" or "FPGA"          */
-
-#if defined(CONFIG_ARCH_AST1220)
-  #define SLT_UBOOT
-  #define AST2500_IOMAP
-#endif
 
 #if defined(CONFIG_ARCH_AST3200)
   #define SLT_UBOOT

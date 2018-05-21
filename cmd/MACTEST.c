@@ -341,8 +341,8 @@ PASS_CHIP_ID:
 		if (argc > 1) {
 			if ( eng->ModeSwitch == MODE_NSCI ) {
 				switch ( argc ) {
-					case 8: eng->arg.GCtrl           = (BYTE)atoi(argv[7]);
-					case 7: eng->arg.GARPNumCnt      = (ULONG)atoi(argv[6]);
+					case 8: eng->arg.GARPNumCnt      = (ULONG)atoi(argv[7]);
+					case 7: eng->arg.GCtrl           = (BYTE)atoi(argv[6]);
 					case 6: eng->arg.GChk_TimingBund = (BYTE)atoi(argv[5]);
 					case 5: eng->arg.GTestMode       = (BYTE)atoi(argv[4]);
 					case 4: eng->arg.GChannelTolNum  = (BYTE)atoi(argv[3]);
@@ -351,6 +351,7 @@ PASS_CHIP_ID:
 				}
 			}
 			else {
+				eng->arg.GARPNumCnt = 0;
 				switch ( argc ) {
 					case 9: eng->arg.GUserDVal       = strtoul (argv[8], &stop_at, 16);
 					case 8: eng->arg.GChk_TimingBund = (BYTE)atoi(argv[7]);
@@ -459,12 +460,6 @@ Error_GRun_Mode:
 
 		if ( eng->ModeSwitch == MODE_NSCI ) {
 			//------------------------------
-			// [Arg]check GCtrl
-			// [Arg]setup GEn_SkipRxEr
-			//------------------------------
-			eng->arg.GEn_SkipRxEr = ( eng->arg.GCtrl      ) & 0x1;
-
-			//------------------------------
 			// [Arg]check GPackageTolNum
 			// [Arg]check GChannelTolNum
 			//------------------------------
@@ -477,18 +472,27 @@ Error_GRun_Mode:
 				return(1);
 			}
 			//------------------------------
-			// [Arg]check GARPNumCnt
+			// [Arg]check GCtrl
+			// [Arg]setup GEn_RMII_50MOut
+			// [Arg]setup GEn_MACLoopback
+			// [Arg]setup GEn_FullRange
+			// [Arg]setup GEn_SkipRxEr
 			// [Arg]setup GEn_PrintNCSI
-			// [Arg]setup GARPNumCnt
 			//------------------------------
-			eng->arg.GEn_PrintNCSI = (eng->arg.GARPNumCnt & 0x1);
-			eng->arg.GARPNumCnt    = eng->arg.GARPNumCnt & 0xfffffffe;
+			eng->arg.GEn_RMII_50MOut = ( eng->arg.GCtrl >> 8 ) & 0x1;
+			eng->arg.GEn_MACLoopback = ( eng->arg.GCtrl >> 7 ) & 0x1;
+			eng->arg.GEn_FullRange   = ( eng->arg.GCtrl >> 6 ) & 0x1;
+
+			eng->arg.GEn_SkipRxEr    = ( eng->arg.GCtrl >> 1 ) & 0x1;
+			eng->arg.GEn_PrintNCSI   = ( eng->arg.GCtrl      ) & 0x1;
 		}
 		else {
 			//------------------------------
 			// [Arg]check GCtrl
 			// [Arg]setup GEn_RMIIPHY_IN
+			// [Arg]setup GEn_RMII_50MOut
 			// [Arg]setup GEn_MACLoopback
+			// [Arg]setup GEn_FullRange
 			// [Arg]setup GEn_SkipChkPHY
 			// [Arg]setup GEn_IntLoopPHY
 			// [Arg]setup GEn_InitPHY
@@ -496,22 +500,22 @@ Error_GRun_Mode:
 			// [Arg]setup GEn_PHYAdrInv
 			// [Arg]setup GEn_SinglePacket
 			//------------------------------
-			if ( eng->arg.GCtrl & 0xffffff00 ) {
+			if ( eng->arg.GCtrl & 0xfffffe00 ) {
 				printf("Error ctrl!!!\n");
 				PrintCtrl ( eng );
 				return(1);
 			}
 			else {
-				eng->arg.GEn_RMIIPHY_IN   = ( eng->arg.GCtrl >> 7 ) & 0x1;
-				eng->arg.GEn_MACLoopback  = ( eng->arg.GCtrl >> 6 ) & 0x1;
+				eng->arg.GEn_RMIIPHY_IN   = ( eng->arg.GCtrl >> 9 ) & 0x1;
+				eng->arg.GEn_RMII_50MOut  = ( eng->arg.GCtrl >> 8 ) & 0x1;
+				eng->arg.GEn_MACLoopback  = ( eng->arg.GCtrl >> 7 ) & 0x1;
+				eng->arg.GEn_FullRange    = ( eng->arg.GCtrl >> 6 ) & 0x1;
 				eng->arg.GEn_SkipChkPHY   = ( eng->arg.GCtrl >> 5 ) & 0x1;
 				eng->arg.GEn_IntLoopPHY   = ( eng->arg.GCtrl >> 4 ) & 0x1;
-
 				eng->arg.GEn_InitPHY      = ( eng->arg.GCtrl >> 3 ) & 0x1;
 				eng->arg.GDis_RecovPHY    = ( eng->arg.GCtrl >> 2 ) & 0x1;
 				eng->arg.GEn_PHYAdrInv    = ( eng->arg.GCtrl >> 1 ) & 0x1;
 				eng->arg.GEn_SinglePacket = ( eng->arg.GCtrl      ) & 0x1;
-
 				if ( !eng->env.AST2400 && eng->arg.GEn_MACLoopback ) {
 					printf("Error ctrl!!!\n");
 					PrintCtrl ( eng );
@@ -631,8 +635,15 @@ Error_GTestMode:
 			if ( eng->env.AST2300 ) {
 				eng->run.IO_Bund = eng->arg.GChk_TimingBund;
 
-				if ( !( ( ( 7 >= eng->run.IO_Bund ) && ( eng->run.IO_Bund & 0x1 ) ) ||
-				        ( eng->run.IO_Bund == 0                                   )
+//				if ( !( ( ( 7 >= eng->run.IO_Bund ) && ( eng->run.IO_Bund & 0x1 ) ) ||
+//				        ( eng->run.IO_Bund == 0                                   )
+//				       ) ) {
+//					printf("Error IO margin!!!\n");
+//					PrintIOTimingBund ( eng );
+//					return(1);
+//				}
+				if ( !( ( eng->run.IO_Bund & 0x1 ) ||
+				        ( eng->run.IO_Bund == 0  )
 				       ) ) {
 					printf("Error IO margin!!!\n");
 					PrintIOTimingBund ( eng );
@@ -906,6 +917,74 @@ Error_GTestMode:
 		eng->reg.SCU_004_dis = eng->reg.SCU_004_mix |   eng->reg.SCU_004_rstbit;
 
 		//------------------------------
+		// [Reg]setup SCU_00c_clkbit
+		// [Reg]setup SCU_00c_mix
+		// [Reg]setup SCU_00c_dis
+		// [Reg]setup SCU_00c_en
+		//------------------------------
+#ifdef AST1010_CHIP
+		eng->reg.SCU_00c_clkbit = 0x00000040;
+#else
+		if ( eng->env.AST2300 ) {
+//			if ( eng->arg.GEn_PHYAdrInv ) {
+				if ( eng->env.MAC34_vld )
+					eng->reg.SCU_00c_clkbit = 0x00f00000; //Clock Stop Control
+				else
+					eng->reg.SCU_00c_clkbit = 0x00300000; //Clock Stop Control
+//			}
+//			else {
+//				switch ( eng->run.MAC_idx ) {
+//					case 3: eng->reg.SCU_00c_clkbit = 0x00800000; break; //Clock Stop Control
+//					case 2: eng->reg.SCU_00c_clkbit = 0x00400000; break; //Clock Stop Control
+//					case 1: eng->reg.SCU_00c_clkbit = 0x00200000; break; //Clock Stop Control
+//					case 0: eng->reg.SCU_00c_clkbit = 0x00100000; break; //Clock Stop Control
+//			}
+		}
+		else {
+			eng->reg.SCU_00c_clkbit = 0x00000000;
+		} // End if ( eng->env.AST2300 )
+#endif
+		eng->reg.SCU_00c_mix = eng->reg.SCU_00c;
+		eng->reg.SCU_00c_en  = eng->reg.SCU_00c_mix & (~eng->reg.SCU_00c_clkbit);
+		eng->reg.SCU_00c_dis = eng->reg.SCU_00c_mix |   eng->reg.SCU_00c_clkbit;
+
+		//------------------------------
+		// [Reg]setup SCU_048_mix
+		// [Reg]setup SCU_048_check
+		// [Reg]setup SCU_048_default
+		// [Reg]setup SCU_074_mix
+		//------------------------------
+#ifdef AST1010_CHIP
+		eng->reg.SCU_048_mix     = ( eng->reg.SCU_048 & 0xfefff0ff );
+		eng->reg.SCU_048_check   = ( eng->reg.SCU_048 & 0x01000f00 );
+		eng->reg.SCU_048_default =   SCU_48h_AST1010  & 0x01000f00;
+#else
+  #ifdef AST2500_IOMAP
+		eng->reg.SCU_048_mix     = ( eng->reg.SCU_048 & 0xfc000000 );
+		eng->reg.SCU_048_check   = ( eng->reg.SCU_048 & 0x03ffffff );
+		eng->reg.SCU_048_default =   SCU_48h_AST2500  & 0x03ffffff;
+
+		if ( eng->arg.GEn_RMII_50MOut & eng->env.MAC_RMII ) {
+			switch ( eng->run.MAC_idx ) {
+				case 1: eng->reg.SCU_048_mix = eng->reg.SCU_048_mix | 0x40000000; break;
+				case 0: eng->reg.SCU_048_mix = eng->reg.SCU_048_mix | 0x20000000; break;
+			}
+		}
+  #else
+		eng->reg.SCU_048_mix     = ( eng->reg.SCU_048 & 0xf0000000 );
+		if ( eng->env.MAC34_vld ) {
+			eng->reg.SCU_048_check   = ( eng->reg.SCU_048 & 0x0fffffff );
+			eng->reg.SCU_048_default =    SCU_48h_AST2300 & 0x0fffffff;
+		}
+		else {
+			eng->reg.SCU_048_check   = ( eng->reg.SCU_048 & 0x0300ffff );
+			eng->reg.SCU_048_default =    SCU_48h_AST2300 & 0x0300ffff;
+		}
+  #endif
+#endif
+		eng->reg.SCU_074_mix = eng->reg.SCU_074;
+
+		//------------------------------
 		// [Reg]setup MAC_050
 		//------------------------------
 		if ( eng->ModeSwitch == MODE_NSCI )
@@ -1020,7 +1099,9 @@ Error_GTestMode:
 	}
 
 	if ( RUN_STEP >= 3 ) {
-		init_scu_macrst( eng );
+//		init_scu_macrst( eng );
+		init_scu_macdis( eng );
+		init_scu_macen( eng );
 		if ( eng->ModeSwitch ==  MODE_DEDICATED ) {
 #if defined(PHY_GPIO)
 			phy_gpio_init( eng );
@@ -1038,8 +1119,9 @@ Error_GTestMode:
 // Data Initial
 //------------------------------------------------------------
 	if (RUN_STEP >= 4) {
-		setup_arp ( eng );
 		if ( eng->ModeSwitch ==  MODE_DEDICATED ) {
+			if ( eng->run.TM_Burst )
+				setup_arp ( eng );
 			eng->dat.FRAME_LEN = (ULONG *)malloc( eng->dat.Des_Num    * sizeof( ULONG ) );
 			eng->dat.wp_lst    = (ULONG *)malloc( eng->dat.Des_Num    * sizeof( ULONG ) );
 
@@ -1053,7 +1135,11 @@ Error_GTestMode:
 			special_PHY_buf_init( eng );
 #endif
 			TestingSetup ( eng );
-		} // End if ( eng->ModeSwitch ==  MODE_DEDICATED )
+		} 
+		else {
+			if ( eng->arg.GARPNumCnt != 0 )
+				setup_arp ( eng );
+		}// End if ( eng->ModeSwitch ==  MODE_DEDICATED )
 
 		init_iodelay( eng );
 		eng->run.Speed_idx = 0;
@@ -1090,10 +1176,12 @@ LOOP_INFINI:;
 				else if ( eng->run.Speed_sel[ 1 ] ) eng->reg.MAC_050_Speed = eng->reg.MAC_050 | 0x0008000f;
 				else                                eng->reg.MAC_050_Speed = eng->reg.MAC_050 | 0x0000000f;
 #ifdef Enable_CLK_Stable
-				Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c |   eng->reg.SCU_00c_clkbit  ) );//Clock Stop Control
+//				init_scu_macdis( eng );
+//				init_scu_macen( eng );
+				Write_Reg_SCU_DD( 0x0c, eng->reg.SCU_00c_dis );//Clock Stop Control
 				Read_Reg_SCU_DD( 0x0c );
 				Write_Reg_MAC_DD( eng, 0x50, eng->reg.MAC_050_Speed & 0xfffffff0 );
-				Write_Reg_SCU_DD( 0x0c, ( eng->reg.SCU_00c & (~eng->reg.SCU_00c_clkbit) ) );//Clock Stop Control
+				Write_Reg_SCU_DD( 0x0c, eng->reg.SCU_00c_en );//Clock Stop Control
 #endif
 
 				// Setting check owner time out
@@ -1192,7 +1280,9 @@ LOOP_INFINI:;
 							eng->io.Dly_out_selval  = eng->io.value_ary[ eng->io.Dly_out ];
 							eng->io.Dly_out_reg_hit = ( eng->io.Dly_out_reg == eng->io.Dly_out_selval ) ? 1 : 0;
 #ifdef Enable_Fast_SCU
+							init_scu_macdis( eng );
 							Write_Reg_SCU_DD( eng->io.Dly_reg_idx, eng->reg.SCU_048_mix | ( eng->io.Dly_out_selval << eng->io.Dly_out_shf ) );
+							init_scu_macen( eng );
 #endif
 							if ( eng->run.TM_IOTiming )
 								PrintIO_LineS( eng, FP_IO );
@@ -1203,7 +1293,7 @@ LOOP_INFINI:;
 						//------------------------------
 						// SCU Initial
 						//------------------------------
-						init_scu_macrst( eng );
+//						init_scu_macrst( eng );
 
 						//------------------------------
 						// MAC Initial
@@ -1223,7 +1313,9 @@ LOOP_INFINI:;
 
 //printf("\nDly_val= %08lx, ", eng->io.Dly_val);
 //printf("SCU%02lxh: %08lx ->", eng->io.Dly_reg_idx, Read_Reg_SCU_DD( eng->io.Dly_reg_idx ) );
+								init_scu_macdis( eng );
 								Write_Reg_SCU_DD( eng->io.Dly_reg_idx, eng->reg.SCU_048_mix | eng->io.Dly_val );
+								init_scu_macen( eng );
 //printf(" %08lx\n", Read_Reg_SCU_DD( eng->io.Dly_reg_idx ) );
 							} // End if ( eng->run.IO_MrgChk )
 #ifdef Enable_Fast_SCU
@@ -1231,7 +1323,7 @@ LOOP_INFINI:;
 							//------------------------------
 							// SCU Initial
 							//------------------------------
-							init_scu_macrst( eng );
+//							init_scu_macrst( eng );
 
 							//------------------------------
 							// MAC Initial

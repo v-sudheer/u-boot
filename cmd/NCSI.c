@@ -187,6 +187,9 @@ void NCSI_Struct_Initialize_SLT (MAC_ENGINE *eng) {
 //	eng->ncsi_req.Command         = 0;
 //	eng->ncsi_req.ChID            = 0;
 //	eng->ncsi_req.Payload_Length  = 0;
+
+	eng->ncsi_req.Response_Code   = 0;
+	eng->ncsi_req.Reason_Code     = 0;
 	eng->ncsi_req.Reserved_2      = 0;
 	eng->ncsi_req.Reserved_3      = 0;
 
@@ -469,6 +472,9 @@ char NCSI_Tx (MAC_ENGINE *eng, unsigned char command, unsigned char allid, unsig
 //	Write_Mem_Des_NCSI_DD( eng->run.NCSI_TxDesBase + 0x08, 0                        );
 //	Write_Mem_Des_NCSI_DD( eng->run.NCSI_TxDesBase + 0x0C, AT_MEMRW_BUF( DMA_BASE ) );
 	Write_Mem_Des_NCSI_DD( eng->run.NCSI_TxDesBase       , 0xf0008000 + bytesize );
+
+//	Write_Reg_MAC_DD( eng, 0x40, eng->reg.MAC_040 ); // 20170505
+
 	// Fire
 	Write_Reg_MAC_DD( eng, 0x18, 0x00000000 );//Tx Poll
 
@@ -702,6 +708,8 @@ char Get_Link_Status_SLT (MAC_ENGINE *eng) {//Command:0x0a
 
 //------------------------------------------------------------
 void Enable_Set_MAC_Address_SLT (MAC_ENGINE *eng) {//Command:0x0e
+
+#if !defined(MELLANOX_CONNECTX_4)
 	int        i;
 
 	for ( i = 0; i < 6; i++ )
@@ -712,6 +720,17 @@ void Enable_Set_MAC_Address_SLT (MAC_ENGINE *eng) {//Command:0x0e
 		eng->dat.NCSI_Payload_Data[ 7 ] = MULTICAST + ENABLE_MAC_ADDRESS_FILTER; //AT + E
 	else
 		eng->dat.NCSI_Payload_Data[ 7 ] = UNICAST   + ENABLE_MAC_ADDRESS_FILTER; //AT + E
+#else
+	eng->dat.NCSI_Payload_Data[ 0 ] = 0xC0;
+	eng->dat.NCSI_Payload_Data[ 1 ] = 0xC2;
+	eng->dat.NCSI_Payload_Data[ 2 ] = 0xC4;
+	eng->dat.NCSI_Payload_Data[ 3 ] = 0xC8;
+	eng->dat.NCSI_Payload_Data[ 4 ] = 0xCC;
+	eng->dat.NCSI_Payload_Data[ 5 ] = 0xB0;
+	eng->dat.NCSI_Payload_Data[ 6 ] = 1; //MAC Address Num = 1 --> address filter 1, fixed in sample code
+
+	eng->dat.NCSI_Payload_Data[ 7 ] = UNICAST   + ENABLE_MAC_ADDRESS_FILTER; //AT + E
+#endif
 
 	if ( NCSI_SentWaitPacket( eng, SET_MAC_ADDRESS, eng->ncsi_cap.All_ID, 8 ) )
 		FindErr_NCSI( eng, NCSI_Flag_Enable_Set_MAC_Address );
@@ -824,6 +843,10 @@ char phy_ncsi (MAC_ENGINE *eng) {
 		select_flag[ pkg_idx ] = Select_Package_SLT ( eng, 1 ); //skipflag// Command:0x01
 
 		if ( select_flag[ pkg_idx ] == 0 ) {
+			if ( !eng->run.IO_MrgChk ) {
+				printf("----Find Package ID: %d\n", eng->ncsi_cap.Package_ID);
+				PRINTF(FP_LOG, "----Find Package ID: %d\n", eng->ncsi_cap.Package_ID );
+			}
 			for ( chl_idx = 0; chl_idx < MAX_CHANNEL_NUM; chl_idx++ ) {
 				eng->ncsi_cap.Channel_ID = chl_idx;
 				eng->ncsi_cap.All_ID     = ( eng->ncsi_cap.Package_ID << 5) + eng->ncsi_cap.Channel_ID;
@@ -834,6 +857,11 @@ char phy_ncsi (MAC_ENGINE *eng) {
   #else
 			DeSelect_Package_SLT ( eng ); // Command:0x02
   #endif
+		} else {
+			if ( !eng->run.IO_MrgChk ) {
+				printf("----Absence of Package ID: %ld\n", pkg_idx);
+				PRINTF( FP_LOG, "----Absence of Package ID: %ld\n", pkg_idx );
+			}
 		} // End if ( select_flag[ pkg_idx ] == 0 )
 	} // End for (pkg_idx = 0; pkg_idx < MAX_PACKAGE_NUM; pkg_idx++)
 #endif

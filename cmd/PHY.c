@@ -473,7 +473,7 @@ void recov_phy_marvell1 (MAC_ENGINE *eng) {//88E6176
 //------------------------------------------------------------
 void phy_marvell1 (MAC_ENGINE *eng) {//88E6176
 //      ULONG      PHY_01h;
-        CHAR       PHY_ADR_org; // 20170320
+        CHAR       PHY_ADR_org;
 
         if ( DbgPrn_PHYName )
                 printf("--->(%04lx %04lx)[Marvell] %s\n", eng->phy.PHY_ID2, eng->phy.PHY_ID3, eng->phy.PHYName);
@@ -811,6 +811,7 @@ void phy_broadcom0 (MAC_ENGINE *eng) {//BCM54612
                 }
 #ifdef Delay_PHYRst
                 phy_delay( Delay_PHYRst );
+                phy_delay( Delay_PHYRst );
 #endif                
         }
 }
@@ -988,7 +989,7 @@ void phy_realtek1 (MAC_ENGINE *eng) {//RTL8211D
                                         phy_write( eng,  0, 0x5a21 );
                                         phy_write( eng, 31, 0x0000 );
                                 }
-                                else if ( eng->arg.GIEEE_sel == 1 ) {//Harmonic: “FF” pattern
+                                else if ( eng->arg.GIEEE_sel == 1 ) {//Harmonic: pattern
                                         phy_write( eng, 31, 0x0006 );
                                         phy_write( eng,  2, 0x05ee );
                                         phy_write( eng,  0, 0xff21 );
@@ -2390,6 +2391,7 @@ void phy_sel (MAC_ENGINE *eng, PHY_ENGINE *phyeng) {
                 else if ( phy_chk( eng, 0x0020, 0x60b0, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "BCM5464SR"         ); phyeng->fp_set = phy_broadcom0; phyeng->fp_clr = recov_phy_broadcom0;}//BCM5464SR        1G/100/10M  RGMII
                 else if ( phy_chk( eng, 0x0020, 0x60c1, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "BCM5461S"          ); phyeng->fp_set = phy_broadcom0; phyeng->fp_clr = recov_phy_broadcom0;}//BCM5461S
                 else if ( phy_chk( eng, 0x600d, 0x84a2, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "BCM54210E"         ); phyeng->fp_set = phy_broadcom0; phyeng->fp_clr = recov_phy_broadcom0;}//BCM54210E
+                else if ( phy_chk( eng, 0x0143, 0xbd63, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "BCM54610C"         ); phyeng->fp_set = phy_broadcom0; phyeng->fp_clr = recov_phy_broadcom0;}//BCM54610C
                 else if ( phy_chk( eng, 0x0040, 0x61e0, PHYID3_Mask ) ) { sprintf( eng->phy.PHYName, "BCM5221"           ); phyeng->fp_set = phy_broadcom ;                                      }//BCM5221             100/10M  MII, RMII(RMIICK input mode)
                 else if ( phy_chk( eng, 0x0141, 0x0e22, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "88E3019"           ); phyeng->fp_set = phy_marvell3 ;                                      }//88E3019             100/10M  RGMII, MII, RMII(RMIICK input mode)
                 else if ( phy_chk( eng, 0x0141, 0x0dd0, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "88E15 10/12/14/18" ); phyeng->fp_set = phy_marvell2 ; phyeng->fp_clr = recov_phy_marvell2 ;}//88E1512          1G/100/10M  RGMII

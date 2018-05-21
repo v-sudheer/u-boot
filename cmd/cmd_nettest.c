@@ -76,7 +76,7 @@ int do_ncsitestd (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 	mactestd,    NETESTCMD_MAX_ARGS, 0,  do_mactestd,
 	"Dedicated LAN test program and display more information",
-	""
+	NULL
 );
 U_BOOT_CMD(
 	ncsitestd,    NETESTCMD_MAX_ARGS, 0,  do_ncsitestd,
@@ -213,10 +213,10 @@ int do_phywrite (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			break;
 		}
 
-		MACnum   = simple_strtoul(argv[1], NULL, 16);
-		PHYaddr  = simple_strtoul(argv[2], NULL, 16);
-		PHYreg   = simple_strtoul(argv[3], NULL, 16);
-		reg_data = simple_strtoul(argv[4], NULL, 16);
+		MACnum   = strtoul(argv[1], NULL, 16);
+		PHYaddr  = strtoul(argv[2], NULL, 16);
+		PHYreg   = strtoul(argv[3], NULL, 16);
+		reg_data = strtoul(argv[4], NULL, 16);
 
 		if ( MACnum == 0 ) {
 			// Set MAC 0
@@ -272,7 +272,7 @@ int do_phywrite (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	return ret;
 }
 
-int do_phydump (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_phydump (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	MAC_ENGINE	MACENG;
 	MAC_ENGINE	*eng;
@@ -296,8 +296,8 @@ int do_phydump (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			break;
 		}
 
-		MACnum  = simple_strtoul(argv[1], NULL, 16);
-		PHYaddr = simple_strtoul(argv[2], NULL, 16);
+		MACnum  = strtoul(argv[1], NULL, 16);
+		PHYaddr = strtoul(argv[2], NULL, 16);
 
 		if ( MACnum == 0 ) {
 			// Set MAC 0
@@ -390,7 +390,7 @@ U_BOOT_CMD(
 );
 
 // ------------------------------------------------------------------------------
-int do_macgpio (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_macgpio (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	Write_Reg_GPIO_DD( 0x78 , Read_Reg_GPIO_DD( 0x78 ) & 0xf7bfffff );
 	Write_Reg_GPIO_DD( 0x7c , Read_Reg_GPIO_DD( 0x7c ) | 0x08400000 );
@@ -400,11 +400,11 @@ int do_macgpio (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-U_BOOT_CMD(macgpio,    NETESTCMD_MAX_ARGS, 0,  do_macgpio,
+U_BOOT_CMD(
+	macgpio,    NETESTCMD_MAX_ARGS, 0,  do_macgpio,
 	"Setting GPIO to trun on the system for the MACTEST/NCSITEST (OEM)",
 	NULL	
 );
-
 /*
 int do_clkduty (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {

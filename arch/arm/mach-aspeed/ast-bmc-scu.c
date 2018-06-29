@@ -193,7 +193,7 @@ ast_scu_init_eth(u8 num)
 {
 
 //Set MAC delay Timing
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 	//a1 
 //	ast_scu_write(0x00145249, AST_SCU_MAC_CLK);
 //	ast_scu_write(0x00145249, AST_SCU_MAC_CLK_DELAY_100M);
@@ -270,7 +270,7 @@ ast_scu_init_usb_port1(void)
 extern void
 ast_scu_init_usb_port2(void)
 {
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_USB_P1, AST_SCU_RESET);
 
 	//enable USB20 clock
@@ -452,7 +452,7 @@ ast_scu_get_lpc_plus_enable(void)
 }
 
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 extern void
 ast_scu_init_rfx(void)
 {
@@ -504,7 +504,7 @@ ast_scu_init_h264(void)
 extern void
 ast_scu_spi_master(u8 mode)
 {
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	switch(mode) {
 		case 0:
 			ast_scu_write(SCU_HW_STRAP_SPI_MODE_MASK, AST_SCU_REVISION_ID);
@@ -550,7 +550,7 @@ ast_scu_init_crt(void)
 	//ast2500 : VGA use D1 clk, CRT use 40Mhz 
 	//ast3200/ast1520 : VGA use D1 clk, CRT use D1/D2 clk select L: SCU08[bit 8] - H SCU2C[bit 21]
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	
 #ifdef CONFIG_ARCH_AST3200
 	//Select D2 CLK source 00:D-PLL, 01: D2-PLL, 1x : 40Mhz
@@ -661,7 +661,7 @@ ast_get_clk_source(void)
 }
 #endif
 
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 extern u32
 ast_get_h_pll_clk(void)
 {
@@ -1006,7 +1006,7 @@ ast_get_pclk(void)
 
 	hpll = ast_get_h_pll_clk();
 	div = SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	div = (div+1) << 2;
 #else
 	div = (div+1) << 1;
@@ -1028,7 +1028,7 @@ ast_get_lhclk(void)
 	hpll = ast_get_h_pll_clk();
 	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
 		div = SCU_GET_LHCLK_DIV(clk_sel);
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 		div = (div+1) << 2;
 #else
 		div = (div+1) << 1;
@@ -1093,7 +1093,7 @@ ast_get_sd_clock_src(void)
 	clk = ast_get_h_pll_clk();
 	//get div
 	sd_div = SCU_CLK_SD_GET_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 		sd_div = (sd_div+1) << 2;
 #else
 		sd_div = (sd_div+1) << 1;
@@ -1108,7 +1108,7 @@ ast_get_sd_clock_src(void)
 extern void
 ast_scu_set_lpc_mode(void)
 {
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	ast_scu_write(SCU_HW_STRAP_ESPI_MODE , AST_SCU_REVISION_ID);
 #endif
 }
@@ -1117,7 +1117,7 @@ extern void
 ast_scu_show_system_info (void)
 {
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	u32 axi_div, ahb_div, h_pll, pclk_div;
 
 	h_pll = ast_get_h_pll_clk();
@@ -1208,7 +1208,7 @@ ast_scu_multi_func_uart(u8 uart)
 						SCU_FUC_PIN_UART6, 
 				AST_SCU_FUN_PIN_CTRL5); 
 			break;
-#ifdef AST_SOC_G5			
+#ifdef CONFIG_MACH_ASPEED_G5			
 		case 7:
 			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL6) |
 						SCU_FUN_PIN_UART7,
@@ -1322,7 +1322,7 @@ ast_scu_multi_func_eth(u8 num)
 					AST_SCU_FUN_PIN_CTRL1); 
 			}
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
 						SCU_FUN_PIN_MAC0_PHY_LINK, 
 				AST_SCU_FUN_PIN_CTRL1); 
@@ -1363,7 +1363,7 @@ ast_scu_multi_func_eth(u8 num)
 extern void
 ast_scu_multi_func_nand(void)
 {
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 #else
 	//enable NAND flash multipin FLBUSY and FLWP
 	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL2) | 
@@ -1589,7 +1589,7 @@ ast_scu_multi_func_usb_port1_mode(u8 mode)
 extern void
 ast_scu_multi_func_usb_port2_mode(u8 mode)
 {
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 	if(mode == 0)
 		ast_scu_write((ast_scu_read(AST_SCU_FUN_PIN_CTRL6) & ~SCU_FUN_PIN_USBP1_MASK), 
 					AST_SCU_FUN_PIN_CTRL6);
@@ -1625,7 +1625,7 @@ ast_scu_multi_func_usb_port2_mode(u8 mode)
 extern void
 ast_scu_multi_func_usb_port34_mode(u8 mode)
 {
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 	if(mode) {
 		ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | SCU_FUC_PIN_USB11_PORT4, 
 					AST_SCU_FUN_PIN_CTRL5);
@@ -1965,7 +1965,7 @@ ast_scu_get_who_init_dram(void)
 extern int
 ast_scu_espi_mode(void)
 {
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	return(ast_scu_read(AST_SCU_HW_STRAP1) & SCU_HW_STRAP_ESPI_MODE);
 #else
 	return 0;

@@ -49,7 +49,7 @@ struct ast_i2c_timing_table {
 };
 
 static struct ast_i2c_timing_table i2c_timing_table[] = {
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 	/* Divisor : Base Clock : tCK High : tCK Low  */		
 	/* Divisor :	  [3:0]    :   [19:16]:   [15:12] */
 	{6, 		0x77700300 | (0x0) | (0x2<<16) | (0x2<<12) },

@@ -34,12 +34,14 @@
 #include <asm/mach/ast2100_platform.h>
 #elif defined(CONFIG_ARCH_AST2200)
 #include <asm/mach/ast2200_platform.h>
-#elif defined(AST_SOC_G3)
+#elif defined(CONFIG_MACH_ASPEED_G3)
 #include "ast_g3_platform.h"
-#elif defined(AST_SOC_G4)
+#elif defined(CONFIG_MACH_ASPEED_G4)
 #include "ast_g4_platform.h"
-#elif defined(AST_SOC_G5)
+#elif defined(CONFIG_MACH_ASPEED_G5)
 #include "ast_g5_platform.h"
+#elif defined(CONFIG_MACH_ASPEED_G6)
+#include "ast_g6_platform.h"
 #elif defined(AST_SOC_CAM)
 #include "ast_cam_platform.h"
 #else

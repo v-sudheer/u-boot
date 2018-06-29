@@ -53,7 +53,7 @@
 /* Gloable Register Definition */
 /* 0x00 : I2C Interrupt Status Register  */
 /* 0x08 : I2C Interrupt Target Assignment  */
-#if defined(CONFIG_ARCH_AST2400)
+#if defined(CONFIG_MACH_ASPEED_G4)
 #define AST_I2CG_INTR14 		(0x1 << 13)
 #define AST_I2CG_INTR13 		(0x1 << 12)
 #define AST_I2CG_INTR12 		(0x1 << 11)

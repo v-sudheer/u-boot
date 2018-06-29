@@ -57,12 +57,12 @@
 /* ====  Support Chip                                          */
 /*        "AST1010_CHIP" or "AST2500_IOMAP" or "FPGA"          */
 
-#if defined(CONFIG_ARCH_AST3200)
+#if defined(CONFIG_MACH_ASPEED_G3)
   #define SLT_UBOOT
   #define AST2500_IOMAP
 #endif
 
-#if defined(CONFIG_ARCH_AST2500)
+#if defined(CONFIG_MACH_ASPEED_G5)
   #define SLT_UBOOT
   #define AST2500_IOMAP
 #endif
@@ -73,11 +73,11 @@
   #define AST2500_IOMAP
 #endif
 
-#if defined(CONFIG_ARCH_AST2400)
+#if defined(CONFIG_MACH_ASPEED_G4)
   #define SLT_UBOOT
 #endif
 
-#if defined(CONFIG_ARCH_AST2300)
+#if defined(CONFIG_MACH_ASPEED_G3)
   #define SLT_UBOOT
 #endif
 

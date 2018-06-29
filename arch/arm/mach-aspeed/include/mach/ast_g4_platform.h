@@ -17,6 +17,7 @@
 #ifndef _AST_G4_PLATFORM_H_
 #define _AST_G4_PLATFORM_H_                 1
 
+#define AST_UART_CLK 					24000000
 #define AST_DRAM_BASE					0x40000000
 
 #define AST_SRAM_SIZE					(SZ_32K)

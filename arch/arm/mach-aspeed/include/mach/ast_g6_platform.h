@@ -17,6 +17,8 @@
 #ifndef _AST_G6_PLATFORM_H_
 #define _AST_G6_PLATFORM_H_                 1
 
+#define AST_UART_CLK 					(24000000/13)
+
 #ifdef CONFIG_AST_PCIE_EXT
 /*
 #define AST_PCI_EXT_ADC					(AST_PCIE_WIN_BASE + 0x2000)

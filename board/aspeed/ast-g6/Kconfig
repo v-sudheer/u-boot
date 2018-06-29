@@ -1,0 +1,19 @@
+if MACH_ASPEED_G6
+
+config SYS_CPU
+	default "arm1176"
+
+config SYS_BOARD
+	default "ast-g6"
+
+config SYS_VENDOR
+	default "aspeed"
+
+config SYS_SOC
+	default "aspeed"
+
+config SYS_CONFIG_NAME
+	string "Board configuration name"
+	default "ast-g6"
+
+endif

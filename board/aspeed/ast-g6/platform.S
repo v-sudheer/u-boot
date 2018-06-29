@@ -229,13 +229,6 @@ init_dram:
     orr   r1, r1, #0x80
     str   r1, [r0]
 */
-#ifdef ASTMMC_CPU_ARM11
-    /* Enable AXI_P */
-    ldr   r0, =0x00000016
-    mrc   p15, 0, r1, c15, c2, 4
-    mcr   p15, 0, r0, c15, c2, 4
-#endif
-
 /******************************************************************************
  Disable WDT for SPI Address mode detection function
  ******************************************************************************/
@@ -250,6 +243,49 @@ init_dram:
     ldr   r0, =0x1e78504c
     mov   r1, #0
     str   r1, [r0]
+
+#ifdef ASTMMC_CPU_ARM11
+    /* Enable AXI_P */
+/*  ldr   r0, =0x00000016
+    mrc   p15, 0, r1, c15, c2, 4
+    mcr   p15, 0, r0, c15, c2, 4
+*/
+init_arm11:
+    /* Start of ES40004A PLL init */
+    /* Step 1. Program PLL_config and keep power down */
+    ldr   r0, =0x33000000
+    ldr   r1, =0x01000000
+    str   r1, [r0]
+    ldr   r1, =0x0102001A                        @ 324 MHz
+    str   r1, [r0]
+
+    /* Step 2. Wait 1us for PLL initialization */
+    ldr   r2, =0x00000100
+delay_ES40004A_pll_init:
+    subs  r2, r2, #1
+    bne   delay_ES40004A_pll_init
+
+    /* Step 3. Program PLL_config to exit Power down */
+    ldr   r1, =0x0002001A
+    str   r1, [r0]
+
+    /* Step 4. Check pll_ld = 1?. Read PLL_config, check bit 27. */
+    ldr   r2, =0x08000000                        @ bit[27] PLL lock detection
+check_pll_ld:
+    ldr   r1, [r0]
+    tst   r1, r2
+    beq   check_pll_ld
+
+    /* Step 5. Program aclk_div */
+    ldr   r0, =0x33000004
+    ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
+    str   r1, [r0]
+
+    /* Step 6. Program set_pll */
+    ldr   r1, =0x00010007
+    str   r1, [r0]
+    /* End of ES40004A PLL init */
+#endif
 
     /* Check Scratch Register Bit 6 */
 /*  ldr   r0, =0x1e6e2040

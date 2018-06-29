@@ -1,4 +1,4 @@
-if ARCH_AST2500 || ARCH_AST3200
+if MACH_ASPEED_G5
 
 config SYS_CPU
 	default "arm1176"

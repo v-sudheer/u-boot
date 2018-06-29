@@ -28,7 +28,13 @@
 #define AST_SOC_CAM
 #define NEW_VIC
 
-#elif defined(CONFIG_ARCH_AST2500) || defined(CONFIG_ARCH_AST1520)
+#elif defined(CONFIG_MACH_ASPEED_G6)
+#define AST_MACH_NAME 		"AST-G6"
+#define AST_FMC_SPI
+#define AST_SOC_G6
+#define NEW_VIC
+
+#elif defined(CONFIG_MACH_ASPEED_G5)
 #define AST_MACH_NAME 		"AST-G5"
 #define AST_FMC_SPI
 #define AST_SOC_G5
@@ -54,11 +60,11 @@
 #undef AST_I2C_DEV12_BASE
 #undef AST_I2C_DEV13_BASE
 
-#elif defined(CONFIG_ARCH_AST1400) || defined(CONFIG_ARCH_AST2400) || defined(CONFIG_ARCH_AST3100)
+#elif defined(CONFIG_MACH_ASPEED_G4)
 #define AST_MACH_NAME 		"AST-G4"
 #define AST_SOC_G4
 #define NEW_VIC
-#elif defined(CONFIG_ARCH_AST1300) || defined(CONFIG_ARCH_AST2300) || defined(CONFIG_ARCH_AST1510)
+#elif defined(CONFIG_MACH_ASPEED_G3)
 #define AST_MACH_NAME 		"AST-G3"
 #define AST_SOC_G3
 #define NEW_VIC

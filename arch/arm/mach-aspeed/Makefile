@@ -11,7 +11,6 @@
 #
 
 
-obj-y += timer.o reset.o cpuinfo.o ast-ahbc.o
-obj-$(CONFIG_IRMP)		+= ast-bmc-scu.o
+obj-y += timer.o reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o
 obj-$(CONFIG_RT360_CAM)		+= ast-cam-scu.o
 obj-$(CONFIG_ARCH_AST1070)	+= ast1070-scu.o

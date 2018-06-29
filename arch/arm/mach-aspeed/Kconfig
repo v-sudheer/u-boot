@@ -1,114 +1,33 @@
 if ARCH_ASPEED
 
-menu "ASPEED AST SoC Selection"
+menu "ASPEED AST SoC Architectures"
 
 choice
         prompt "ASPEED Processor Family"
-        default CONFIG_IRMP
+        default CONFIG_MACH_ASPEED_G5
 
-config IRMP
-        bool "IRMP Serials"
-
-config PCEXT
-	bool "PC Extender Serials"
-
-config REMOTEFX
-	bool "RemoteFX Zero-Client Serials"
-
-config RT360_CAM
-	bool "Real Time 360 CAM"
-
-endchoice
-
-if IRMP
-
-choice
-        prompt "IRMP Serials"
-        default CONFIG_ARCH_AST2300
-
-config ARCH_AST2300
+config MACH_ASPEED_G3
 	select CPU_ARM926EJS
-        bool "AST2300"
+        bool "Aspeed SoC 3rd Generation"
 
-config ARCH_AST2400
+config MACH_ASPEED_G4
 	select CPU_ARM926EJS
-	select USB_ARCH_HAS_EHCI
-        bool "AST2400"
+        bool "Aspeed SoC 4th Generation"
 
-config ARCH_AST2500
-	select CPU_ARM1176
-	select USB_ARCH_HAS_EHCI
-	select AST_UART_SDMA
-	select EGFX_IRQ
-	select SUPPORT_SPL
-        bool "AST2500"
-
-endchoice
-
-endif
-
-if PCEXT
-
-choice
-        prompt "PC Extender Serials"
-        default CONFIG_ARCH_AST1510
-
-config ARCH_AST1500
-	select CPU_ARM926T
-        bool "AST1500"
-
-config ARCH_AST1510
-	select CPU_ARM926T
-        bool "AST1510"
-
-config ARCH_AST1520
-	select CPU_V6
-	select USB_ARCH_HAS_EHCI
-	bool "AST1520"
-
-endchoice
-
-endif
-
-if REMOTEFX
-
-choice
-        prompt "RemoteFX Zero-Client Serials"
-        default CONFIG_ARCH_AST3100
-
-config ARCH_AST3100
-	select CPU_ARM926EJS
-	select USB_ARCH_HAS_EHCI
-        bool "AST3100"
-
-config ARCH_AST3200
-	select CPU_ARM1176
-	select USB_ARCH_HAS_EHCI
-	select EGFX_IRQ
-        bool "AST3200"
-
-endchoice
-
-endif
-
-if RT360_CAM
-
-choice
-	prompt "Real Time 360 Cam Serials"
-	default CONFIG_ARCH_AST1220
-
-config ARCH_AST1220
+config MACH_ASPEED_G5
 	select CPU_ARM1176
 	select SUPPORT_SPL
-	bool "AST1220"
+        bool "Aspeed SoC 5th Generation"
+
+config MACH_ASPEED_G6
+	select CPU_ARM1176
+	select SUPPORT_SPL
+	bool "Aspeed SoC 6th Generation"
 
 endchoice
-
-endif
 
 config AST_VIDEO_SIZE
         hex "Reserver for VIDEO Engine DRAM Size (defaul 40MB)"
-        depends on IRMP
         default 0x2800000
 
 config FPGA_ASPEED

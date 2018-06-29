@@ -20,14 +20,16 @@
 #endif
 #define AST_I2C_PAGE_SIZE 256
 
-#if defined(CONFIG_ARCH_AST2300)
+#if defined(CONFIG_MACH_ASPEED_G3)
 #define NUM_BUS 9
-#elif defined(CONFIG_ARCH_AST2400)
+#elif defined(CONFIG_MACH_ASPEED_G4)
 #define NUM_BUS 14
 #elif defined(CONFIG_ARCH_AST1010)
 #define NUM_BUS 15
-#elif defined(CONFIG_ARCH_AST1520) || defined(CONFIG_ARCH_AST3200) || defined(CONFIG_ARCH_AST2500)
+#elif defined(CONFIG_MACH_ASPEED_G5)
 #define NUM_BUS 14
+#elif defined(CONFIG_MACH_ASPEED_G6)
+#define NUM_BUS 16
 #elif defined(CONFIG_ARCH_AST1220)
 #define NUM_BUS 10
 #else

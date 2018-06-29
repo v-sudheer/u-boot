@@ -8,7 +8,6 @@
 #include <asm/io.h>
 #include <asm/arch/ast-scu.h>
 #include <asm/arch/ast-sdmc.h>
-#include <asm/arch/aspeed.h>
 
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)

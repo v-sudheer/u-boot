@@ -41,7 +41,6 @@
 #include <asm/arch/regs-bmc-scu.h>
 #include <asm/arch/ast-bmc-scu.h>
 #include <asm/arch/platform.h>
-#include <asm/arch/aspeed.h>
 
 //#define ASPEED_SCU_LOCK
 //#define ASPEED_SCU_DEBUG

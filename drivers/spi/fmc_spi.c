@@ -16,7 +16,7 @@
 #include <spi_flash.h>
 
 #include <asm/arch/ast-scu.h>
-#include <asm/arch/aspeed.h>
+#include <asm/arch/platform.h>
 #include "../mtd/spi/sf_internal.h"
 
 /* Register definitions for the AST SPI Controller  AST-G4*/
@@ -27,7 +27,8 @@
 #define AST_SPI_TIMING			0x14
 
 /* AST_SPI_CONFIG 0x00 : SPI00 CE Type Setting Register */
-#ifdef AST_FMC_SPI
+#if defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G6)
+#define AST_FMC_SPI
 #define SPI_CONF_CE1_WEN		(0x1 << 17)
 #define SPI_CONF_CE0_WEN		(0x1 << 16)
 #else

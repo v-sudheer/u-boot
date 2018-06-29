@@ -17,8 +17,6 @@
 #ifndef _AST_PLATFORM_H_
 #define _AST_PLATFORM_H_
 
-#include "aspeed.h"
-
 #define AST_PLL_25MHZ			25000000
 #define AST_PLL_24MHZ			24000000
 #define AST_PLL_12MHZ			12000000

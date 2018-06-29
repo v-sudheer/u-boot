@@ -8,8 +8,6 @@
 #ifndef _ASPEED_COMMON_H_
 #define _ASPEED_COMMON_H_
 
-#define CONFIG_MACH_TYPE				MACH_TYPE_ASPEED
-
 #include <asm/arch/platform.h>
 
 /* Misc CPU related */
@@ -17,11 +15,11 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
-#define CONFIG_CMDLINE_EDITING			1	/* command line history */
+#define CONFIG_CMDLINE_EDITING			/* command line history */
 
 /* Enable cache controller */
-#define CONFIG_SYS_DCACHE_OFF			1
-/* ------------------------------------------------------------------------- */
+#define CONFIG_SYS_DCACHE_OFF
+
 /* additions for new relocation code, must added to all boards */
 #define CONFIG_SYS_SDRAM_BASE			(AST_DRAM_BASE)
 #define CONFIG_SYS_INIT_RAM_ADDR		CONFIG_SYS_SDRAM_BASE

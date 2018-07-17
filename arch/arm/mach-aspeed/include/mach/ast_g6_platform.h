@@ -14,10 +14,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _AST_G5_PLATFORM_H_
-#define _AST_G5_PLATFORM_H_                 1
+#ifndef _AST_G6_PLATFORM_H_
+#define _AST_G6_PLATFORM_H_                 1
 
-#define AST_UART_CLK 					24000000
+#define AST_UART_CLK 					(24000000/13)
 
 #ifdef CONFIG_AST_PCIE_EXT
 /*

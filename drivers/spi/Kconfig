@@ -197,7 +197,7 @@ config FMC_SPI
 if FMC_SPI
 
 config AST_SPI_QUAD
-	depends on CONFIG_ARCH_AST2400
+	depends on CONFIG_MACH_ASPEED_G4
 	bool "FMC Quad mode"
 	help 
 	  Enable SPI Quad mode

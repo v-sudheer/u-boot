@@ -4,19 +4,15 @@
 
 menu "Memory Controller drivers"
 
-config AST_CAM_SDMC
-	depends on ARCH_AST1220
-	bool "ASPEED CAM DRAM Controller"
-
-config AST_G5_SDMC
-	depends on (ARCH_AST2500 || ARCH_AST3200)
-	bool "ASPEED G5 DRAM Controller"
-
 config AST_SDMC
 	bool "ASPEED DRAM Controller"
-	depends on (ARCH_AST2300 || ARCH_AST2400)
+	depends on (MACH_ASPEED_G3 || MACH_ASPEED_G4 || MACH_ASPEED_G5 || MACH_ASPEED_G6)
 
-if AST_G5_SDMC
+config DRAM_ECC
+	bool "DRAM ECC Enable"
+	depends on AST_SDMC
+
+if MACH_ASPEED_G5
 
 choice 
 	prompt "DRAM Speed"
@@ -31,10 +27,6 @@ config DRAM_1333
 endchoice
 
 endif
-
-config DRAM_ECC
-	bool "DRAM ECC Enable"
-	depends on (AST_G5_SDMC || AST_SDMC)
 
 config DRAM_ECC_SIZE
         hex "DRAM ECC Size"

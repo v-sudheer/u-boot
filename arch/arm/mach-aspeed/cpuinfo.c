@@ -8,7 +8,6 @@
 #include <asm/io.h>
 #include <asm/arch/ast-scu.h>
 #include <asm/arch/ast-sdmc.h>
-#include <asm/arch/aspeed.h>
 
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
@@ -35,12 +34,12 @@ int print_cpuinfo(void)
 
 	ast_scu_sys_rest_info();
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 	ast_scu_security_info();
 #endif
 	printf("PLL :   %4s MHz\n", strmhz(buf, ast_get_clk_source()));
 	printf("CPU :   %4s MHz\n", strmhz(buf, ast_get_h_pll_clk()));
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 	printf("MEM :	%4s MHz, ECC: %s, ",
 	       strmhz(buf, ast_get_m_pll_clk() * 2),
 	       ast_sdmc_get_ecc() ? "Enable" : "Disable");

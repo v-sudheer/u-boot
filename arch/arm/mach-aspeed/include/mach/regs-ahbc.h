@@ -13,8 +13,6 @@
 #ifndef __AST_AHBC_H
 #define __AST_AHBC_H                     1
 
-#include <asm/arch/aspeed.h>
-
 /* Register for AHBC */
 #define AST_AHBC_PROTECT			0x00		/*	Protection Key Register 	*/
 
@@ -30,7 +28,7 @@
 #define AHBC_PCI_REMAP1			(1 << 5)
 #define AHBC_PCI_REMAP0			(1 << 4)
 
-#if defined(AST_SOC_G5) 
+#if defined(CONFIG_MACH_ASPEED_G5) 
 #define AHBC_PCIE_MAP				(1 << 5)
 #define AHBC_LPC_PLUS_MAP			(1 << 4)
 #else

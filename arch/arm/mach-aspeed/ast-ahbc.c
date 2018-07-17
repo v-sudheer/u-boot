@@ -28,7 +28,6 @@
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/arch/ast-ahbc.h>
-#include <asm/arch/aspeed.h>
 
 /***********************  Registers for AHBC ***************************/
 #define AST_AHBC_PROTECT		0x00	/* Protection Key Register */
@@ -42,7 +41,7 @@
 #define AHBC_PCI_REMAP1			(1 << 5)
 #define AHBC_PCI_REMAP0			(1 << 4)
 
-#if defined(AST_SOC_G5)
+#if defined(CONFIG_MACH_ASPEED_G5)
 #define AHBC_PCIE_MAP			(1 << 5)
 #define AHBC_LPC_PLUS_MAP		(1 << 4)
 #else
@@ -87,13 +86,13 @@ ast_ahbc_write(u32 val, u32 reg)
 }
 void ast_ahbc_boot_remap(void)
 {
-#if ! defined(AST_SOC_G5)
+#if ! defined(CONFIG_MACH_ASPEED_G5)
 	ast_ahbc_write(ast_ahbc_read(AST_AHBC_ADDR_REMAP) |
 		       AHBC_BOOT_REMAP, AST_AHBC_ADDR_REMAP);
 #endif
 }
 
-#ifdef AST_SOC_G5
+#ifdef CONFIG_MACH_ASPEED_G5
 void ast_ahbc_peie_mapping(u8 enable)
 {
 	if (enable)

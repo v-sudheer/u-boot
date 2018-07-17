@@ -42,29 +42,6 @@ int board_init(void)
 
 int misc_init_r (void)
 {
-#ifdef CONFIG_CPU1
-	//uart 3/4 shar pin
-	//*((volatile ulong*) 0x1e6e2080) = 0xffff0000;
-	//uart 1/2 shar pin
-	*((volatile ulong*) 0x1e6e2084) = 0xffff0000;
-	//LPC UART1/2 reset [clear bit 4/5]
-	*((volatile ulong*) 0x1e789098) = 0x00000a00;
-	//mapping table
-	*((volatile ulong*) 0x1e6e2104) = CONFIG_CPU1_MAP_FLASH;
-	//IO table
-	*((volatile ulong*) 0x1e6e211c) = 0x1e600000;
-	//IO table
-	*((volatile ulong*) 0x1e6e2120) = 0x1e700000;
-	//Sram
-	*((volatile ulong*) 0x1e6e2118) = CONFIG_CPU1_MAP_SRAM;	
-
-	*((volatile ulong*) 0x1e6e2124) = CONFIG_CPU1_MAP_DRAM;	
-
-	//Enable coldfire V1 clock
-//	*((volatile ulong*) 0x1e6e2100) = 0x01;	
-
-	printf("Coldfire V1 : UART1 \n");
-#endif
 
 #ifdef CONFIG_AST_WATCHDOG
 	wdt_start(CONFIG_AST_WATCHDOG_TIMEOUT);
@@ -77,14 +54,7 @@ int misc_init_r (void)
 int dram_init(void)
 {
 	/* dram_init must store complete ramsize in gd->ram_size */
-#ifdef CONFIG_DRAM_ECC
-	gd->ram_size = CONFIG_DRAM_ECC_SIZE;
-#else
-	u32 vga = ast_scu_get_vga_memsize();
-	u32 dram = ast_sdmc_get_mem_size();
-
-	gd->ram_size = (dram - vga - CONFIG_AST_VIDEO_SIZE);
-#endif
+	gd->ram_size = 128 * 1024 *1024;
 	return 0;
 }
 

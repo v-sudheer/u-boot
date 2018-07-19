@@ -14,6 +14,7 @@
 #include <common.h>
 #include <malloc.h>
 #include <net.h>
+#include <miiphy.h>
 #include <asm/io.h>
 #include <asm/dma-mapping.h>
 #include <linux/mii.h>
@@ -241,30 +242,6 @@ int  ftgmac100_phy_write(struct eth_device *dev, int addr, int reg, u16 value)
 	return 0;
 }
 
-#if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
-static int ftgmac100_reg_read(const char *devname, u8 phy_addr, u8 phy_reg,
-			u16 *value)
-{
-	struct eth_device *dev = eth_get_dev_by_name(devname);
-	*value = ftgmac100_mdiobus_read(dev , phy_addr, phy_reg);
-
-	if (*value == -1)
-		return -1;
-
-	return 0;
-
-}
-
-static int ftgmac100_reg_write(const char *devname, u8 phy_addr, u8 phy_reg, u16 value)
-{
-	struct eth_device *dev = eth_get_dev_by_name(devname);
-	if (ftgmac100_mdiobus_write(dev, phy_addr, phy_reg, value) == -1)
-		return -1;
-
-	return 0;	
-}
-#endif
-
 static int ftgmac100_phy_reset(struct eth_device *dev)
 {
 	struct ftgmac100_data *priv = dev->priv;
@@ -341,7 +318,6 @@ static int ftgmac100_phy_init(struct eth_device *dev)
 //	printf("phy_id : %x , status %x \n",((phy_id1 << 16) | phy_id2), status );
 
 	if (!(status & BMSR_LSTATUS)) {
-//		printf("! status \n");
 		/* Try to re-negotiate if we don't have link already. */
 		ftgmac100_phy_reset(dev);
 
@@ -486,6 +462,12 @@ static void ftgmac100_set_mac(struct eth_device *dev,
 
 	__raw_writel(maddr, &ftgmac100->mac_madr);
 	__raw_writel(laddr, &ftgmac100->mac_ladr);
+}
+
+static int ftgmac100_write_hwaddr(struct eth_device *dev)
+{
+	ftgmac100_set_mac(dev, dev->enetaddr);
+	return 0;
 }
 
 static void ftgmac100_set_mac_from_env(struct eth_device *dev)
@@ -748,10 +730,74 @@ static int ftgmac100_send(struct eth_device *dev, void *packet, int length)
 	return 0;
 }
 
+static int ftgmac100_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
+{
+	struct eth_device *dev = bus->priv;
+	return ftgmac100_mdiobus_read(dev, addr, reg);
+}
+
+static int ftgmac100_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
+			u16 val)
+{
+	struct eth_device *dev = bus->priv;
+	ftgmac100_mdiobus_write(dev, addr, reg, val);
+	return 0;
+}
+
+static int ftgmac100_mdio_reset(struct mii_dev *bus)
+{
+	struct eth_device *dev = bus->priv;
+	ftgmac100_phy_reset(dev);
+	return 0;
+}
+
+static int ftgmac100_mdio_init(const char *name, void *priv)
+{
+	struct mii_dev *bus = mdio_alloc();
+
+	if (!bus) {
+		printf("Failed to allocate MDIO bus\n");
+		return -ENOMEM;
+	}
+
+	bus->read = ftgmac100_mdio_read;
+	bus->write = ftgmac100_mdio_write;
+	snprintf(bus->name, sizeof(bus->name), "%s", name);
+	bus->reset = ftgmac100_mdio_reset;
+
+	bus->priv = priv;
+
+	return mdio_register(bus);
+}
+
+static int ftgmac100_phy(struct eth_device *dev)
+{
+	struct phy_device *phydev;
+	int mask = 0xffffffff;
+	struct mii_dev *bus = miiphy_get_dev_by_name(dev->name);
+
+	phydev = phy_find_by_mask(bus, mask, 0);
+	if (!phydev)
+		return -ENODEV;
+
+	phy_connect_dev(phydev, dev);
+
+	phydev->supported &= PHY_GBIT_FEATURES;
+	phydev->advertising = phydev->supported;
+
+	phy_config(phydev);
+
+	return 0;
+}
+
 int ftgmac100_initialize(unsigned long base_addr)
 {
 	struct eth_device *dev;
 	struct ftgmac100_data *priv;
+#ifdef CONFIG_PHYLIB
+	struct phy_device *phydev = NULL;
+	u32 supported;
+#endif
 
 	dev = malloc(sizeof *dev);
 	if (!dev) {
@@ -776,18 +822,20 @@ int ftgmac100_initialize(unsigned long base_addr)
 	dev->send	= ftgmac100_send;
 	dev->recv	= ftgmac100_recv;
 	dev->priv	= priv;
-	dev->write_hwaddr = NULL;		//20130209, ryan chen add
+	dev->write_hwaddr = ftgmac100_write_hwaddr;		//20130209, ryan chen add
 	
 	eth_register(dev);
 
-#if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
-	miiphy_register(dev->name, ftgmac100_reg_read, ftgmac100_reg_write);
-#endif
-	
 	/* set the ethernet address */
 	ftgmac100_set_mac_from_env(dev);
 
 	ftgmac100_reset(dev);
+
+
+	ftgmac100_mdio_init(dev->name, dev);
+#ifdef CONFIG_PHYLIB
+	ftgmac100_phy(dev);
+#endif
 
 	return 0;
 

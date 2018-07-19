@@ -228,3 +228,18 @@ ast_sdmc_get_mem_size(void)
 
 	return size;
 }
+
+extern u32
+ast_sdmc_dram_size(void)
+{
+#ifdef CONFIG_DRAM_ECC
+	return CONFIG_DRAM_ECC_SIZE;
+#else
+	u32 vga = ast_scu_get_vga_memsize();
+	u32 dram = ast_sdmc_get_mem_size();
+
+	return (dram - vga - CONFIG_AST_VIDEO_SIZE);
+#endif
+
+}
+

@@ -58,12 +58,22 @@ int dram_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_FTGMAC100
 int board_eth_init(bd_t *bd)
 {
-#ifdef CONFIG_FTGMAC100
-	return ftgmac100_initialize(bd);
-#endif
+	int ret = 0, i = 0;
+	u32 iobase[2];
+	iobase[0] = AST_MAC0_BASE;
+	iobase[1] = AST_MAC1_BASE;
+	
+	for(i = 0; i < 2; i++) {
+		ast_scu_multi_func_eth(i);
+		ast_scu_init_eth(i);
+		ret += ftgmac100_initialize(iobase[i]);
+	}
+	return 0;
 }
+#endif
 
 #ifdef CONFIG_GENERIC_MMC
 

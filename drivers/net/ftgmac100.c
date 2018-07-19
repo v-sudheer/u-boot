@@ -49,17 +49,6 @@ struct ftgmac100_data {
 	int phy_addr;
 };
 
-#ifdef CONFIG_ARCH_AST3200
-/* 20150420
- * Bring up RTL8211F For AST3200 
- */
-static void RTL8211F_BringUp( void )
-{
-    // Set MAC#1 to RGMII
-    __raw_writel( ( __raw_readl(0x1E6E2070) | 0x00000040 ), 0x1E6E2070); // Set bit6
-}
-
-#endif
 /*
  * struct mii_bus functions
  */
@@ -759,77 +748,52 @@ static int ftgmac100_send(struct eth_device *dev, void *packet, int length)
 	return 0;
 }
 
-int ftgmac100_initialize(bd_t *bd)
+int ftgmac100_initialize(unsigned long base_addr)
 {
 	struct eth_device *dev;
 	struct ftgmac100_data *priv;
 
-	int i, card_number = 0, mac_no;
-#ifdef AST_MAC1_BASE
-	unsigned int			iobase[2];
-	mac_no = 2;
-#else
-	unsigned int			iobase[1];
-	mac_no = 1;
-#endif
+	dev = malloc(sizeof *dev);
+	if (!dev) {
+		printf("%s(): failed to allocate dev\n", __func__);
+		goto out;
+	}
 
+	/* Transmit and receive descriptors should align to 16 bytes */
+	priv = memalign(16, sizeof(struct ftgmac100_data));
+	if (!priv) {
+		printf("%s(): failed to allocate priv\n", __func__);
+		goto free_dev;
+	}
+
+	memset(dev, 0, sizeof(*dev));
+	memset(priv, 0, sizeof(*priv));
+
+	sprintf(dev->name, "FTGMAC100.@0x%8lx", base_addr);
+	dev->iobase	= base_addr;
+	dev->init	= ftgmac100_init;
+	dev->halt	= ftgmac100_halt;
+	dev->send	= ftgmac100_send;
+	dev->recv	= ftgmac100_recv;
+	dev->priv	= priv;
+	dev->write_hwaddr = NULL;		//20130209, ryan chen add
 	
-	iobase[0] = AST_MAC0_BASE;
-#ifdef AST_MAC1_BASE
-	iobase[1] = AST_MAC1_BASE;
-#endif
-
-#ifdef CONFIG_ARCH_AST3200
-	RTL8211F_BringUp(); // 20150420
-#endif 
-
-	for (i = 0; i < mac_no; i++)
-	{
-		ast_scu_multi_func_eth(i);
-		ast_scu_init_eth(i);
-	
-		debug ("FTGMAC100: Device @0x%x\n", iobase[i]);
-
-		dev = malloc(sizeof *dev);
-
-		/* Transmit and receive descriptors should align to 16 bytes */
-		priv = memalign(16, sizeof(struct ftgmac100_data));
-		if (!priv) {
-			printf("%s(): failed to allocate priv\n", __func__);
-			goto free_dev;
-		}
-
-		memset(dev, 0, sizeof(*dev));
-		memset(priv, 0, sizeof(*priv));
-		
-		sprintf(dev->name, "FTGMAC100#%d", card_number);
-
-		dev->iobase = iobase[i];
-		dev->init		= ftgmac100_init;
-		dev->halt	= ftgmac100_halt;
-		dev->send	= ftgmac100_send;
-		dev->recv	= ftgmac100_recv;
-		dev->priv	= priv;
-		dev->write_hwaddr = NULL;		//20130209, ryan chen add
-		
-		eth_register(dev);
+	eth_register(dev);
 
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
-		miiphy_register(dev->name, ftgmac100_reg_read, ftgmac100_reg_write);
+	miiphy_register(dev->name, ftgmac100_reg_read, ftgmac100_reg_write);
 #endif
-		
-		/* set the ethernet address */
-		ftgmac100_set_mac_from_env(dev);
-    
-		ftgmac100_reset(dev);
-		
-		card_number++;
-	}
-	return card_number;
+	
+	/* set the ethernet address */
+	ftgmac100_set_mac_from_env(dev);
+
+	ftgmac100_reset(dev);
+
+	return 0;
 
 free_dev:
 	free(dev);
-//out:
-	return 0;
+out:
+	return 1;
 
 }

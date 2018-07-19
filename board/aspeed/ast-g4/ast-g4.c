@@ -69,21 +69,24 @@ int misc_init_r(void)
 
 int dram_init(void)
 {
-#ifdef CONFIG_DRAM_ECC
-	gd->ram_size = CONFIG_DRAM_ECC_SIZE;
-#else
-	/* dram_init must store complete ramsize in gd->ram_size */
-	u32 vga = ast_scu_get_vga_memsize();
-	u32 dram = ast_sdmc_get_mem_size();
-	gd->ram_size = (dram - vga - CONFIG_AST_VIDEO_SIZE);
-#endif
+	gd->ram_size = ast_sdmc_dram_size();
 	return 0;
 }
 
+#ifdef CONFIG_FTGMAC100
 int board_eth_init(bd_t *bd)
 {
-#ifdef CONFIG_FTGMAC100
-	return ftgmac100_initialize(bd);
-#endif
+	int ret = 0, i = 0;
+	u32 iobase[2];
+	iobase[0] = AST_MAC0_BASE;
+	iobase[1] = AST_MAC1_BASE;
+	
+	for(i = 0; i < 2; i++) {
+		ast_scu_multi_func_eth(i);
+		ast_scu_init_eth(i);
+		ret += ftgmac100_initialize(iobase[i]);
+	}
+	return 0;
 }
+#endif
 

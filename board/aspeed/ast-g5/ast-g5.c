@@ -88,6 +88,65 @@ int misc_init_r (void)
 	wdt_start(CONFIG_AST_WATCHDOG_TIMEOUT);
 #endif
 
+#if 1
+////
+
+#ifdef CONFIG_SYS_I2C_MAC_OFFSET
+	char *s;
+	int i, env; 			   // env variable 0: eeprom, 1: environment parameters
+
+	s = getenv ("eeprom");
+	env = (s && (*s == 'y')) ? 1 : 0;
+	
+	if (env) {
+		printf("TODO ... eerprom --> \n");
+		eeprom_init();
+		i2c_set_bus_num(3);
+		eeprom_read(CONFIG_SYS_I2C_EEPROM_ADDR, CONFIG_SYS_I2C_MAC_OFFSET, dev->enetaddr, 6);
+
+		for (i = 0; i < 6; i++) {
+			if (dev->enetaddr[i] != 0xFF) {
+				env = 0;	//Suppose not all 0xFF is valid
+			}
+		}
+	}
+
+	if(env)
+		eth_getenv_enetaddr_by_index("eth", dev->index, dev->enetaddr); 
+//		eth_setenv_enetaddr("ethaddr", dev->enetaddr);
+	else
+		eth_getenv_enetaddr_by_index("eth", dev->index, dev->enetaddr); 		
+//		eth_getenv_enetaddr("ethaddr", dev->enetaddr);
+#else
+	int update = 0, i;
+	u32 random;
+	uchar board_mac_addr[6];
+
+	for (i = 0; i < 2; i++) {
+		if (!eth_getenv_enetaddr_by_index("eth", i, board_mac_addr)) {
+			random = __raw_readl(0x1e6e2078);		
+			board_mac_addr[0] = 0x00;
+			board_mac_addr[1] = 0x0c;
+			board_mac_addr[2] = (random >> 20) & 0xff;
+			board_mac_addr[3] = (random >> 16) & 0xff;
+			board_mac_addr[4] = (random >> 8) & 0xff;
+			board_mac_addr[5] = (random) & 0xff;
+
+			if (eth_setenv_enetaddr_by_index("eth", i, board_mac_addr)) {
+				printf("Failed to set random ethernet address\n");
+			} else {
+				printf("Setting random ethernet address %pM.\n",
+					   (uchar *)&random);
+			}
+			update++;
+		}
+	}
+
+	if (update) {
+		saveenv();	
+	}
+#endif	
+#endif
 	return 0;
 
 }
@@ -98,27 +157,6 @@ int dram_init(void)
 	return 0;
 }
 
-
-#ifdef CONFIG_ETH_DESIGNWARE
-int board_eth_init(bd_t *bis)
-{
-	int ret = 0;
-
-	if (CONFIG_DW_PORTS & 1) {
-		static const unsigned short pins[] = P_RMII0;
-		if (!peripheral_request_list(pins, "emac0"))
-			ret += designware_initialize(EMAC0_MACCFG, 0);
-	}
-	if (CONFIG_DW_PORTS & 2) {
-		static const unsigned short pins[] = P_RMII1;
-		if (!peripheral_request_list(pins, "emac1"))
-			ret += designware_initialize(EMAC1_MACCFG, 0);
-	}
-
-	return ret;
-}
-#endif
-
 #ifdef CONFIG_FTGMAC100
 int board_eth_init(bd_t *bd)
 {
@@ -126,7 +164,7 @@ int board_eth_init(bd_t *bd)
 	u32 iobase[2];
 	iobase[0] = AST_MAC0_BASE;
 	iobase[1] = AST_MAC1_BASE;
-	
+
 	for(i = 0; i < 2; i++) {
 		ast_scu_multi_func_eth(i);
 		ast_scu_init_eth(i);
@@ -134,6 +172,7 @@ int board_eth_init(bd_t *bd)
 	}
 	return 0;
 }
+
 #endif
 
 #ifdef CONFIG_GENERIC_MMC

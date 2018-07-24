@@ -35,7 +35,7 @@
 #define GPIO_PORTS							0x12
 //AST2300 didn't have PORT TT
 #define GPIO_PORTT							0x13
-#if defined(AST_SOC_G4) || defined(CONFIG_AST2400_BMC)
+#if defined(CONFIG_MACH_ASPEED_G4)
 #define GPIO_PORTU							0x14
 #define GPIO_PORTV							0x15
 #define GPIO_PORTW							0x16
@@ -224,7 +224,7 @@
 #define PIN_GPIOS5						(149)
 #define PIN_GPIOS6						(150)
 #define PIN_GPIOS7						(151)
-#if defined(AST_SOC_G4) || defined(CONFIG_AST2400_BMC)
+#if defined(CONFIG_MACH_ASPEED_G4)
 #define PIN_GPIOT0						(152)
 #define PIN_GPIOT1						(153)
 #define PIN_GPIOT2						(154)

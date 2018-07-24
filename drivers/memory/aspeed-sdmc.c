@@ -1,5 +1,5 @@
 /*
- * ast-sdmc.c - BMC SDMC driver for the Aspeed SoC
+ * BMC SDMC driver for the Aspeed SoC
  *
  * Copyright (C) ASPEED Technology Inc.
  * Ryan Chen <ryan_chen@aspeedtech.com>
@@ -26,16 +26,18 @@
 /*	AST_SDMC_PROTECT: 0x00  - protection key register */
 #define SDMC_PROTECT_UNLOCK			0xFC600309
 
-#if defined(CONFIG_ARCH_AST1010)
 /*	AST_SDMC_CONFIG :0x04	 - Configuration register */
-#define SDMC_CONFIG_16MB			1
-#else
-/*	AST_SDMC_CONFIG :0x04	 - Configuration register */
-#define SDMC_CONFIG_VER_NEW		(0x1 << 28)
-#define SDMC_CONFIG_MEM_GET(x)		(x & 0x3)
+#define SDMC_CONFIG_VER_GET(x)		((x >> 28) & 0x3)
+#define ASPEED_LEGACY_SDMC			0
+#define ASPEED_G5_SDMC				1
+#define ASPEED_G6_SDMC				3
+
 #define SDMC_CONFIG_CACHE_EN		(0x1 << 10)
 #define SDMC_CONFIG_EEC_EN			(0x1 << 7)
-#endif
+/*aspeed-g5 */
+#define SDMC_CONFIG_DDR4			(0x1 << 4)
+
+#define SDMC_CONFIG_MEM_GET(x)		(x & 0x3)
 
 /*	#define AST_SDMC_ISR	 : 0x50	- Interrupt Control/Status Register */
 #define SDMC_ISR_CLR					(0x1 << 31)
@@ -64,9 +66,7 @@ ast_sdmc_read(u32 reg)
 	u32 val;
 		
 	val = readl(ast_sdmc_base + reg);
-	
 	SDMCDBUG("ast_sdmc_read : reg = 0x%08x, val = 0x%08x\n", reg, val);
-	
 	return val;
 }
 
@@ -88,59 +88,24 @@ ast_sdmc_write(u32 val, u32 reg)
 }
 
 //***********************************Information ***********************************
-extern void
-ast_sdmc_disable_mem_protection(u8 req)
-{
-	ast_sdmc_write(ast_sdmc_read(AST_SDMC_MEM_REQ) & ~(1<< req), AST_SDMC_MEM_REQ);
-}
+/* aspeed-g5/aspeed-g4/g6 don't have  */
 
-extern u32
-ast_sdmc_get_mem_size(void)
+extern u8
+ast_sdmc_get_cache(void)
 {
-	u32 size=0;
-	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
-	
-	if(conf & SDMC_CONFIG_VER_NEW) {
-		switch(SDMC_CONFIG_MEM_GET(conf)) {
-			case 0:
-				size = 128*1024*1024;
-				break;
-			case 1:
-				size = 256*1024*1024;
-				break;
-			case 2:
-				size = 512*1024*1024;
-				break;
-			case 3:
-				size = 1024*1024*1024;
-				break;
-				
-			default:
-				SDMCMSG("error ddr size \n");
-				break;
-		}
-		
-	} else {
-		switch(SDMC_CONFIG_MEM_GET(conf)) {
-			case 0:
-				size = 64*1024*1024;
-				break;
-			case 1:
-				size = 128*1024*1024;
-				break;
-			case 2:
-				size = 256*1024*1024;
-				break;
-			case 3:
-				size = 512*1024*1024;
-				break;
-				
-			default:
-				SDMCMSG("error ddr size \n");
-				break;
-		}
-	}
-	return size;
+	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_CACHE_EN)
+		return 1;
+	else
+		return 0;
+}
+/* aspeed-g5/aspeed-g4/g6 don't have  */
+extern void
+ast_sdmc_set_cache(u8 enable)
+{
+	if(enable) 
+		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) | SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
+	else
+		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) & ~SDMC_CONFIG_CACHE_EN, AST_SDMC_CONFIG);
 }
 
 extern u32
@@ -170,12 +135,96 @@ ast_sdmc_get_ecc(void)
 		return 0;
 }
 
-extern u8
-ast_sdmc_get_cache(void)
+extern void
+ast_sdmc_set_ecc(u8 enable)
 {
-	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
-	if(conf & SDMC_CONFIG_CACHE_EN)
+	if(enable) 
+		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) | SDMC_CONFIG_EEC_EN, AST_SDMC_CONFIG);
+	else
+		ast_sdmc_write(ast_sdmc_read(AST_SDMC_CONFIG) & ~SDMC_CONFIG_EEC_EN, AST_SDMC_CONFIG);	
+}
+
+extern u8
+ast_sdmc_get_dram(void)
+{
+	if(ast_sdmc_read(AST_SDMC_CONFIG) & SDMC_CONFIG_DDR4)
 		return 1;
 	else
 		return 0;
+}
+
+extern void
+ast_sdmc_disable_mem_protection(u8 req)
+{
+	ast_sdmc_write(ast_sdmc_read(AST_SDMC_MEM_REQ) & ~(1<< req), AST_SDMC_MEM_REQ);
+}
+
+extern u32
+ast_sdmc_get_mem_size(void)
+{
+	u32 size=0;
+	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
+	u32 size_conf = SDMC_CONFIG_MEM_GET(conf); 
+	
+	switch(SDMC_CONFIG_VER_GET(conf)) {
+		case ASPEED_LEGACY_SDMC:
+			switch(size_conf) {
+				case 0:
+					size = 64*1024*1024;
+					break;
+				case 1:
+					size = 128*1024*1024;
+					break;
+				case 2:
+					size = 256*1024*1024;
+					break;
+				case 3:
+					size = 512*1024*1024;
+					break;
+				default:
+					SDMCMSG("error ddr size \n");
+					break;
+			}
+			break;
+		case ASPEED_G5_SDMC:
+			switch(size_conf) {
+				case 0:
+					size = 128*1024*1024;
+					break;
+				case 1:
+					size = 256*1024*1024;
+					break;
+				case 2:
+					size = 512*1024*1024;
+					break;
+				case 3:
+					size = 1024*1024*1024;
+					break;
+				default:
+					SDMCMSG("error ddr size \n");
+					break;
+			}			
+			break;
+		case ASPEED_G6_SDMC:
+			switch(size_conf) {
+				case 0:
+					size = 256*1024*1024;
+					break;
+				case 1:
+					size = 512*1024*1024;
+					break;
+				case 2:
+					size = 1024*1024*1024;
+					break;
+				case 3:
+					size = 2048*1024*1024;
+					break;
+				default:
+					SDMCMSG("error ddr size \n");
+					break;
+			}						
+			break;
+	}
+
+	return size;
 }

@@ -12,18 +12,6 @@
 
 #include <common.h>
 #include <command.h>
-/*
-#if defined(CONFIG_ARCH_AST2500) || defined(CONFIG_ARCH_AST2400) || defined(CONFIG_ARCH_AST2300) || defined(CONFIG_ARCH_AST3200)
-  #include "../arch/arm/cpu/ast-common/SWFUNC.H"
-  #include "../arch/arm/cpu/ast-common/COMMINF.H"
-#elif defined(CONFIG_AST1010)
-  #include "../board/aspeed/SWFUNC.H"
-  #include "../board/aspeed/COMMINF.H"
-#else
-  #include "SWFUNC.H"
-  #include "COMMINF.H"
-#endif
-*/
 
 #if defined(CONFIG_AST1010)
   #include "../board/aspeed/SWFUNC.H"
@@ -89,7 +77,7 @@ void multi_pin_2_mdcmdio_init( MAC_ENGINE *eng )
 {
   #if defined(CONFIG_AST1010)
 	Write_Reg_SCU_DD( 0x088, ((Read_Reg_SCU_DD( 0x088 ) & 0xff3fffff ) | 0x00C00000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
-  #elif defined(CONFIG_ARCH_AST2500) || defined(CONFIG_ARCH_AST2400) || defined(CONFIG_ARCH_AST2300) || defined(CONFIG_ARCH_AST3200)
+  #elif defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G3)
 	switch ( eng->run.MAC_idx_PHY ) {
 		case 0  : Write_Reg_SCU_DD( 0x088, (Read_Reg_SCU_DD( 0x088 ) | 0xC0000000)              ); break;//[31]MAC1 MDIO, [30]MAC1 MDC
 		case 1  : Write_Reg_SCU_DD( 0x090, (Read_Reg_SCU_DD( 0x090 ) | 0x00000004)              ); break;//[2 ]MAC2 MDC/MDIO
@@ -447,7 +435,7 @@ void multi_pin_2_gpio_init( MAC_ENGINE *eng )
 {
   #if defined(CONFIG_AST1010)
 	Write_Reg_SCU_DD( 0x088, ((Read_Reg_SCU_DD( 0x088 ) & 0xff3fffff ) | 0x00000000) );//Multi-function Pin Control //[22]MDC, [23]MDIO
-  #elif defined(CONFIG_ARCH_AST2500) || defined(CONFIG_ARCH_AST2400) || defined(CONFIG_ARCH_AST2300) || defined(CONFIG_ARCH_AST3200)
+  #elif defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G3)
 	switch ( eng->run.MAC_idx_PHY ) {
 		case 0  : Write_Reg_SCU_DD( 0x088, (Read_Reg_SCU_DD( 0x088 ) & 0x3fffffff)              ); break;//[31]MAC1 MDIO, [30]MAC1 MDC
 		case 1  : Write_Reg_SCU_DD( 0x090, (Read_Reg_SCU_DD( 0x090 ) & 0xfffffffb)              ); break;//[2 ]MAC2 MDC/MDIO

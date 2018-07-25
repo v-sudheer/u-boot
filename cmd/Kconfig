@@ -501,7 +501,7 @@ menu "Network commands"
 
 config CMD_NETTEST
 	bool "nettest"
-	default y
+	default n
 
 config CMD_NET
 	bool "bootp, tftpboot"

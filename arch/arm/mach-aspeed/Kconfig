@@ -20,8 +20,8 @@ config MACH_ASPEED_G5
         bool "Aspeed SoC 5th Generation"
 
 config MACH_ASPEED_G6
-	select CPU_ARM1176
-	select SUPPORT_SPL
+	select ARMV7_LPAE
+	select CPU_V7
 	bool "Aspeed SoC 6th Generation"
 
 endchoice

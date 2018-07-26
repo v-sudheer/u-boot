@@ -94,11 +94,11 @@ TIME_TABLE_DDR4:
     .word   0x030C0207       // MCR10
     .word   0x04451133       // MCR14
     .word   0x0E010200       // MCR18
-    .word   0x00002140       // MCR1C
-    .word   0x01000100       // MCR20
+    .word   0x00000140       // MCR1C
+    .word   0x03010100       // MCR20
     .word   0x00000000       // MCR24
     .word   0x04000000       // MCR28
-    .word   0x00000800       // MCR2C
+    .word   0x00000000       // MCR2C
     .word   0x17263434       // MCRFC
 
 PATTERN_TABLE:

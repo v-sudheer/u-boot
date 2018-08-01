@@ -238,10 +238,32 @@ static int ftgmac100_phy_init(struct eth_device *dev)
 	int media, speed, duplex;
 	int i;
 
-//	printf("ftgmac100_phy_init priv->phydev->addr %x \n", priv->phydev->addr);
+	/* Check if the PHY is up to snuff... */
+	for (phy_addr = 0; phy_addr < CONFIG_PHY_MAX_ADDR; phy_addr++) {
 
+		ftgmac100_phy_read(dev, phy_addr, MII_PHYSID1, &phy_id1);
+		ftgmac100_phy_read(dev, phy_addr, MII_PHYSID2, &phy_id2);
 
-	ftgmac100_phy_read(dev, priv->phydev->addr , MII_BMSR, &status);
+		/*
+		 * When it is unable to found PHY,
+		 * the interface usually return 0xffff or 0x0000
+		 */
+		if (phy_id1 != 0xffff && phy_id1 != 0x0) {
+//			printf("%s: found PHY at 0x%02x\n",
+//				dev->name, phy_addr);
+			priv->phydev->addr = phy_addr;
+			break;
+		}
+	}
+
+	if (phy_id1 == 0xffff || phy_id1 == 0x0) {
+		printf("%s: no PHY present\n", dev->name);
+		return 0;
+	}
+
+	ftgmac100_phy_read(dev, priv->phydev->addr, MII_BMSR, &status);
+
+//	printf("phy_id : %x , status %x \n",((phy_id1 << 16) | phy_id2), status );
 
 	if (!(status & BMSR_LSTATUS)) {
 		/* Try to re-negotiate if we don't have link already. */
@@ -533,12 +555,17 @@ static int ftgmac100_init(struct eth_device *dev, bd_t *bd)
 
 	writel(maccr, &ftgmac100->maccr);
 
-	ftgmac100_phy(dev);
-
+//Ryan modify
+#if 1
+	ftgmac100_phy_init(dev);
+	if (!ftgmac100_update_link_speed(dev))
+		return -1;
+#else
 	if (!ftgmac100_phy_init(dev)) {
 		if (!ftgmac100_update_link_speed(dev))
 			return -1;
 	}
+#endif
 
 	return 0;
 }
@@ -683,10 +710,7 @@ int ftgmac100_initialize(unsigned long base_addr)
 	memset(dev, 0, sizeof(*dev));
 	memset(priv, 0, sizeof(*priv));
 
-//	sprintf(dev->name, "FTGMAC100.@0x%8lx", base_addr);
-	snprintf(dev->name, sizeof(dev->name), "FTGMAC100.%lx",
-		 base_addr);
-
+	sprintf(dev->name, "FTGMAC100.@0x%8lx", base_addr);
 	dev->iobase	= base_addr;
 	dev->init	= ftgmac100_init;
 	dev->halt	= ftgmac100_halt;

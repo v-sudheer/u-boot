@@ -43,10 +43,10 @@
 
 #include <config.h>
 #include <version.h>
-
+#ifdef CONFIG_CPU_ARM1176
 #define ASTMMC_CPU_ARM11
 #define ASTMMC_DDR_DDR3
-
+#endif
 /******************************************************************************
  Calibration Macro Start
  Usable registers:

@@ -17,7 +17,7 @@
  *
  * Gary Hsu, <gary_hsu@aspeedtech.com>
  *
- * Release date: 2015.02.09 formal release for SDK0.61
+ * Release date: 2018.08.02 test release for SDK0.65
  *
  * Modified list from v0.23
  * EC1. Modify DQIDLY and DQSI-MCLK2X calibration algorithm
@@ -53,6 +53,14 @@
  *
  * Modified list from v0.62
  * EC1. Clear MCR04[10] = 0 before doing DRAM initial
+ * EC2. Add USB2.0 port initial
+ *
+ * Modified list from v0.63
+ * EC1. Modify DDR driving on MCR6C from 0x2312 to 0x2323
+ * EC2. Reset RNG to fix RNG read 0 issue
+ *
+ * Modified list from v0.64
+ * EC1. Default assign X-DMA engine to VGA memory domain, MCR08[16] = 1.
  *
  * Optional define variable
  * 1. DRAM Speed             //
@@ -220,6 +228,16 @@ init_dram:
     ldr r1, [r0]
     orr r1, r1, #0x80
     str r1, [r0]
+
+    /* Configure USB ports to the correct pin state */
+    ldr   r0, =0x1e6e200c                        @ enable portA clock
+    ldr   r2, =0x00004000
+    ldr   r1, [r0]
+    orr   r1, r1, r2
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2090                        @ set USB2.0 port as host mode
+    ldr   r1, =0x2000A000
+    str   r1, [r0]
 
     /* Fix LPC lock issue for AST2300 */
     ldr r0, =0x1e6e207c                          @ Check AST2300
@@ -405,6 +423,10 @@ set_MPLL:
     str r1, [r0]
 /* Debug - UART console message */
 
+    ldr r0, =0x1e6e2074                          @ Reset Randon Number Generator
+    mov r1, #0x01
+    str r1, [r0]
+
     /* Delay about 100us */
     ldr r0, =0x1e782030                          @ Init Timer3 Control
     ldr r1, [r0]
@@ -418,6 +440,10 @@ delay_0:
     bne delay_0
     clear_delay_timer
     /* end delay 100us */
+
+    ldr r0, =0x1e6e2074                          @ Recover Randon Number Generator
+    mov r1, #0x0E
+    str r1, [r0]
 
 /******************************************************************************
  Init DRAM common registers
@@ -462,7 +488,7 @@ delay_1:
     str r1, [r0]
 
     ldr r0, =0x1e6e0008
-    ldr r1, =0x0090040f                          /* VGA : remember to clear MCR04[10] = 0 */
+    ldr r1, =0x0092040f                          /* VGA : remember to clear MCR04[10] = 0 */
     str r1, [r0]
 
     ldr r0, =0x1e6e0018
@@ -633,9 +659,9 @@ ddr3_init:
     mov r2, r2, lsr #10
 
     ldr r0, =0x1e6e006c                          @ REG_IOZ
-    ldr r1, =0x00002312                          @ 408 MHz
+    ldr r1, =0x00002323                          @ 408 MHz
 #if defined(CONFIG_DRAM_336)
-    ldr r1, =0x00002312
+    ldr r1, =0x00002323
 #endif
     tst r2, #0x01
     moveq r1, r1, lsr #8
@@ -818,9 +844,9 @@ ddr2_init:
     mov r2, r2, lsr #10
 
     ldr r0, =0x1e6e006c                          @ REG_IOZ
-    ldr r1, =0x00002312                          @ 408 MHz
+    ldr r1, =0x00002323                          @ 408 MHz
 #if defined(CONFIG_DRAM_336)
-    ldr r1, =0x00002312
+    ldr r1, =0x00002323
 #endif
     tst r2, #0x01
     moveq r1, r1, lsr #8
@@ -2548,11 +2574,11 @@ check_dram_size_end:
  Version Number
  *****************************************************************************/
     ldr   r0, =0x1e7200a8
-    ldr   r1, =0x20150209                        @ released date
+    ldr   r1, =0x20180802                        @ released date
     str   r1, [r0]
 
     add   r0, r0, #4
-    ldr   r1, =0x00000061                        @ released SDK version
+    ldr   r1, =0x00000065                        @ released SDK version
     str   r1, [r0]
 
 /******************************************************************************
@@ -3092,6 +3118,10 @@ spi_cbr_end:
     str r1, [r0]
 
 platform_exit4:
+
+    ldr   r0, =0x1e6e2090                        @ set USB2.0 port as Device mode
+    ldr   r1, =0x0000A000
+    str   r1, [r0]
 
     /* restore lr */
     mov lr, r4

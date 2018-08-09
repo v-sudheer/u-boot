@@ -6,7 +6,7 @@ menu "Memory Controller drivers"
 
 config AST_SDMC
 	bool "ASPEED DRAM Controller"
-	depends on (MACH_ASPEED_G3 || MACH_ASPEED_G4 || MACH_ASPEED_G5 || MACH_ASPEED_G6)
+	depends on ARCH_ASPEED
 
 config DRAM_ECC
 	bool "DRAM ECC Enable"

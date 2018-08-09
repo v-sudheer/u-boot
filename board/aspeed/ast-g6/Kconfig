@@ -1,7 +1,18 @@
 if MACH_ASPEED_G6
 
+if CPU_ARM1176
+
 config SYS_CPU
 	default "arm1176"
+
+endif
+
+if CPU_V7
+
+config SYS_CPU
+	default "armv7"
+
+endif
 
 config SYS_BOARD
 	default "ast-g6"

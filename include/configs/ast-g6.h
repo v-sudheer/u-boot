@@ -16,6 +16,11 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
+#if 0
+#define CONFIG_SYS_ARCH_TIMER
+#define CONFIG_SYS_HZ_CLOCK	(25000000)
+#endif
+
 #define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

@@ -26,10 +26,6 @@ config MACH_ASPEED_G6
 
 endchoice
 
-config AST_VIDEO_SIZE
-        hex "Reserver for VIDEO Engine DRAM Size (defaul 40MB)"
-        default 0x2800000
-
 config FPGA_ASPEED
 	bool "FPGA"
 

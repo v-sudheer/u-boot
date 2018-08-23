@@ -199,13 +199,7 @@
 #ifdef Enable_BufMerge
     #define MAC_048_def                          0x007702F1 //default 0xf1
 #else
-  #ifdef AST2500_IOMAP
     #define MAC_048_def                          0x000002F1 //default 0xf1
-  #elif defined(AST1010_IOMAP)
-    #define MAC_048_def                          0x000002F1 //default 0xf1
-  #else
-    #define MAC_048_def                          0x000002F1 //default 0xf1
-  #endif
 #endif
 //#define MAC_058_def                              0x00000040 //0x000001c0
 

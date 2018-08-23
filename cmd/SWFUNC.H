@@ -67,6 +67,11 @@
   #define AST2500_IOMAP
 #endif
 
+#if defined(CONFIG_MACH_ASPEED_G6)
+  #define SLT_UBOOT
+  #define AST2500_IOMAP
+#endif
+
 #if defined(CONFIG_AST1500)
   #define SLT_UBOOT
   #define ISUBOOT_1_1_4

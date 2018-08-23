@@ -23,10 +23,8 @@
 
 obj-y   = ast-g6.o
 
-ifeq ($(CONFIG_FPGA_ASPEED),y)
-obj-y   += platform_fpga.o
-else ifeq ($(CONFIG_SLT_ASPEED),y)
-obj-y	+= pletform_slt.o
+ifeq ($(CONFIG_ARM1176),y)
+obj-y   += platform_arm1176.o
 else
 obj-y   += platform.o
 endif

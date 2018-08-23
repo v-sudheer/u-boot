@@ -16,7 +16,7 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#if 0
+#ifdef CONFIG_CPU_V7
 #define CONFIG_SYS_ARCH_TIMER
 #define CONFIG_SYS_HZ_CLOCK	(25000000)
 #endif

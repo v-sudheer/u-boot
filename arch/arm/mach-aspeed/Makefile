@@ -11,6 +11,11 @@
 #
 
 
-obj-y += reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o timer.o
+obj-y += reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o
+
+ifeq ($(CONFIG_SYS_ARCH_TIMER),y)
+else
+obj-y += timer.o
+endif
 obj-$(CONFIG_RT360_CAM)		+= ast-cam-scu.o
 obj-$(CONFIG_ARCH_AST1070)	+= ast1070-scu.o

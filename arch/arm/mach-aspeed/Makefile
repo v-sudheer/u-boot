@@ -11,7 +11,7 @@
 #
 
 
-obj-y += reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o
+obj-y += reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o board.o
 
 ifeq ($(CONFIG_SYS_ARCH_TIMER),y)
 else

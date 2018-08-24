@@ -16,27 +16,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_SHOW_BOOT_PROGRESS)
-void show_boot_progress(int progress)
-{
-    printf("Boot reached stage %d\n", progress);
-}
-#endif
-
-void enable_caches(void)
-{
-	/* Enable D-cache. I-cache is already enabled in start.S */
-}
-
-
-int board_init(void)
-{
-	/* adress of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-	gd->flags = 0;
-	return 0;
-}
-
 int misc_init_r(void)
 {
 	u32 reg;
@@ -66,27 +45,4 @@ int misc_init_r(void)
 
 	return 0;
 }
-
-int dram_init(void)
-{
-	gd->ram_size = ast_sdmc_dram_size();
-	return 0;
-}
-
-#ifdef CONFIG_FTGMAC100
-int board_eth_init(bd_t *bd)
-{
-	int ret = 0, i = 0;
-	u32 iobase[2];
-	iobase[0] = AST_MAC0_BASE;
-	iobase[1] = AST_MAC1_BASE;
-	
-	for(i = 0; i < 2; i++) {
-		ast_scu_multi_func_eth(i);
-		ast_scu_init_eth(i);
-		ret += ftgmac100_initialize(iobase[i]);
-	}
-	return 0;
-}
-#endif
 

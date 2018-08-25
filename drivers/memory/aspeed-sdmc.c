@@ -34,6 +34,8 @@
 
 #define SDMC_CONFIG_CACHE_EN		(0x1 << 10)
 #define SDMC_CONFIG_EEC_EN			(0x1 << 7)
+#define SDMC_CONFIG_VRAM_GET(x)		((x >> 2) & 0x3)
+
 /*aspeed-g5 */
 #define SDMC_CONFIG_DDR4			(0x1 << 4)
 
@@ -160,41 +162,37 @@ ast_sdmc_disable_mem_protection(u8 req)
 }
 
 static const u32 ast2400_dram_table[] = {
-	{ 64 * 1024 * 1024 },
-	{ 28 * 1024 * 1024 },
-	{ 256 * 1024 * 1024 },
-	{ 512 * 1024 * 1024 },
-	{ 0 }
+	0x04000000,	//64MB
+	0x08000000,	//128MB
+	0x10000000, //256MB
+	0x20000000,	//512MB
 };
 
 static const u32 ast2500_dram_table[] = {
-	{ 128 * 1024 * 1024 },
-	{ 256 * 1024 * 1024 },
-	{ 512 * 1024 * 1024 },
-	{ 1024 * 1024 * 1024 },
-	{ 0 }
+	0x08000000,	//128MB
+	0x10000000,	//256MB
+	0x20000000,	//512MB
+	0x40000000,	//1024MB
 };
 
 static const u32 ast2600_dram_table[] = {
-	{ 256 * 1024 * 1024 },
-	{ 512 * 1024 * 1024 },
-	{ 1024 * 1024 * 1024 },
-	{ 2048 * 1024 * 1024 },
-	{ 0 }
+	0x10000000,	//256MB
+	0x20000000,	//512MB
+	0x40000000,	//1024MB
+	0x80000000,	//2048MB
 };
 
 static const u32 aspeed_vram_table[] = {
-	{ 8 * 1024 * 1024 },
-	{ 16 * 1024 * 1024 },
-	{ 32 * 1024 * 1024 },
-	{ 64 * 1024 * 1024 },
-	{ 0 }
+	0x00800000,	//8MB
+	0x01000000,	//16MB
+	0x02000000,	//32MB
+	0x04000000,	//64MB
 };
 
 extern u32
 ast_sdmc_get_mem_size(void)
 {
-	u32 size=0;
+	u32 size = 0;
 	u32 conf = ast_sdmc_read(AST_SDMC_CONFIG);
 	u32 size_conf = SDMC_CONFIG_MEM_GET(conf); 
 	
@@ -214,16 +212,22 @@ ast_sdmc_get_mem_size(void)
 }
 
 extern u32
+ast_sdmc_get_vram_size(void)
+{
+	u32 size_conf = SDMC_CONFIG_VRAM_GET(ast_sdmc_read(AST_SDMC_CONFIG));
+	return aspeed_vram_table[size_conf];
+}
+
+extern u32
 ast_sdmc_dram_size(void)
 {
 #ifdef CONFIG_DRAM_ECC
 	return CONFIG_DRAM_ECC_SIZE;
 #else
-	u32 vga = ast_scu_get_vga_memsize();
+	u32 vga = ast_sdmc_get_vram_size();
 	u32 dram = ast_sdmc_get_mem_size();
 
 	return (dram - vga);
 #endif
 
 }
-

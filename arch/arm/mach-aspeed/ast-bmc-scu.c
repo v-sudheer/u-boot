@@ -1898,7 +1898,6 @@ ast_scu_set_vga_display(u8 enable)
 		ast_scu_write(ast_scu_read(AST_SCU_MISC1_CTRL) | SCU_MISC_VGA_CRT_DIS, AST_SCU_MISC1_CTRL);
 }
 
-
 extern u8
 ast_scu_get_vga_display(void)
 {
@@ -1907,33 +1906,6 @@ ast_scu_get_vga_display(void)
 	else
 		return 1;
 }
-
-
-extern u32
-ast_scu_get_vga_memsize(void)
-{
-	u32 size=0;
-
-	switch(SCU_HW_STRAP_VGA_SIZE_GET(ast_scu_read(AST_SCU_HW_STRAP1))) {
-		case VGA_8M_DRAM:
-			size = 8*1024*1024;
-			break;
-		case VGA_16M_DRAM:
-			size = 16*1024*1024;
-			break;
-		case VGA_32M_DRAM:
-			size = 32*1024*1024;
-			break;
-		case VGA_64M_DRAM:
-			size = 64*1024*1024;
-			break;
-		default:
-			SCUMSG("error vga size \n");
-			break;
-	}
-	return size;
-}
-
 
 extern u32
 ast_scu_get_soc_dram_base(void)

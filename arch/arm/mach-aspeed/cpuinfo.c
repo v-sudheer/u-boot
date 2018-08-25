@@ -63,7 +63,7 @@ int print_cpuinfo(void)
 #endif
 	ast_scu_get_who_init_dram();
 
-	size = ast_scu_get_vga_memsize();
+	size = ast_sdmc_get_vram_size();
 
 	puts("VGA :    ");
 	print_size(size, "- ");

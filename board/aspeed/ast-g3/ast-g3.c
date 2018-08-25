@@ -22,22 +22,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_SHOW_BOOT_PROGRESS)
-void show_boot_progress(int progress)
-{
-    printf("Boot reached stage %d\n", progress);
-}
-#endif
-
-int board_init (void)
-{
-	/* adress of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-	gd->flags = 0;
-	return 0;
-}
-
-
 int misc_init_r (void)
 {
 	unsigned long reg;
@@ -71,25 +55,3 @@ enable this bit 0x1e6e2040 D[0]*/
 	return 0;
 
 }
-
-/******************************
- Routine:
- Description:
-******************************/
-int dram_init (void)
-{
-	/* dram_init must store complete ramsize in gd->ram_size */
-	u32 vga = ast_scu_get_vga_memsize();
-	u32 dram = ast_sdmc_get_mem_size();
-	gd->ram_size = (dram - vga);
-
-	return 0;
-}
-
-#ifdef CONFIG_CMD_NET
-int board_eth_init(bd_t *bd)
-{
-        return ftgmac100_initialize(bd);
-}
-#endif
-

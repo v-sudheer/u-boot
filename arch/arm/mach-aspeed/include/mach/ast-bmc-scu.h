@@ -53,8 +53,6 @@ extern u32 ast_get_lhclk(void);
 extern void ast_scu_set_vga_display(u8 enable);
 extern u8 ast_scu_get_vga_display(void);
 
-extern u32 ast_scu_get_vga_memsize(void);
-
 //Ctrl Initial
 extern void ast_scu_init_uart(u8);
 extern void ast_scu_init_video(u8 dynamic_en);

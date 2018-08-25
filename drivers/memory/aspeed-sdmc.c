@@ -159,6 +159,38 @@ ast_sdmc_disable_mem_protection(u8 req)
 	ast_sdmc_write(ast_sdmc_read(AST_SDMC_MEM_REQ) & ~(1<< req), AST_SDMC_MEM_REQ);
 }
 
+static const u32 ast2400_dram_table[] = {
+	{ 64 * 1024 * 1024 },
+	{ 28 * 1024 * 1024 },
+	{ 256 * 1024 * 1024 },
+	{ 512 * 1024 * 1024 },
+	{ 0 }
+};
+
+static const u32 ast2500_dram_table[] = {
+	{ 128 * 1024 * 1024 },
+	{ 256 * 1024 * 1024 },
+	{ 512 * 1024 * 1024 },
+	{ 1024 * 1024 * 1024 },
+	{ 0 }
+};
+
+static const u32 ast2600_dram_table[] = {
+	{ 256 * 1024 * 1024 },
+	{ 512 * 1024 * 1024 },
+	{ 1024 * 1024 * 1024 },
+	{ 2048 * 1024 * 1024 },
+	{ 0 }
+};
+
+static const u32 aspeed_vram_table[] = {
+	{ 8 * 1024 * 1024 },
+	{ 16 * 1024 * 1024 },
+	{ 32 * 1024 * 1024 },
+	{ 64 * 1024 * 1024 },
+	{ 0 }
+};
+
 extern u32
 ast_sdmc_get_mem_size(void)
 {
@@ -168,61 +200,13 @@ ast_sdmc_get_mem_size(void)
 	
 	switch(SDMC_CONFIG_VER_GET(conf)) {
 		case ASPEED_LEGACY_SDMC:
-			switch(size_conf) {
-				case 0:
-					size = 64*1024*1024;
-					break;
-				case 1:
-					size = 128*1024*1024;
-					break;
-				case 2:
-					size = 256*1024*1024;
-					break;
-				case 3:
-					size = 512*1024*1024;
-					break;
-				default:
-					SDMCMSG("error ddr size \n");
-					break;
-			}
+			size = ast2400_dram_table[size_conf];
 			break;
 		case ASPEED_G5_SDMC:
-			switch(size_conf) {
-				case 0:
-					size = 128*1024*1024;
-					break;
-				case 1:
-					size = 256*1024*1024;
-					break;
-				case 2:
-					size = 512*1024*1024;
-					break;
-				case 3:
-					size = 1024*1024*1024;
-					break;
-				default:
-					SDMCMSG("error ddr size \n");
-					break;
-			}			
+			size = ast2500_dram_table[size_conf];
 			break;
 		case ASPEED_G6_SDMC:
-			switch(size_conf) {
-				case 0:
-					size = 256*1024*1024;
-					break;
-				case 1:
-					size = 512*1024*1024;
-					break;
-				case 2:
-					size = 1024*1024*1024;
-					break;
-				case 3:
-					size = 2048*1024*1024;
-					break;
-				default:
-					SDMCMSG("error ddr size \n");
-					break;
-			}						
+			size = ast2600_dram_table[size_conf];
 			break;
 	}
 

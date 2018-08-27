@@ -101,7 +101,6 @@
 #define AST_SGPIO_BASE					0x1E780200	/* SGPIO */
 #define AST_SGPIO_S_BASE				0x1E780300	/* SGPIO Slave*/
 #define AST_RTC_BASE					0x1E781000	/* RTC */
-#define AST_TIMER_BASE              			0x1E782000	/* TIMER #0~2*/
 #define AST_UART1_BASE              			0x1E783000	/* UART1 */
 #define AST_UART0_BASE              			0x1E784000	/* UART5 */
 #define AST_WDT_BASE                			0x1E785000	/* WDT */

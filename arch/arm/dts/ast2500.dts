@@ -12,6 +12,12 @@
         #size-cells = <1>;
 	interrupt-parent = <&vic>;
 
+	timer {
+        	u-boot,dm-pre-reloc;
+		compatible = "aspeed,ast2500-timer";
+		reg = <0x1e782000 0x100>;
+	};
+
 #if 0
         aliases {
                 serial0 = &dma_uart1;

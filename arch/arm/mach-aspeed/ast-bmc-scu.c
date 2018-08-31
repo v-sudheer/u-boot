@@ -41,6 +41,7 @@
 #include <asm/arch/regs-bmc-scu.h>
 #include <asm/arch/ast-bmc-scu.h>
 #include <asm/arch/platform.h>
+#include <asm/arch/clk_aspeed.h>
 
 //#define ASPEED_SCU_LOCK
 //#define ASPEED_SCU_DEBUG
@@ -643,48 +644,7 @@ ast_scu_clk_stop(u32 clk_name,u8 stop_enable)
 
 
 //***********************************CLK Information***********************************
-#ifdef CONFIG_ARCH_AST1010
-extern u32
-ast_get_clk_source(void)
-{
-	return AST_PLL_CLOCK;
-}
-#else
-extern u32
-ast_get_clk_source(void)
-{
-	if(ast_scu_read(AST_SCU_HW_STRAP1) & CLK_25M_IN)
-		return AST_PLL_25MHZ;
-	else
-		return AST_PLL_24MHZ;
-}
-#endif
-
 #if defined(CONFIG_MACH_ASPEED_G5)
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 clk=0;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	if(h_pll_set & SCU_H_PLL_OFF)
-		return 0;
-	
-	// Programming
-	clk = ast_get_clk_source();
-	if(h_pll_set & SCU_H_PLL_BYPASS_EN) {
-		return clk;
-	} else {
-		//P = SCU24[18:13]
-		//M = SCU24[12:5]
-		//N = SCU24[4:0]
-		//hpll = 24MHz * [(M+1) /(N+1)] / (P+1)
-		clk = ((clk * (SCU_H_PLL_GET_MNUM(h_pll_set) + 1)) / (SCU_H_PLL_GET_NNUM(h_pll_set) + 1)) /(SCU_H_PLL_GET_PNUM(h_pll_set) + 1);
-	}
-	SCUDBUG("h_pll = %d\n",clk);
-	return clk;
-}
-
 
 extern u32
 ast_get_m_pll_clk(void)
@@ -710,13 +670,12 @@ ast_get_m_pll_clk(void)
 	return clk;
 }
 
-
 extern u32
 ast_get_ahbclk(void)
 {
 	unsigned int axi_div, ahb_div, hpll;
 
-	hpll = ast_get_h_pll_clk();
+	hpll = aspeed_get_hpll_clk_rate();
 	//AST2500 A1 fix 
 	axi_div = 2;
 	ahb_div = (SCU_HW_STRAP_GET_AXI_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) + 1); 
@@ -811,113 +770,7 @@ ast_get_d_pll_clk(void)
 	return clk;
 }
 
-
-#elif defined(CONFIG_ARCH_AST1010)
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 speed,clk=0;
-	u32 OD, NUM, DENUM;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	clk = AST_PLL_CLOCK;
-	OD = (1 << (SCU_H_PLL_GET_DIV(h_pll_set)));
-	NUM = SCU_H_PLL_GET_NUM(h_pll_set);
-	DENUM = SCU_H_PLL_GET_DENUM(h_pll_set);
-	//hpll = 24MHz * (Numerator+1) / ((OD) * (Denumerator+1))
-	clk = clk * (NUM + 1) / OD / (DENUM + 1);
-
-//	printf("h_pll = %d\n",clk);
-	return clk;
-}
-
-extern u32
-ast_get_ahbclk(void)
-{
-	return ast_get_h_pll_clk();
-}
-
-
-extern u32
-ast_get_ahb_div(void)
-{
-	u32 div = ast_scu_read(AST_SCU_CLK_SEL);
-	div = SCU_GET_AHB_DIV(div);
-	div = (div + 1) * 2;
-	return div;
-}
-
-extern u32
-ast_get_pclk(void)
-{
-        unsigned int div, hpll;
-
-        hpll = ast_get_h_pll_clk();
-        div = SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-        if((div >> 2) == 1) {
-                SCUDBUG("div=%d , return 24000000\n", div);
-                return 24000000;
-        } else {
-                SCUDBUG("hpll=%d, Div=%d, PCLK=%d\n", hpll, div, hpll/div);
-                div = (div+1) << 1;
-                return (hpll/div);
-        }
-
-//      SCUDBUG("HPLL=%d, Div=%d, PCLK=%d\n", hpll, div, hpll/div);
-//      return (hpll/div);
-
-}
-
 #else
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 speed,clk=0;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	if(h_pll_set & SCU_H_PLL_OFF)
-		return 0;
-	
-	if(h_pll_set & SCU_H_PLL_PARAMETER) {
-		// Programming
-		clk = ast_get_clk_source();
-		if(h_pll_set & SCU_H_PLL_BYPASS_EN) {
-			return clk;
-		} else {
-			//OD == SCU24[4]
-			//OD = SCU_H_PLL_GET_DIV(h_pll_set);
-			//Numerator == SCU24[10:5]
-			//num = SCU_H_PLL_GET_NUM(h_pll_set);
-			//Denumerator == SCU24[3:0]
-			//denum = SCU_H_PLL_GET_DENUM(h_pll_set);
-
-			//hpll = 24MHz * (2-OD) * ((Numerator+2)/(Denumerator+1))
-			clk = ((clk * (2-SCU_H_PLL_GET_DIV(h_pll_set)) * (SCU_H_PLL_GET_NUM(h_pll_set)+2))/(SCU_H_PLL_GET_DENUM(h_pll_set)+1));
-		}
-	} else {
-		// HW Trap
-		speed = SCU_HW_STRAP_GET_H_PLL_CLK(ast_scu_read(AST_SCU_HW_STRAP1));
-		switch (speed) {
-			case 0:
-				clk = 384000000; 
-				break;
-			case 1:
-				clk = 360000000; 
-				break;
-			case 2:
-				clk = 336000000; 
-				break;
-			case 3:
-				clk = 408000000; 
-				break;
-			default:
-				BUG(); 
-				break;
-		}		
-	}
-	SCUDBUG("h_pll = %d\n",clk);
-	return clk;
-}
 
 
 extern u32
@@ -954,7 +807,7 @@ ast_get_ahbclk(void)
 {
 	unsigned int div, hpll;
 
-	hpll = ast_get_h_pll_clk();
+	hpll = aspeed_get_hpll_clk_rate();
 	div = SCU_HW_STRAP_GET_CPU_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1));
 	div += 1;
 	
@@ -1003,7 +856,7 @@ ast_get_pclk(void)
 {
 	unsigned int div, hpll;
 
-	hpll = ast_get_h_pll_clk();
+	hpll = aspeed_get_hpll_clk_rate();
 	div = SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL));
 #ifdef CONFIG_MACH_ASPEED_G5
 	div = (div+1) << 2;
@@ -1024,7 +877,7 @@ ast_get_lhclk(void)
 	u32 clk_sel = ast_scu_read(AST_SCU_CLK_SEL);
 //FPGA AST1070 is default 100/2 Mhz input
 //	return 50000000;	
-	hpll = ast_get_h_pll_clk();
+	hpll = aspeed_get_hpll_clk_rate();
 	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
 		div = SCU_GET_LHCLK_DIV(clk_sel);
 #ifdef CONFIG_MACH_ASPEED_G5
@@ -1089,7 +942,7 @@ ast_get_sd_clock_src(void)
 {
 	u32 clk=0, sd_div;
 
-	clk = ast_get_h_pll_clk();
+	clk = aspeed_get_hpll_clk_rate();
 	//get div
 	sd_div = SCU_CLK_SD_GET_DIV(ast_scu_read(AST_SCU_CLK_SEL));
 #ifdef CONFIG_MACH_ASPEED_G5
@@ -1119,7 +972,7 @@ ast_scu_show_system_info (void)
 #ifdef CONFIG_MACH_ASPEED_G5
 	u32 axi_div, ahb_div, h_pll, pclk_div;
 
-	h_pll = ast_get_h_pll_clk();
+	h_pll = aspeed_get_hpll_clk_rate();
 
 	//AST2500 A1 fix 
 	axi_div = 2;
@@ -1135,7 +988,7 @@ ast_scu_show_system_info (void)
 #else
 	u32 h_pll, ahb_div, pclk_div;
 
-	h_pll = ast_get_h_pll_clk();
+	h_pll = aspeed_get_hpll_clk_rate();
 
 	ahb_div = SCU_HW_STRAP_GET_CPU_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1));
 	ahb_div += 1;

@@ -6,6 +6,7 @@
 #include <common.h>
 #include <command.h>
 #include <asm/io.h>
+#include <asm/arch/clk_aspeed.h>
 #include <asm/arch/ast-scu.h>
 #include <asm/arch/ast-sdmc.h>
 
@@ -14,20 +15,6 @@ int print_cpuinfo(void)
 {
 	char buf[32];
 
-#ifdef AST_SOC_CAM
-#ifdef CONFIG_FPGA_ASPEED
-	printf("AST1220 FPGA\n");
-#else
-	ast_scu_revision_id();
-
-	ast_scu_sys_rest_info();
-
-	printf("PLL :   %4s MHz\n", strmhz(buf, ast_get_clk_source()));
-	printf("CPU :   %4s MHz\n", strmhz(buf, ast_get_h_pll_clk()));
-	printf("MEM :	%4s MHz\n", strmhz(buf, ast_get_m_pll_clk() * 2));
-#endif
-
-#else
 	ulong size = 0;
 
 	ast_scu_revision_id();
@@ -37,8 +24,8 @@ int print_cpuinfo(void)
 #ifdef CONFIG_MACH_ASPEED_G5
 	ast_scu_security_info();
 #endif
-	printf("PLL :   %4s MHz\n", strmhz(buf, ast_get_clk_source()));
-	printf("CPU :   %4s MHz\n", strmhz(buf, ast_get_h_pll_clk()));
+	printf("PLL :   %4s MHz\n", strmhz(buf, aspeed_get_clk_in_rate()));
+	printf("CPU :   %4s MHz\n", strmhz(buf, aspeed_get_hpll_clk_rate()));
 #if defined(CONFIG_MACH_ASPEED_G5)
 	printf("MEM :	%4s MHz, ECC: %s, ",
 	       strmhz(buf, ast_get_m_pll_clk() * 2),
@@ -80,7 +67,6 @@ int print_cpuinfo(void)
 		printf("eSPI Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
 	else
 		printf("LPC Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
-#endif
 
 	return 0;
 }

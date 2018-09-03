@@ -18,16 +18,16 @@
 /*
  * MAC Clock Delay settings, taken from Aspeed SDK
  */
-#define RGMII_TXCLK_ODLY		8
-#define RMII_RXCLK_IDLY		2
+#define RGMII_TXCLK_ODLY 8
+#define RMII_RXCLK_IDLY 2
 
 /*
  * TGMII Clock Duty constants, taken from Aspeed SDK
  */
-#define RGMII2_TXCK_DUTY	0x66
-#define RGMII1_TXCK_DUTY	0x64
+#define RGMII2_TXCK_DUTY 0x66
+#define RGMII1_TXCK_DUTY 0x64
 
-#define D2PLL_DEFAULT_RATE	(250 * 1000 * 1000)
+#define D2PLL_DEFAULT_RATE (250 * 1000 * 1000)
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -43,7 +43,8 @@ DECLARE_GLOBAL_DATA_PTR;
  * D-PLL and D2-PLL have extra divider (OD + 1), which is not
  * yet needed and ignored by clock configurations.
  */
-struct ast2500_div_config {
+struct ast2500_div_config
+{
 	unsigned int num;
 	unsigned int denum;
 	unsigned int post_div;
@@ -56,10 +57,8 @@ struct ast2500_div_config {
 static ulong ast2500_get_mpll_rate(ulong clkin, u32 mpll_reg)
 {
 	const ulong num = (mpll_reg & SCU_MPLL_NUM_MASK) >> SCU_MPLL_NUM_SHIFT;
-	const ulong denum = (mpll_reg & SCU_MPLL_DENUM_MASK)
-			>> SCU_MPLL_DENUM_SHIFT;
-	const ulong post_div = (mpll_reg & SCU_MPLL_POST_MASK)
-			>> SCU_MPLL_POST_SHIFT;
+	const ulong denum = (mpll_reg & SCU_MPLL_DENUM_MASK) >> SCU_MPLL_DENUM_SHIFT;
+	const ulong post_div = (mpll_reg & SCU_MPLL_POST_MASK) >> SCU_MPLL_POST_SHIFT;
 
 	return (clkin * ((num + 1) / (denum + 1))) / (post_div + 1);
 }
@@ -71,10 +70,8 @@ static ulong ast2500_get_mpll_rate(ulong clkin, u32 mpll_reg)
 static ulong ast2500_get_hpll_rate(ulong clkin, u32 hpll_reg)
 {
 	const ulong num = (hpll_reg & SCU_HPLL_NUM_MASK) >> SCU_HPLL_NUM_SHIFT;
-	const ulong denum = (hpll_reg & SCU_HPLL_DENUM_MASK)
-			>> SCU_HPLL_DENUM_SHIFT;
-	const ulong post_div = (hpll_reg & SCU_HPLL_POST_MASK)
-			>> SCU_HPLL_POST_SHIFT;
+	const ulong denum = (hpll_reg & SCU_HPLL_DENUM_MASK) >> SCU_HPLL_DENUM_SHIFT;
+	const ulong post_div = (hpll_reg & SCU_HPLL_POST_MASK) >> SCU_HPLL_POST_SHIFT;
 
 	return (clkin * ((num + 1) / (denum + 1))) / (post_div + 1);
 }
@@ -82,7 +79,8 @@ static ulong ast2500_get_hpll_rate(ulong clkin, u32 hpll_reg)
 static ulong ast2500_get_clkin(struct ast2500_scu *scu)
 {
 	return readl(&scu->hwstrap) & SCU_HWSTRAP_CLKIN_25MHZ
-			? 25 * 1000 * 1000 : 24 * 1000 * 1000;
+		   ? 25 * 1000 * 1000
+		   : 24 * 1000 * 1000;
 }
 
 /**
@@ -122,7 +120,8 @@ static ulong ast2500_clk_get_rate(struct clk *clk)
 	ulong clkin = ast2500_get_clkin(priv->scu);
 	ulong rate;
 
-	switch (clk->id) {
+	switch (clk->id)
+	{
 	case PLL_HPLL:
 	case ARMCLK:
 		/*
@@ -137,16 +136,13 @@ static ulong ast2500_clk_get_rate(struct clk *clk)
 					     readl(&priv->scu->m_pll_param));
 		break;
 	case BCLK_PCLK:
-		{
-			ulong apb_div = 4 + 4 * ((readl(&priv->scu->clk_sel1)
-						  & SCU_PCLK_DIV_MASK)
-						 >> SCU_PCLK_DIV_SHIFT);
-			rate = ast2500_get_hpll_rate(clkin,
-						     readl(&priv->
-							   scu->h_pll_param));
-			rate = rate / apb_div;
-		}
-		break;
+	{
+		ulong apb_div = 4 + 4 * ((readl(&priv->scu->clk_sel1) & SCU_PCLK_DIV_MASK) >> SCU_PCLK_DIV_SHIFT);
+		rate = ast2500_get_hpll_rate(clkin,
+					     readl(&priv->scu->h_pll_param));
+		rate = rate / apb_div;
+	}
+	break;
 	case PCLK_UART1:
 		rate = ast2500_get_uart_clk_rate(priv->scu, 1);
 		break;
@@ -189,27 +185,27 @@ static ulong ast2500_calc_clock_config(ulong input_rate, ulong requested_rate,
 	const ulong input_rate_khz = input_rate / 1000;
 	const ulong rate_khz = requested_rate / 1000;
 	const struct ast2500_div_config max_vals = *cfg;
-	struct ast2500_div_config it = { 0, 0, 0 };
+	struct ast2500_div_config it = {0, 0, 0};
 	ulong delta = rate_khz;
 	ulong new_rate_khz = 0;
 
-	for (; it.denum <= max_vals.denum; ++it.denum) {
+	for (; it.denum <= max_vals.denum; ++it.denum)
+	{
 		for (it.post_div = 0; it.post_div <= max_vals.post_div;
-		     ++it.post_div) {
-			it.num = (rate_khz * (it.post_div + 1) / input_rate_khz)
-			    * (it.denum + 1);
+		     ++it.post_div)
+		{
+			it.num = (rate_khz * (it.post_div + 1) / input_rate_khz) * (it.denum + 1);
 			if (it.num > max_vals.num)
 				continue;
 
-			new_rate_khz = (input_rate_khz
-					* ((it.num + 1) / (it.denum + 1)))
-			    / (it.post_div + 1);
+			new_rate_khz = (input_rate_khz * ((it.num + 1) / (it.denum + 1))) / (it.post_div + 1);
 
 			/* Keep the rate below requested one. */
 			if (new_rate_khz > rate_khz)
 				continue;
 
-			if (new_rate_khz - rate_khz < delta) {
+			if (new_rate_khz - rate_khz < delta)
+			{
 				delta = new_rate_khz - rate_khz;
 				*cfg = it;
 				if (delta == 0)
@@ -226,19 +222,16 @@ static ulong ast2500_configure_ddr(struct ast2500_scu *scu, ulong rate)
 	ulong clkin = ast2500_get_clkin(scu);
 	u32 mpll_reg;
 	struct ast2500_div_config div_cfg = {
-		.num = (SCU_MPLL_NUM_MASK >> SCU_MPLL_NUM_SHIFT),
-		.denum = (SCU_MPLL_DENUM_MASK >> SCU_MPLL_DENUM_SHIFT),
-		.post_div = (SCU_MPLL_POST_MASK >> SCU_MPLL_POST_SHIFT),
+	    .num = (SCU_MPLL_NUM_MASK >> SCU_MPLL_NUM_SHIFT),
+	    .denum = (SCU_MPLL_DENUM_MASK >> SCU_MPLL_DENUM_SHIFT),
+	    .post_div = (SCU_MPLL_POST_MASK >> SCU_MPLL_POST_SHIFT),
 	};
 
 	ast2500_calc_clock_config(clkin, rate, &div_cfg);
 
 	mpll_reg = readl(&scu->m_pll_param);
-	mpll_reg &= ~(SCU_MPLL_POST_MASK | SCU_MPLL_NUM_MASK
-		      | SCU_MPLL_DENUM_MASK);
-	mpll_reg |= (div_cfg.post_div << SCU_MPLL_POST_SHIFT)
-	    | (div_cfg.num << SCU_MPLL_NUM_SHIFT)
-	    | (div_cfg.denum << SCU_MPLL_DENUM_SHIFT);
+	mpll_reg &= ~(SCU_MPLL_POST_MASK | SCU_MPLL_NUM_MASK | SCU_MPLL_DENUM_MASK);
+	mpll_reg |= (div_cfg.post_div << SCU_MPLL_POST_SHIFT) | (div_cfg.num << SCU_MPLL_NUM_SHIFT) | (div_cfg.denum << SCU_MPLL_DENUM_SHIFT);
 
 	ast_scu_unlock(scu);
 	writel(mpll_reg, &scu->m_pll_param);
@@ -270,17 +263,21 @@ static ulong ast2500_configure_mac(struct ast2500_scu *scu, int index)
 
 	divisor = hpll_rate / required_rate;
 
-	if (divisor < 4) {
+	if (divisor < 4)
+	{
 		/* Clock can't run fast enough, but let's try anyway */
 		debug("MAC clock too slow\n");
 		divisor = 4;
-	} else if (divisor > 16) {
+	}
+	else if (divisor > 16)
+	{
 		/* Can't slow down the clock enough, but let's try anyway */
 		debug("MAC clock too fast\n");
 		divisor = 16;
 	}
 
-	switch (index) {
+	switch (index)
+	{
 	case 1:
 		reset_bit = SCU_SYSRESET_MAC1;
 		clkstop_bit = SCU_CLKSTOP_MAC1;
@@ -308,8 +305,7 @@ static ulong ast2500_configure_mac(struct ast2500_scu *scu, int index)
 	mdelay(10);
 	clrbits_le32(&scu->sysreset_ctrl1, reset_bit);
 
-	writel((RGMII2_TXCK_DUTY << SCU_CLKDUTY_RGMII2TXCK_SHIFT)
-	       | (RGMII1_TXCK_DUTY << SCU_CLKDUTY_RGMII1TXCK_SHIFT),
+	writel((RGMII2_TXCK_DUTY << SCU_CLKDUTY_RGMII2TXCK_SHIFT) | (RGMII1_TXCK_DUTY << SCU_CLKDUTY_RGMII1TXCK_SHIFT),
 	       &scu->clk_duty_sel);
 
 	ast_scu_lock(scu);
@@ -327,22 +323,17 @@ static ulong ast2500_configure_d2pll(struct ast2500_scu *scu, ulong rate)
 	const u32 d2_pll_sip = 0x11;
 	const u32 d2_pll_sic = 0x18;
 	u32 clk_delay_settings =
-	    (RMII_RXCLK_IDLY << SCU_MICDS_MAC1RMII_RDLY_SHIFT)
-	    | (RMII_RXCLK_IDLY << SCU_MICDS_MAC2RMII_RDLY_SHIFT)
-	    | (RGMII_TXCLK_ODLY << SCU_MICDS_MAC1RGMII_TXDLY_SHIFT)
-	    | (RGMII_TXCLK_ODLY << SCU_MICDS_MAC2RGMII_TXDLY_SHIFT);
+	    (RMII_RXCLK_IDLY << SCU_MICDS_MAC1RMII_RDLY_SHIFT) | (RMII_RXCLK_IDLY << SCU_MICDS_MAC2RMII_RDLY_SHIFT) | (RGMII_TXCLK_ODLY << SCU_MICDS_MAC1RGMII_TXDLY_SHIFT) | (RGMII_TXCLK_ODLY << SCU_MICDS_MAC2RGMII_TXDLY_SHIFT);
 	struct ast2500_div_config div_cfg = {
-		.num = SCU_D2PLL_NUM_MASK >> SCU_D2PLL_NUM_SHIFT,
-		.denum = SCU_D2PLL_DENUM_MASK >> SCU_D2PLL_DENUM_SHIFT,
-		.post_div = SCU_D2PLL_POST_MASK >> SCU_D2PLL_POST_SHIFT,
+	    .num = SCU_D2PLL_NUM_MASK >> SCU_D2PLL_NUM_SHIFT,
+	    .denum = SCU_D2PLL_DENUM_MASK >> SCU_D2PLL_DENUM_SHIFT,
+	    .post_div = SCU_D2PLL_POST_MASK >> SCU_D2PLL_POST_SHIFT,
 	};
 	ulong clkin = ast2500_get_clkin(scu);
 	ulong new_rate;
 
 	ast_scu_unlock(scu);
-	writel((d2_pll_ext_param << SCU_D2PLL_EXT1_PARAM_SHIFT)
-	       | SCU_D2PLL_EXT1_OFF
-	       | SCU_D2PLL_EXT1_RESET, &scu->d2_pll_ext_param[0]);
+	writel((d2_pll_ext_param << SCU_D2PLL_EXT1_PARAM_SHIFT) | SCU_D2PLL_EXT1_OFF | SCU_D2PLL_EXT1_RESET, &scu->d2_pll_ext_param[0]);
 
 	/*
 	 * Select USB2.0 port1 PHY clock as a clock source for GCRT.
@@ -352,20 +343,15 @@ static ulong ast2500_configure_d2pll(struct ast2500_scu *scu, ulong rate)
 			SCU_MISC_GCRT_USB20CLK);
 
 	new_rate = ast2500_calc_clock_config(clkin, rate, &div_cfg);
-	writel((d2_pll_sip << SCU_D2PLL_SIP_SHIFT)
-	       | (d2_pll_sic << SCU_D2PLL_SIC_SHIFT)
-	       | (div_cfg.num << SCU_D2PLL_NUM_SHIFT)
-	       | (div_cfg.denum << SCU_D2PLL_DENUM_SHIFT)
-	       | (div_cfg.post_div << SCU_D2PLL_POST_SHIFT),
+	writel((d2_pll_sip << SCU_D2PLL_SIP_SHIFT) | (d2_pll_sic << SCU_D2PLL_SIC_SHIFT) | (div_cfg.num << SCU_D2PLL_NUM_SHIFT) | (div_cfg.denum << SCU_D2PLL_DENUM_SHIFT) | (div_cfg.post_div << SCU_D2PLL_POST_SHIFT),
 	       &scu->d2_pll_param);
 
 	clrbits_le32(&scu->d2_pll_ext_param[0],
 		     SCU_D2PLL_EXT1_OFF | SCU_D2PLL_EXT1_RESET);
 
 	clrsetbits_le32(&scu->misc_ctrl2,
-			SCU_MISC2_RGMII_HPLL | SCU_MISC2_RMII_MPLL
-			| SCU_MISC2_RGMII_CLKDIV_MASK |
-			SCU_MISC2_RMII_CLKDIV_MASK,
+			SCU_MISC2_RGMII_HPLL | SCU_MISC2_RMII_MPLL | SCU_MISC2_RGMII_CLKDIV_MASK |
+			    SCU_MISC2_RMII_CLKDIV_MASK,
 			(4 << SCU_MISC2_RMII_CLKDIV_SHIFT));
 
 	writel(clk_delay_settings | SCU_MICDS_RGMIIPLL, &scu->mac_clk_delay);
@@ -382,7 +368,8 @@ static ulong ast2500_clk_set_rate(struct clk *clk, ulong rate)
 	struct ast2500_clk_priv *priv = dev_get_priv(clk->dev);
 
 	ulong new_rate;
-	switch (clk->id) {
+	switch (clk->id)
+	{
 	case PLL_MPLL:
 	case MCLK_DDR:
 		new_rate = ast2500_configure_ddr(priv->scu, rate);
@@ -401,7 +388,8 @@ static int ast2500_clk_enable(struct clk *clk)
 {
 	struct ast2500_clk_priv *priv = dev_get_priv(clk->dev);
 
-	switch (clk->id) {
+	switch (clk->id)
+	{
 	/*
 	 * For MAC clocks the clock rate is
 	 * configured based on whether RGMII or RMII mode has been selected
@@ -423,9 +411,9 @@ static int ast2500_clk_enable(struct clk *clk)
 }
 
 struct clk_ops ast2500_clk_ops = {
-	.get_rate = ast2500_clk_get_rate,
-	.set_rate = ast2500_clk_set_rate,
-	.enable = ast2500_clk_enable,
+    .get_rate = ast2500_clk_get_rate,
+    .set_rate = ast2500_clk_set_rate,
+    .enable = ast2500_clk_enable,
 };
 
 static int ast2500_clk_probe(struct udevice *dev)
@@ -452,55 +440,61 @@ static int ast2500_clk_bind(struct udevice *dev)
 }
 
 static const struct udevice_id ast2500_clk_ids[] = {
-	{ .compatible = "aspeed,ast2500-scu" },
-	{ }
-};
+    {.compatible = "aspeed,ast2500-scu"},
+    {}};
 
 U_BOOT_DRIVER(aspeed_ast2500_scu) = {
-	.name		= "aspeed_ast2500_scu",
-	.id		= UCLASS_CLK,
-	.of_match	= ast2500_clk_ids,
-	.priv_auto_alloc_size = sizeof(struct ast2500_clk_priv),
-	.ops		= &ast2500_clk_ops,
-	.bind		= ast2500_clk_bind,
-	.probe		= ast2500_clk_probe,
+    .name = "aspeed_ast2500_scu",
+    .id = UCLASS_CLK,
+    .of_match = ast2500_clk_ids,
+    .priv_auto_alloc_size = sizeof(struct ast2500_clk_priv),
+    .ops = &ast2500_clk_ops,
+    .bind = ast2500_clk_bind,
+    .probe = ast2500_clk_probe,
 };
 #else
-#define ASPEED_SCU_BASE 	0x1e6e2000
+#define ASPEED_SCU_BASE 0x1e6e2000
 
 #ifdef CONFIG_MACH_ASPEED_G6
-#define ASPEED_STRAP		0x500
+#define ASPEED_STRAP 0x500
 #else
-#define ASPEED_STRAP		0x70
+#define ASPEED_STRAP 0x70
 #endif
 
-#define  CLKIN_25MHZ_EN		BIT(23)
-#define  AST2400_CLK_SOURCE_SEL	BIT(18)
+#define CLKIN_25MHZ_EN BIT(23)
+#define AST2400_CLK_SOURCE_SEL BIT(18)
 
 #ifdef CONFIG_FPGA_ASPEED
-extern u32 aspeed_get_clk_in_rate(void) {
+extern u32 aspeed_get_clk_in_rate(void)
+{
 	return 24000000;
 }
 #else
-extern u32 aspeed_get_clk_in_rate(void) {
+extern u32 aspeed_get_clk_in_rate(void)
+{
 	u32 clkin;
-	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);	
+	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
 #ifdef CONFIG_MACH_ASPEED_G6
 	if (strap & CLKIN_25MHZ_EN)
 		clkin = 25000000;
 	else
 		clkin = 24000000;
-#elif defined (CONFIG_MACH_ASPEED_G5)
+#elif defined(CONFIG_MACH_ASPEED_G5)
 	if (strap & CLKIN_25MHZ_EN)
 		clkin = 25000000;
 	else
 		clkin = 24000000;
-#elif defined (CONFIG_MACH_ASPEED_G4)
-	if (strap & CLKIN_25MHZ_EN) {
+#elif defined(CONFIG_MACH_ASPEED_G4)
+	if (strap & CLKIN_25MHZ_EN)
+	{
 		clkin = 25000000;
-	} else if (strap & AST2400_CLK_SOURCE_SEL) {
+	}
+	else if (strap & AST2400_CLK_SOURCE_SEL)
+	{
 		clkin = 48000000;
-	} else {
+	}
+	else
+	{
 		clkin = 24000000;
 	}
 #else
@@ -511,20 +505,20 @@ extern u32 aspeed_get_clk_in_rate(void) {
 #endif
 
 #ifdef CONFIG_MACH_ASPEED_G6
-#define ASPEED_HPLL_PARAM	0x200
+#define ASPEED_HPLL_PARAM 0x200
 #else
-#define ASPEED_HPLL_PARAM	0x24
-#endif 
+#define ASPEED_HPLL_PARAM 0x24
+#endif
 
-#define  AST2600_HPLL_BYPASS_EN	BIT(20)
+#define AST2600_HPLL_BYPASS_EN BIT(20)
 
-#define  AST2500_HPLL_BYPASS_EN	BIT(20)
-#define  AST2400_HPLL_PROGRAMMED BIT(18)
-#define  AST2400_HPLL_BYPASS_EN	BIT(17)
-
+#define AST2500_HPLL_BYPASS_EN BIT(20)
+#define AST2400_HPLL_PROGRAMMED BIT(18)
+#define AST2400_HPLL_BYPASS_EN BIT(17)
 
 #ifdef CONFIG_FPGA_ASPEED
-extern u32 aspeed_get_hpll_clk_rate(void) {
+extern u32 aspeed_get_hpll_clk_rate(void)
+{
 	return 24000000;
 }
 #else
@@ -533,12 +527,15 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 	unsigned int mult, div;
 	u32 val = readl(ASPEED_SCU_BASE + ASPEED_HPLL_PARAM);
 	u32 clkin = aspeed_get_clk_in_rate();
-	
+
 #ifdef CONFIG_MACH_ASPEED_G6
-	if (val & AST2600_HPLL_BYPASS_EN) {
+	if (val & AST2600_HPLL_BYPASS_EN)
+	{
 		/* Pass through mode */
 		mult = div = 1;
-	} else {
+	}
+	else
+	{
 		/* F = clkin * [(M+1) / (N+1)] / (P + 1) */
 		u32 p = (val >> 13) & 0x3f;
 		u32 m = (val >> 5) & 0xff;
@@ -547,11 +544,14 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 		mult = (m + 1) / (n + 1);
 		div = p + 1;
 	}
-#elif defined (CONFIG_MACH_ASPEED_G5)
-	if (val & AST2500_HPLL_BYPASS_EN) {
+#elif defined(CONFIG_MACH_ASPEED_G5)
+	if (val & AST2500_HPLL_BYPASS_EN)
+	{
 		/* Pass through mode */
 		mult = div = 1;
-	} else {
+	}
+	else
+	{
 		/* F = clkin * [(M+1) / (N+1)] / (P + 1) */
 		u32 p = (val >> 13) & 0x3f;
 		u32 m = (val >> 5) & 0xff;
@@ -560,34 +560,45 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 		mult = (m + 1) / (n + 1);
 		div = p + 1;
 	}
-#elif defined (CONFIG_MACH_ASPEED_G4)
+#elif defined(CONFIG_MACH_ASPEED_G4)
 	const u16 hpll_rates[][4] = {
-		{384, 360, 336, 408},
-		{400, 375, 350, 425},
+	    {384, 360, 336, 408},
+	    {400, 375, 350, 425},
 	};
 
-	if (val & AST2400_HPLL_PROGRAMMED) {
-		if (val & AST2400_HPLL_BYPASS_EN) {
+	if (val & AST2400_HPLL_PROGRAMMED)
+	{
+		if (val & AST2400_HPLL_BYPASS_EN)
+		{
 			/* Pass through mode */
 			mult = div = 1;
-		} else {
+		}
+		else
+		{
 			/* F = 24Mhz * (2-OD) * [(N + 2) / (D + 1)] */
 			u32 n = (val >> 5) & 0x3f;
 			u32 od = (val >> 4) & 0x1;
 			u32 d = val & 0xf;
-		
+
 			mult = (2 - od) * (n + 2);
 			div = d + 1;
 		}
-	} else {
-		//fix 
+	}
+	else
+	{
+		//fix
 		val = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
 		u16 rate = (val >> 8) & 3;
-		if (val & CLKIN_25MHZ_EN) {
+		if (val & CLKIN_25MHZ_EN)
+		{
 			clkin = hpll_rates[1][rate];
-		} else if (val & AST2400_CLK_SOURCE_SEL) {
+		}
+		else if (val & AST2400_CLK_SOURCE_SEL)
+		{
 			clkin = hpll_rates[0][rate];
-		} else {
+		}
+		else
+		{
 			clkin = hpll_rates[0][rate];
 		}
 		clkin *= 1000000;
@@ -603,20 +614,21 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 #endif
 
 #ifdef CONFIG_FPGA_ASPEED
-extern u32 aspeed_get_h_clk_rate(void) {
+extern u32 aspeed_get_h_clk_rate(void)
+{
 	return 24000000;
 }
 #else
 extern u32 aspeed_get_h_clk_rate(void)
 {
 	u32 axi_div, ahb_div, clk;
-	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);	
+	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
 	u32 hpll = aspeed_get_hpll_clk_rate();
-#if defined (CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
+#if defined(CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
 	axi_div = 2;
 	ahb_div = ((strap >> 9) & 0x7) + 1;
-	clk = (hpll/axi_div) / ahb_div;
-#elif defined (CONFIG_MACH_ASPEED_G4)
+	clk = (hpll / axi_div) / ahb_div;
+#elif defined(CONFIG_MACH_ASPEED_G4)
 	ahb_div = ((strap >> 10) & 0x3) + 1;
 	clk = hpll / ahb_div;
 #else
@@ -626,25 +638,28 @@ extern u32 aspeed_get_h_clk_rate(void)
 }
 #endif
 
-#define ASPEED_MPLL_PARAM	0x20
-#define  AST2500_MPLL_BYPASS_EN	BIT(20)
-#define  AST2500_MPLL_OFF BIT(19)
-#define  AST2400_MPLL_BYPASS_EN	BIT(17)
-#define  AST2400_MPLL_OFF BIT(16)
+#define ASPEED_MPLL_PARAM 0x20
+#define AST2500_MPLL_BYPASS_EN BIT(20)
+#define AST2500_MPLL_OFF BIT(19)
+#define AST2400_MPLL_BYPASS_EN BIT(17)
+#define AST2400_MPLL_OFF BIT(16)
 
 extern u32 aspeed_get_mpll_clk_rate(void)
 {
-	unsigned int mult, div;	
+	unsigned int mult, div;
 	u32 m_pll_set = readl(ASPEED_SCU_BASE + ASPEED_MPLL_PARAM);
 	u32 clkin = aspeed_get_clk_in_rate();
-	
-#if defined (CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
-	if(m_pll_set & AST2500_MPLL_OFF)
+
+#if defined(CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
+	if (m_pll_set & AST2500_MPLL_OFF)
 		return 0;
 
-	if(m_pll_set & AST2500_MPLL_BYPASS_EN) {
+	if (m_pll_set & AST2500_MPLL_BYPASS_EN)
+	{
 		return clkin;
-	} else {
+	}
+	else
+	{
 		u32 p = (m_pll_set >> 13) & 0x3f;
 		u32 m = (m_pll_set >> 5) & 0xff;
 		u32 n = m_pll_set & 0xf;
@@ -653,17 +668,20 @@ extern u32 aspeed_get_mpll_clk_rate(void)
 		mult = 1;
 		div = (m + 1) * (p + 1) * (n + 1);
 	}
-#elif defined (CONFIG_MACH_ASPEED_G4)
-	if(m_pll_set & AST2400_MPLL_OFF)
+#elif defined(CONFIG_MACH_ASPEED_G4)
+	if (m_pll_set & AST2400_MPLL_OFF)
 		return 0;
 
-	if(m_pll_set & AST2400_MPLL_BYPASS_EN) {
+	if (m_pll_set & AST2400_MPLL_BYPASS_EN)
+	{
 		return clkin;
-	} else {
+	}
+	else
+	{
 		u32 od = (m_pll_set >> 4) & 0x1;
 		u32 n = (m_pll_set >> 5) & 0x3f;
 		u32 d = m_pll_set & 0xf;
-		
+
 		//mpll = 24MHz * (2-OD) * ((Numerator+2)/(Denumerator+1))
 		mult = (2 - od) * (n + 2);
 		div = (d + 1);
@@ -675,37 +693,40 @@ extern u32 aspeed_get_mpll_clk_rate(void)
 }
 
 #ifdef CONFIG_MACH_ASPEED_G5
-#define ASPEED_DPLL_PARAM	0x28
+#define ASPEED_DPLL_PARAM 0x28
 
-#define ASPEED_DPLL_EXT0_PARAM	0x130
-#define  AST2500_DPLL_BYPASS_EN	BIT(1)
-#define  AST2500_DPLL_OFF BIT(0)
+#define ASPEED_DPLL_EXT0_PARAM 0x130
+#define AST2500_DPLL_BYPASS_EN BIT(1)
+#define AST2500_DPLL_OFF BIT(0)
 
 /*	AST_SCU_D_PLL : 0x28 - D-PLL Parameter  register	*/
-#define SCU_D_PLL_GET_ODNUM(x)			
-#define SCU_D_PLL_GET_PNUM(x)			
-#define SCU_D_PLL_GET_NNUM(x)			
+#define SCU_D_PLL_GET_ODNUM(x)
+#define SCU_D_PLL_GET_PNUM(x)
+#define SCU_D_PLL_GET_NNUM(x)
 
 /*	AST_SCU_D_PLL_EXTEND : 0x130 - D-PLL Extended Parameter  register	*/
-#define SCU_D_PLL_SET_MODE(x)			((x & 0x3) << 3)
+#define SCU_D_PLL_SET_MODE(x) ((x & 0x3) << 3)
 
 extern u32 aspeed_get_dpll_clk_rate(void)
 {
-	unsigned int mult, div;	
+	unsigned int mult, div;
 	u32 d_pll_set = readl(ASPEED_SCU_BASE + ASPEED_DPLL_PARAM);
-	u32 d_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_DPLL_EXT0_PARAM);	
+	u32 d_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_DPLL_EXT0_PARAM);
 	u32 clkin = aspeed_get_clk_in_rate();
 
-	if(d_pll_ext & AST2500_DPLL_OFF)
+	if (d_pll_ext & AST2500_DPLL_OFF)
 		return 0;
 
-	if(d_pll_ext & AST2500_DPLL_BYPASS_EN) {
+	if (d_pll_ext & AST2500_DPLL_BYPASS_EN)
+	{
 		return clkin;
-	} else {
+	}
+	else
+	{
 		u32 m = d_pll_set & 0xff;
 		u32 n = (d_pll_set >> 8) & 0x1f;
-		u32 p = (d_pll_set >>13) & 0x3f;
-		u32 o = (d_pll_set >>19) & 0x7;
+		u32 p = (d_pll_set >> 13) & 0x3f;
+		u32 o = (d_pll_set >> 19) & 0x7;
 
 		//dpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
 		mult = m + 1;
@@ -713,55 +734,60 @@ extern u32 aspeed_get_dpll_clk_rate(void)
 	}
 	return (clkin * mult / div);
 }
-#endif 
+#endif
 
-#define ASPEED_D2PLL_PARAM	0x1C
-#define  AST2400_D2PLL_OFF BIT(17)
-#define  AST2400_D2PLL_BYPASS_EN	BIT(18)
+#define ASPEED_D2PLL_PARAM 0x1C
+#define AST2400_D2PLL_OFF BIT(17)
+#define AST2400_D2PLL_BYPASS_EN BIT(18)
 
-
-#define ASPEED_D2PLL_EXTEND_PARAM	0x13C
-#define  AST2500_D2PLL_OFF BIT(0)
-#define  AST2500_D2PLL_BYPASS_EN	BIT(1)
+#define ASPEED_D2PLL_EXTEND_PARAM 0x13C
+#define AST2500_D2PLL_OFF BIT(0)
+#define AST2500_D2PLL_BYPASS_EN BIT(1)
 
 extern u32 aspeed_get_d2pll_clk_rate(void)
 {
-	unsigned int mult, div;	
-    u32 d2_pll_set = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_PARAM);
-    u32 d2_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_EXTEND_PARAM);
+	unsigned int mult, div;
+	u32 d2_pll_set = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_PARAM);
+	u32 d2_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_EXTEND_PARAM);
 	u32 clkin = aspeed_get_clk_in_rate();
 
 #ifdef CONFIG_MACH_ASPEED_G6
 
-#elif defined (CONFIG_MACH_ASPEED_G5)
-	if(d2_pll_ext & AST2500_D2PLL_OFF)
-	    return 0;
+#elif defined(CONFIG_MACH_ASPEED_G5)
+	if (d2_pll_ext & AST2500_D2PLL_OFF)
+		return 0;
 
-    if(d2_pll_ext & AST2500_D2PLL_BYPASS_EN) {
+	if (d2_pll_ext & AST2500_D2PLL_BYPASS_EN)
+	{
 		return clkin;
-    } else {
-        u32 m = d2_pll_set * 0xff;
+	}
+	else
+	{
+		u32 m = d2_pll_set * 0xff;
 		u32 n = (d2_pll_set >> 8) & 0x1f;
 		u32 p = (d2_pll_set >> 13) & 0x3f;
 		u32 od = (d2_pll_set >> 19) & 0x3;
-        //hpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
+		//hpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
 		mult = m + 1;
 		div = (n + 1) * (p + 1) * (od + 1);
-    }
-#elif defined (CONFIG_MACH_ASPEED_G4)
-    if(d2_pll_set & AST2400_D2PLL_OFF)
+	}
+#elif defined(CONFIG_MACH_ASPEED_G4)
+	if (d2_pll_set & AST2400_D2PLL_OFF)
 		return 0;
 
-    // Programming
-    if(d2_pll_set & AST2400_D2PLL_BYPASS_EN) {
-        return clkin;
-    } else {
-    	u32 n = (d2_pll_set & 0xff);
+	// Programming
+	if (d2_pll_set & AST2400_D2PLL_BYPASS_EN)
+	{
+		return clkin;
+	}
+	else
+	{
+		u32 n = (d2_pll_set & 0xff);
 		u32 d = (d2_pll_set >> 8) & 0x1f;
 		u32 o = (d2_pll_set >> 13) & 0x3;
 		o = (1 << (o - 1));
 		u32 p = (d2_pll_set >> 15) & 0x3;
-		if( p == 2)
+		if (p == 2)
 			p = 2;
 		else
 			p = (0x1 << p);
@@ -770,17 +796,18 @@ extern u32 aspeed_get_d2pll_clk_rate(void)
 		//FOUT (Output frequency) = 24MHz * (Num * 2) / (Denum * OD * PD * PD2)
 		mult = (n * 2);
 		div = (o * p * p2);
-    }
+	}
 #else
 #err "No define for h clk"
 #endif
 	return (clkin * mult / div);
 }
 
-#define ASPEED_CLK_SELECT				0x08		
+#define ASPEED_CLK_SELECT 0x08
 
 #ifdef CONFIG_FPGA_ASPEED
-extern u32 aspeed_get_p_clk_rate(void) {
+extern u32 aspeed_get_p_clk_rate(void)
+{
 	return 24000000;
 }
 #else
@@ -791,31 +818,34 @@ extern u32 aspeed_get_p_clk_rate(void)
 	u32 set = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	div = (set >> 23) & 0x7;
 #ifdef CONFIG_MACH_ASPEED_G5
-	div = (div+1) << 2;
+	div = (div + 1) << 2;
 #else
-	div = (div+1) << 1;
+	div = (div + 1) << 1;
 #endif
 
-	return (hpll/div);
+	return (hpll / div);
 }
 #endif
 
-#define SCU_LHCLK_SOURCE_EN			BIT(19)
+#define SCU_LHCLK_SOURCE_EN BIT(19)
 
 extern u32 aspeed_get_lpc_host_clk_rate(void)
 {
 	unsigned int div;
 	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	u32 hpll = aspeed_get_hpll_clk_rate();
-	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
+	if (SCU_LHCLK_SOURCE_EN & clk_sel)
+	{
 		div = (clk_sel >> 20) & 0x7;
 #ifdef CONFIG_MACH_ASPEED_G5
 		div = (div + 1) << 2;
 #else
 		div = (div + 1) << 1;
 #endif
-		return (hpll/div);
-	} else {
+		return (hpll / div);
+	}
+	else
+	{
 		return 0;
 	}
 }
@@ -825,11 +855,11 @@ extern u32 aspeed_get_sd_clk_rate(void)
 	u32 hpll = aspeed_get_hpll_clk_rate();
 	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	u32 sd_div = (clk_sel >> 12) & 0x7;
-	
+
 #ifdef CONFIG_MACH_ASPEED_G5
-	sd_div = (sd_div+1) << 2;
+	sd_div = (sd_div + 1) << 2;
 #else
-	sd_div = (sd_div+1) << 1;
+	sd_div = (sd_div + 1) << 1;
 #endif
 	return (hpll / sd_div);
 }

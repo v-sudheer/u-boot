@@ -819,10 +819,13 @@ extern u32 aspeed_get_p_clk_rate(void)
 	div = (set >> 23) & 0x7;
 #ifdef CONFIG_MACH_ASPEED_G5
 	div = (div + 1) << 2;
-#else
+#elif defined(CONFIG_MACH_ASPEED_G4)
 	div = (div + 1) << 1;
+#else
+#err "No define for p clk"
 #endif
 
+#endif
 	return (hpll / div);
 }
 #endif
@@ -839,8 +842,10 @@ extern u32 aspeed_get_lpc_host_clk_rate(void)
 		div = (clk_sel >> 20) & 0x7;
 #ifdef CONFIG_MACH_ASPEED_G5
 		div = (div + 1) << 2;
-#else
+#elif defined(CONFIG_MACH_ASPEED_G4)
 		div = (div + 1) << 1;
+#else
+#err "No define for lpc clk"
 #endif
 		return (hpll / div);
 	}
@@ -858,8 +863,10 @@ extern u32 aspeed_get_sd_clk_rate(void)
 
 #ifdef CONFIG_MACH_ASPEED_G5
 	sd_div = (sd_div + 1) << 2;
-#else
+#elif defined(CONFIG_MACH_ASPEED_G4)
 	sd_div = (sd_div + 1) << 1;
+#else
+#err "No define for sd clk"
 #endif
 	return (hpll / sd_div);
 }

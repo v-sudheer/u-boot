@@ -181,22 +181,6 @@
 #define SCU_RESET_RFXCMQ			(0x1)
 
 /*	AST_SCU_CLK_SEL	 : 0x08 - clock selection register	*/
-#if defined(CONFIG_ARCH_AST1010)
-#define SCU_CLK_MAC_DIV(x)			(x << 12)
-#define SCU_CLK_MAC_MASK			(0x3 << 12)
-#define SCU_LHCLK_SOURCE_EN			(0x1 << 11)		//0: ext , 1:internel
-#define SCU_LHCLK_LPC_DIV(x)		(x << 8)
-#define SCU_LHCLK_LPC_MASK			(0x7 << 8)
-#define SCU_PCLK_APB_DIV(x)			(x << 5)
-#define SCU_GET_PCLK_DIV(x)			((x >> 5) & 0x7)
-#define SCU_PCLK_APB_DIV_MASK		(0x7 << 5)		//limitation on PCLK .. PCLK > 0.5*LCLK (33Mhz)
-#define SCU_CLK_CPU_AHB_SLOW_EN		(0x1 << 4)
-#define SCU_CLK_CPU_AHB_SLOW(x)		(x << 3)
-#define SCU_CLK_CPU_AHB_SLOW_MASK	(0x3 << 3)
-#define SCU_GET_AHB_DIV(x)			((x >> 2) & 0x3)
-#define SCU_CLK_CPU_AHB_SLOW_IDLE	(0x1 << 1)
-#define SCU_CLK_CPU_AHB_DYN_SLOW_EN	(0x1)
-#else
 #define SCU_CLK_VIDEO_SLOW_EN		(0x1 << 31)
 //G5 the same with RemoteFX EPDEC
 #define SCU_CLK_VIDEO_SLOW_SET(x)	(x << 28)
@@ -205,17 +189,10 @@
 #define SCU_CLK_2D_ENG_THROT_EN		(0x1 << 26)		//valid only at CRT mode SCU2C[7]
 #define SCU_PCLK_APB_DIV(x)			(x << 23)
 #define SCU_PCLK_APB_DIV_MASK		(0x7 << 23)		//limitation on PCLK .. PCLK > 0.5*LCLK (33Mhz)
-#define SCU_GET_LHCLK_DIV(x)		((x >> 20) & 0x7)
-#define SCU_SET_LHCLK_DIV(x)		(x << 20)
-#define SCU_LHCLK_DIV_MASK			(0x7 << 20)
-#define SCU_LHCLK_SOURCE_EN			(0x1 << 19)		//0: ext , 1:internel
 #define SCU_CLK_MAC_DIV(x)			(x << 16)
 #define SCU_CLK_MAC_MASK			(0x7 << 16)
 #define SCU_CLK_SD_EN				(0x1 << 15)
 #define SCU_CLK_VIDE0_SO_D2			(0x1 << 8)
-#define SCU_CLK_SD_DIV(x)			(x << 12)
-#define SCU_CLK_SD_GET_DIV(x)		((x >> 12) & 0x7)
-#define SCU_CLK_SD_MASK				(0x7 << 12)
 #if defined(CONFIG_MACH_ASPEED_G5)
 #define SCU_CRT_CLK_L_SOURCE			(0x1 << 8)
 #else
@@ -230,7 +207,7 @@
 #define SCU_ECLK_SOURCE_MASK		(0x3 << 2)
 #define SCU_CLK_CPU_AHB_SLOW_IDLE	(0x1 << 1)
 #define SCU_CLK_CPU_AHB_DYN_SLOW_EN	(0x1 << 0)
-#endif
+
 
 /*	AST_SCU_CLK_SEL2	: 0xD8 - clock selection register Set 2	*/
 #define SCU_VIDEO4_OUTPUT_CLK_INVERT			(1 << 29)

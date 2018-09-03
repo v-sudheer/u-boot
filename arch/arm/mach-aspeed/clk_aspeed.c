@@ -782,4 +782,39 @@ extern u32 aspeed_get_p_clk_rate(void)
 	return (hpll/div);
 }
 
+#define SCU_LHCLK_SOURCE_EN			BIT(19)
+
+extern u32 aspeed_get_lpc_host_clk_rate(void)
+{
+	unsigned int div;
+	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
+	u32 hpll = aspeed_get_hpll_clk_rate();
+	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
+		div = (clk_sel >> 20) & 0x7;
+#ifdef CONFIG_MACH_ASPEED_G5
+		div = (div + 1) << 2;
+#else
+		div = (div + 1) << 1;
+#endif
+		return (hpll/div);
+	} else {
+		return 0;
+	}
+
+}
+
+extern u32 aspeed_get_sd_clk_rate(void)
+{
+	u32 hpll = aspeed_get_hpll_clk_rate();
+	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
+	u32 sd_div = (clk_sel >> 12) & 0x7;
+	
+#ifdef CONFIG_MACH_ASPEED_G5
+	sd_div = (sd_div+1) << 2;
+#else
+	sd_div = (sd_div+1) << 1;
+#endif
+	return (hpll / sd_div);
+}
+
 #endif

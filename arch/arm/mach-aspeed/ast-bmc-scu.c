@@ -283,6 +283,9 @@ ast_scu_init_usb_port2(void)
 #endif
 
 #ifdef SCU_RESET_SD
+#define SCU_CLK_SD_DIV(x)			(x << 12)
+#define SCU_CLK_SD_MASK				(0x7 << 12)
+
 extern void
 ast_scu_init_sdhci(void)
 {
@@ -426,6 +429,8 @@ ast_scu_reset_lpc(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_LPC, AST_SCU_RESET);
 }
 
+#define SCU_LHCLK_SOURCE_EN			BIT(19)
+#define SCU_SET_LHCLK_DIV(x)		(x << 20)
 
 extern void
 ast_scu_init_lpc(void)
@@ -643,34 +648,6 @@ ast_scu_clk_stop(u32 clk_name,u8 stop_enable)
 }
 
 //***********************************CLK Information***********************************
-
-
-
-extern u32
-ast_get_lhclk(void)
-{
-	unsigned int div, hpll;
-	u32 clk_sel = ast_scu_read(AST_SCU_CLK_SEL);
-//FPGA AST1070 is default 100/2 Mhz input
-//	return 50000000;	
-	hpll = aspeed_get_hpll_clk_rate();
-	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
-		div = SCU_GET_LHCLK_DIV(clk_sel);
-#ifdef CONFIG_MACH_ASPEED_G5
-		div = (div+1) << 2;
-#else
-		div = (div+1) << 1;
-#endif
-		SCUDBUG("HPLL=%d, Div=%d, LHCLK = %d\n", hpll, div, hpll/div);	
-		return (hpll/div);
-	} else {
-		SCUMSG("LPC CLK not enable \n");
-		return 0;
-	}
-
-}
-
-
 extern void
 ast_scu_osc_clk_output(void)
 {
@@ -681,57 +658,6 @@ ast_scu_osc_clk_output(void)
 		ast_scu_write((ast_scu_read(AST_SCU_COUNT_CTRL) & ~SCU_FREQ_SOURCE_FOR_MEASU_MASK) | SCU_FREQ_SOURCE_FOR_MEASU(SCU_FREQ_SOURCE_FOR_MEASU_12MHZ), AST_SCU_COUNT_CTRL);
 //	}
 }
-
-
-//Because value 0 is not allowed in SDIO12C D[15:8]: Host Control Settings #1 Register, we have to increase the maximum
-//host's clock in case that system will not ask host to set 1 in the sdhci_set_clock() function
-/*
-SCU7C: Silicon Revision ID Register
-D[31:24]: Chip ID
-0: AST2050/AST2100/AST2150/AST2200/AST3000
-1: AST2300
-
-D[23:16] Silicon revision ID for AST2300 generation and later
-0: A0
-1: A1
-2: A2
-.
-.
-.
-FPGA revision starts from 0x80
-
-
-D[11:8] Bounding option
-
-D[7:0] Silicon revision ID for AST2050/AST2100 generation (for software compatible)
-0: A0
-1: A1
-2: A2
-3: A3
-.
-.
-FPGA revision starts from 0x08, 8~10 means A0, 11+ means A1, AST2300 should be assigned to 3
-*/
-
-extern u32
-ast_get_sd_clock_src(void)
-{
-	u32 clk=0, sd_div;
-
-	clk = aspeed_get_hpll_clk_rate();
-	//get div
-	sd_div = SCU_CLK_SD_GET_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-#ifdef CONFIG_MACH_ASPEED_G5
-		sd_div = (sd_div+1) << 2;
-#else
-		sd_div = (sd_div+1) << 1;
-#endif
-		SCUDBUG("div %d, sdclk =%d \n",sd_div,clk/sd_div);
-		clk /= sd_div;
-
-	return clk;
-}
-
 
 extern void
 ast_scu_set_lpc_mode(void)

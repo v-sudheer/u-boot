@@ -42,7 +42,6 @@ extern u32 ast_get_ahb_div(void);
 extern u32 ast_get_m_pll_clk(void);
 extern u32 ast_get_ahbclk(void);
 
-extern u32 ast_get_sd_clock_src(void);
 extern u32 ast_get_d2_pll_clk(void);
 
 extern u32 ast_get_lhclk(void);

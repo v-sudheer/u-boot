@@ -28,7 +28,7 @@ int print_cpuinfo(void)
 	printf("CPU :   %4s MHz\n", strmhz(buf, aspeed_get_hpll_clk_rate()));
 #if defined(CONFIG_MACH_ASPEED_G5)
 	printf("MEM :	%4s MHz, ECC: %s, ",
-	       strmhz(buf, ast_get_m_pll_clk() * 2),
+	       strmhz(buf, aspeed_get_mpll_clk_rate() * 2),
 	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
 
 	if(ast_sdmc_get_ecc())

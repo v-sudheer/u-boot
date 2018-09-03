@@ -23,7 +23,6 @@
 #define __AST_SCU_H_INCLUDED
 
 //information
-extern void ast_scu_show_system_info (void);
 extern void ast_scu_sys_rest_info(void);
 extern void ast_scu_security_info(void);
 extern u32 ast_scu_revision_id(void);
@@ -42,10 +41,8 @@ extern u32 ast_get_ahb_div(void);
 extern u32 ast_get_m_pll_clk(void);
 extern u32 ast_get_ahbclk(void);
 
-extern u32 ast_get_pclk(void);
 extern u32 ast_get_sd_clock_src(void);
 extern u32 ast_get_d2_pll_clk(void);
-extern void ast_set_d2_pll_clk(u32 pll_setting);
 
 extern u32 ast_get_lhclk(void);
 

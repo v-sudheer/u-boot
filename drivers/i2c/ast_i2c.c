@@ -14,6 +14,7 @@
 
 #include <i2c.h>
 #include <asm/arch/ast-scu.h>
+#include <asm/arch/clk_aspeed.h>
 
 #include <asm/io.h>
 #include <asm/arch/regs-iic.h>
@@ -368,7 +369,7 @@ static u32 select_i2c_clock(unsigned int bus_clk)
 	unsigned int clk, inc = 0, div, divider_ratio;
 	u32 SCL_Low, SCL_High, data;
 
-	clk = ast_get_pclk();
+	clk = aspeed_get_p_clk_rate();
 //	debug("pclk = %d \n",clk);
 	divider_ratio = clk / bus_clk;
 	for (div = 0; divider_ratio >= 16; div++)
@@ -387,7 +388,7 @@ static u32 select_i2c_clock(unsigned int bus_clk)
 	unsigned int clk;
 	u32 data;
 
-	clk = ast_get_pclk();
+	clk = aspeed_get_p_clk_rate();
 //	debug("pclk = %d \n",clk);
 
 	for(i = 0; i < sizeof(i2c_timing_table)/sizeof(struct ast_i2c_timing_table); i++) {

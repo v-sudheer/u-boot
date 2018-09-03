@@ -512,7 +512,6 @@ extern u32 aspeed_get_clk_in_rate(void) {
 
 #define  AST2600_HPLL_BYPASS_EN	BIT(20)
 
-
 #define  AST2500_HPLL_BYPASS_EN	BIT(20)
 #define  AST2400_HPLL_PROGRAMMED BIT(18)
 #define  AST2400_HPLL_BYPASS_EN	BIT(17)
@@ -588,6 +587,199 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 #err "No define for clk"
 #endif
 	return (clkin * mult / div);
+}
+
+struct clk_div_table {
+	unsigned int	val;
+	unsigned int	div;
+};
+
+extern u32 aspeed_get_h_clk_rate(void)
+{
+	u32 axi_div, ahb_div, clk;
+	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);	
+	u32 hpll = aspeed_get_hpll_clk_rate();
+#if defined (CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
+	axi_div = 2;
+	ahb_div = ((strap >> 9) & 0x7) + 1;
+	clk = (hpll/axi_div) / ahb_div;
+#elif defined (CONFIG_MACH_ASPEED_G4)
+	ahb_div = ((strap >> 10) & 0x3) + 1;
+	clk = hpll / ahb_div;
+#else
+#err "No define for h clk"
+#endif
+	return clk;
+}
+
+#define ASPEED_MPLL_PARAM	0x20
+#define  AST2500_MPLL_BYPASS_EN	BIT(20)
+#define  AST2500_MPLL_OFF BIT(19)
+#define  AST2400_MPLL_BYPASS_EN	BIT(17)
+#define  AST2400_MPLL_OFF BIT(16)
+
+extern u32 aspeed_get_mpll_clk_rate(void)
+{
+	unsigned int mult, div;	
+	u32 m_pll_set = readl(ASPEED_SCU_BASE + ASPEED_MPLL_PARAM);
+	u32 clkin = aspeed_get_clk_in_rate();
+	
+#if defined (CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
+	if(m_pll_set & AST2500_MPLL_OFF)
+		return 0;
+
+	if(m_pll_set & AST2500_MPLL_BYPASS_EN) {
+		return clkin;
+	} else {
+		u32 p = (m_pll_set >> 13) & 0x3f;
+		u32 m = (m_pll_set >> 5) & 0xff;
+		u32 n = m_pll_set & 0xf;
+
+		//mpll =  24MHz * [(M+1) /(N+1)] / (P+1)
+		mult = 1;
+		div = (m + 1) * (p + 1) * (n + 1);
+	}
+#elif defined (CONFIG_MACH_ASPEED_G4)
+	if(m_pll_set & AST2400_MPLL_OFF)
+		return 0;
+
+	if(m_pll_set & AST2400_MPLL_BYPASS_EN) {
+		return clkin;
+	} else {
+		u32 od = (m_pll_set >> 4) & 0x1;
+		u32 n = (m_pll_set >> 5) & 0x3f;
+		u32 d = m_pll_set & 0xf;
+		
+		//mpll = 24MHz * (2-OD) * ((Numerator+2)/(Denumerator+1))
+		mult = (2 - od) * (n + 2);
+		div = (d + 1);
+	}
+#else
+#err "No define for h clk"
+#endif
+	return (clkin * mult / div);
+}
+
+#ifdef CONFIG_MACH_ASPEED_G5
+#define ASPEED_DPLL_PARAM	0x28
+
+#define ASPEED_DPLL_EXT0_PARAM	0x130
+#define  AST2500_DPLL_BYPASS_EN	BIT(1)
+#define  AST2500_DPLL_OFF BIT(0)
+
+/*	AST_SCU_D_PLL : 0x28 - D-PLL Parameter  register	*/
+#define SCU_D_PLL_GET_ODNUM(x)			
+#define SCU_D_PLL_GET_PNUM(x)			
+#define SCU_D_PLL_GET_NNUM(x)			
+
+
+/*	AST_SCU_D_PLL_EXTEND : 0x130 - D-PLL Extended Parameter  register	*/
+#define SCU_D_PLL_SET_MODE(x)			((x & 0x3) << 3)
+
+
+extern u32 aspeed_get_dpll_clk_rate(void)
+{
+	unsigned int mult, div;	
+	u32 d_pll_set = readl(ASPEED_SCU_BASE + ASPEED_DPLL_PARAM);
+	u32 d_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_DPLL_EXT0_PARAM);	
+	u32 clkin = aspeed_get_clk_in_rate();
+
+	if(d_pll_ext & AST2500_DPLL_OFF)
+		return 0;
+
+	if(d_pll_ext & AST2500_DPLL_BYPASS_EN) {
+		return clkin;
+	} else {
+		u32 m = d_pll_set & 0xff;
+		u32 n = (d_pll_set >> 8) & 0x1f;
+		u32 p = (d_pll_set >>13) & 0x3f;
+		u32 o = (d_pll_set >>19) & 0x7;
+
+		//dpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
+		mult = m + 1;
+		div = (n + 1) * (p + 1) * (o + 1);
+	}
+	return (clkin * mult / div);
+}
+#endif 
+
+#define ASPEED_D2PLL_PARAM	0x1C
+#define  AST2400_D2PLL_OFF BIT(17)
+#define  AST2400_D2PLL_BYPASS_EN	BIT(18)
+
+
+#define ASPEED_D2PLL_EXTEND_PARAM	0x13C
+#define  AST2500_D2PLL_OFF BIT(0)
+#define  AST2500_D2PLL_BYPASS_EN	BIT(1)
+
+extern u32 aspeed_get_d2pll_clk_rate(void)
+{
+	unsigned int mult, div;	
+    u32 d2_pll_set = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_PARAM);
+    u32 d2_pll_ext = readl(ASPEED_SCU_BASE + ASPEED_D2PLL_EXTEND_PARAM);
+	u32 clkin = aspeed_get_clk_in_rate();
+
+#ifdef CONFIG_MACH_ASPEED_G6
+
+#elif defined (CONFIG_MACH_ASPEED_G5)
+	if(d2_pll_ext & AST2500_D2PLL_OFF)
+	    return 0;
+
+    if(d2_pll_ext & AST2500_D2PLL_BYPASS_EN) {
+		return clkin;
+    } else {
+        u32 m = d2_pll_set * 0xff;
+		u32 n = (d2_pll_set >> 8) & 0x1f;
+		u32 p = (d2_pll_set >> 13) & 0x3f;
+		u32 od = (d2_pll_set >> 19) & 0x3;
+        //hpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
+		mult = m + 1;
+		div = (n + 1) * (p + 1) * (od + 1);
+    }
+#elif defined (CONFIG_MACH_ASPEED_G4)
+    if(d2_pll_set & AST2400_D2PLL_OFF)
+		return 0;
+
+    // Programming
+    if(d2_pll_set & AST2400_D2PLL_BYPASS_EN) {
+        return clkin;
+    } else {
+    	u32 n = (d2_pll_set & 0xff);
+		u32 d = (d2_pll_set >> 8) & 0x1f;
+		u32 o = (d2_pll_set >> 13) & 0x3;
+		o = (1 << (o - 1));
+		u32 p = (d2_pll_set >> 15) & 0x3;
+		if( p == 2)
+			p = 2;
+		else
+			p = (0x1 << p);
+		u32 p2 = (d2_pll_set >> 19) & 0x7;
+		p2 += 1;
+		//FOUT (Output frequency) = 24MHz * (Num * 2) / (Denum * OD * PD * PD2)
+		mult = (n * 2);
+		div = (o * p * p2);
+    }
+#else
+#err "No define for h clk"
+#endif
+	return (clkin * mult / div);
+}
+
+#define ASPEED_CLK_SELECT				0x08		
+
+extern u32 aspeed_get_p_clk_rate(void)
+{
+	unsigned int div;
+	u32 hpll = aspeed_get_hpll_clk_rate();
+	u32 set = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
+	div = (set >> 23) & 0x7;
+#ifdef CONFIG_MACH_ASPEED_G5
+	div = (div+1) << 2;
+#else
+	div = (div+1) << 1;
+#endif
+
+	return (hpll/div);
 }
 
 #endif

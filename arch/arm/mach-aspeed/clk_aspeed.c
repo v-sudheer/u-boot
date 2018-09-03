@@ -779,6 +779,11 @@ extern u32 aspeed_get_d2pll_clk_rate(void)
 
 #define ASPEED_CLK_SELECT				0x08		
 
+#ifdef CONFIG_FPGA_ASPEED
+extern u32 aspeed_get_p_clk_rate(void) {
+	return 24000000;
+}
+#else
 extern u32 aspeed_get_p_clk_rate(void)
 {
 	unsigned int div;
@@ -793,6 +798,7 @@ extern u32 aspeed_get_p_clk_rate(void)
 
 	return (hpll/div);
 }
+#endif
 
 #define SCU_LHCLK_SOURCE_EN			BIT(19)
 

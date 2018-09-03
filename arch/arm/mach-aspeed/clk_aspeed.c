@@ -477,6 +477,11 @@ U_BOOT_DRIVER(aspeed_ast2500_scu) = {
 #define  CLKIN_25MHZ_EN		BIT(23)
 #define  AST2400_CLK_SOURCE_SEL	BIT(18)
 
+#ifdef CONFIG_FPGA_ASPEED
+extern u32 aspeed_get_clk_in_rate(void) {
+	return 24000000;
+}
+#else
 extern u32 aspeed_get_clk_in_rate(void) {
 	u32 clkin;
 	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);	
@@ -503,6 +508,7 @@ extern u32 aspeed_get_clk_in_rate(void) {
 #endif
 	return clkin;
 }
+#endif
 
 #ifdef CONFIG_MACH_ASPEED_G6
 #define ASPEED_HPLL_PARAM	0x200
@@ -516,6 +522,12 @@ extern u32 aspeed_get_clk_in_rate(void) {
 #define  AST2400_HPLL_PROGRAMMED BIT(18)
 #define  AST2400_HPLL_BYPASS_EN	BIT(17)
 
+
+#ifdef CONFIG_FPGA_ASPEED
+extern u32 aspeed_get_hpll_clk_rate(void) {
+	return 24000000;
+}
+#else
 extern u32 aspeed_get_hpll_clk_rate(void)
 {
 	unsigned int mult, div;
@@ -588,12 +600,13 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 #endif
 	return (clkin * mult / div);
 }
+#endif
 
-struct clk_div_table {
-	unsigned int	val;
-	unsigned int	div;
-};
-
+#ifdef CONFIG_FPGA_ASPEED
+extern u32 aspeed_get_h_clk_rate(void) {
+	return 24000000;
+}
+#else
 extern u32 aspeed_get_h_clk_rate(void)
 {
 	u32 axi_div, ahb_div, clk;
@@ -611,6 +624,7 @@ extern u32 aspeed_get_h_clk_rate(void)
 #endif
 	return clk;
 }
+#endif
 
 #define ASPEED_MPLL_PARAM	0x20
 #define  AST2500_MPLL_BYPASS_EN	BIT(20)
@@ -672,10 +686,8 @@ extern u32 aspeed_get_mpll_clk_rate(void)
 #define SCU_D_PLL_GET_PNUM(x)			
 #define SCU_D_PLL_GET_NNUM(x)			
 
-
 /*	AST_SCU_D_PLL_EXTEND : 0x130 - D-PLL Extended Parameter  register	*/
 #define SCU_D_PLL_SET_MODE(x)			((x & 0x3) << 3)
-
 
 extern u32 aspeed_get_dpll_clk_rate(void)
 {
@@ -800,7 +812,6 @@ extern u32 aspeed_get_lpc_host_clk_rate(void)
 	} else {
 		return 0;
 	}
-
 }
 
 extern u32 aspeed_get_sd_clk_rate(void)

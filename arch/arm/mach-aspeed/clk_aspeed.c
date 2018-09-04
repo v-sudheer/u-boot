@@ -803,7 +803,11 @@ extern u32 aspeed_get_d2pll_clk_rate(void)
 	return (clkin * mult / div);
 }
 
+#ifdef CONFIG_MACH_ASPEED_G6
+#define ASPEED_CLK_SELECT 0x300
+#else
 #define ASPEED_CLK_SELECT 0x08
+#endif
 
 #ifdef CONFIG_FPGA_ASPEED
 extern u32 aspeed_get_p_clk_rate(void)
@@ -817,21 +821,21 @@ extern u32 aspeed_get_p_clk_rate(void)
 	u32 hpll = aspeed_get_hpll_clk_rate();
 	u32 set = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	div = (set >> 23) & 0x7;
-#ifdef CONFIG_MACH_ASPEED_G5
+#if defined(CONFIG_MACH_ASPEED_G6) || defined(CONFIG_MACH_ASPEED_G5)
 	div = (div + 1) << 2;
 #elif defined(CONFIG_MACH_ASPEED_G4)
 	div = (div + 1) << 1;
 #else
 #err "No define for p clk"
 #endif
-
-#endif
 	return (hpll / div);
 }
 #endif
 
+
 #define SCU_LHCLK_SOURCE_EN BIT(19)
 
+#ifndef CONFIG_MACH_ASPEED_G6
 extern u32 aspeed_get_lpc_host_clk_rate(void)
 {
 	unsigned int div;
@@ -854,6 +858,7 @@ extern u32 aspeed_get_lpc_host_clk_rate(void)
 		return 0;
 	}
 }
+#endif
 
 extern u32 aspeed_get_sd_clk_rate(void)
 {
@@ -861,7 +866,7 @@ extern u32 aspeed_get_sd_clk_rate(void)
 	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	u32 sd_div = (clk_sel >> 12) & 0x7;
 
-#ifdef CONFIG_MACH_ASPEED_G5
+#if defined(CONFIG_MACH_ASPEED_G6) || defined(CONFIG_MACH_ASPEED_G5)
 	sd_div = (sd_div + 1) << 2;
 #elif defined(CONFIG_MACH_ASPEED_G4)
 	sd_div = (sd_div + 1) << 1;

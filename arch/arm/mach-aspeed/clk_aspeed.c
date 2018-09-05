@@ -665,8 +665,8 @@ extern u32 aspeed_get_mpll_clk_rate(void)
 		u32 n = m_pll_set & 0xf;
 
 		//mpll =  24MHz * [(M+1) /(N+1)] / (P+1)
-		mult = 1;
-		div = (m + 1) * (p + 1) * (n + 1);
+		mult = (m + 1) * (n + 1);
+		div = (p + 1);
 	}
 #elif defined(CONFIG_MACH_ASPEED_G4)
 	if (m_pll_set & AST2400_MPLL_OFF)

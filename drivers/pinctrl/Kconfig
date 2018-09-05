@@ -103,6 +103,10 @@ config SPL_PINCONF
 	  This option is an SPL-variant of the PINCONF option.
 	  See the help of PINCONF for details.
 
+config PINCTRL_ASPEED
+	bool "ASPEED SoC pin control driver"
+	depends on ARCH_ASPEED
+	
 if PINCTRL || SPL_PINCTRL
 
 config AR933X_PINCTRL

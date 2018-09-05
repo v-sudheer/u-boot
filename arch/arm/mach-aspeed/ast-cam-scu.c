@@ -310,12 +310,6 @@ ast_scu_multi_func_uart(u8 uart)
 }
 
 extern void
-ast_scu_multi_func_eth(u8 num)
-{
-}
-
-
-extern void
 ast_scu_multi_func_i2c(u8 bus_no)
 {
 }

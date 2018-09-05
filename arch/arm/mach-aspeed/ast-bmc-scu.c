@@ -793,35 +793,6 @@ ast_scu_multi_func_video(void)
 #endif
 }
 
-#ifdef CONFIG_ARCH_AST1010
-extern void
-ast_scu_multi_func_eth(u8 num)
-{
-	switch(num) {
-		case 0:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL3) | 
-						SCU_FUN_PIN_MAC0_MDIO |
-						SCU_FUN_PIN_MAC0_MDC |
-						0xff000000, 
-				AST_SCU_FUN_PIN_CTRL3); 
-
-			/* Currently we use fix value in MAC timing on EVB */
-			ast_scu_write(0x2255, AST_SCU_MAC_CLK); 
-			
-			break;
-		case 1:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC1_PHY_LINK, 
-				AST_SCU_FUN_PIN_CTRL1); 
-			
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | 
-						SCU_FUC_PIN_MAC1_MDIO,
-				AST_SCU_FUN_PIN_CTRL5); 
-
-			break;
-	}
-}
-#else
 extern void
 ast_scu_multi_func_eth(u8 num)
 {
@@ -875,7 +846,6 @@ ast_scu_multi_func_eth(u8 num)
 			break;
 	}
 }
-#endif
 
 extern void
 ast_scu_multi_func_nand(void)

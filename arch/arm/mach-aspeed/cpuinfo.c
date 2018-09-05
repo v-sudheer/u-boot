@@ -11,12 +11,11 @@
 #include <asm/arch/ast-sdmc.h>
 #include <asm/arch/aspeed_scu_info.h>
 
-
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
 {
 	char buf[32];
-
+	int i = 0;
 	ulong size = 0;
 
 	ast_scu_revision_id();
@@ -70,9 +69,10 @@ int print_cpuinfo(void)
 	else
 		printf("LPC Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
 
-	puts("MAC :    ");
-	printf("#0: %s, ",aspeed_get_mac_phy_interface(0) ? "RGMII" : "RMII/NCSI");
-	printf("#1: %s ",aspeed_get_mac_phy_interface(1) ? "RGMII" : "RMII/NCSI");
+	puts("Eth :    ");
+	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
+		printf("MAC%d: %s ",i, aspeed_get_mac_phy_interface(i) ? "RGMII" : "RMII/NCSI");
+	}
 	puts("\n");
 
 	return 0;

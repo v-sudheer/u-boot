@@ -693,6 +693,7 @@ int ftgmac100_initialize(unsigned long base_addr)
 {
 	struct eth_device *dev;
 	struct ftgmac100_data *priv;
+	char *ctrl_name;
 
 	dev = malloc(sizeof *dev);
 	if (!dev) {
@@ -720,6 +721,28 @@ int ftgmac100_initialize(unsigned long base_addr)
 	dev->write_hwaddr = ftgmac100_write_hwaddr;		//20130209, ryan chen add
 	
 	eth_register(dev);
+
+	switch(dev->index) {
+		case 0:
+			ctrl_name = "MAC1";
+			break;
+		case 1:
+			ctrl_name = "MAC2";
+			break;
+		case 2:
+			ctrl_name = "MAC3";
+			break;
+		case 3:
+			ctrl_name = "MAC4";
+			break;
+	}
+
+	aspeed_reset_assert(ctrl_name);
+	udelay(100);
+	aspeed_clk_enable(ctrl_name);
+	udelay(1000);
+	aspeed_reset_deassert(ctrl_name);
+
 
 	ftgmac100_reset(dev);
 

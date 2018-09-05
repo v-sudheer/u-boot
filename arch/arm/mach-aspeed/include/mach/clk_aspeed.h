@@ -7,5 +7,6 @@ extern u32 aspeed_get_h_clk_rate(void);
 extern u32 aspeed_get_mpll_clk_rate(void);
 extern u32 aspeed_get_p_clk_rate(void);
 extern u32 aspeed_get_sd_clk_rate(void);
+extern void aspeed_clk_enable(char *ctrl_name);
 
 #endif

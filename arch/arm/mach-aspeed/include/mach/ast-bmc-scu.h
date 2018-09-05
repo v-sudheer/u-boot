@@ -52,7 +52,6 @@ extern u8 ast_scu_get_vga_display(void);
 extern void ast_scu_init_uart(u8);
 extern void ast_scu_init_video(u8 dynamic_en);
 extern void ast_scu_reset_video(void);
-extern void ast_scu_init_eth(u8 num);
 extern void ast_scu_init_lpc(void);
 extern u8 ast_scu_get_lpc_plus_enable(void);
 extern void ast_scu_init_usb_port1(void);

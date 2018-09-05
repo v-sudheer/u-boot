@@ -870,4 +870,35 @@ extern u32 aspeed_get_sd_clk_rate(void)
 	return (hpll / sd_div);
 }
 
+
+struct aspeed_clock {
+	char *ctrl_name;
+	u32 reg;
+	u32 clk_en_bit;
+	int flag;
+};
+
+#define SCU_MAC1CLK_STOP_EN		(0x1 << 21)
+#define SCU_MAC0CLK_STOP_EN		(0x1 << 20)
+
+static const struct aspeed_clock ast2500_clk[] = {
+	{ "MAC1", ASPEED_SCU_BASE + 0x0C, BIT(20), 0 },
+	{ "MAC2", ASPEED_SCU_BASE + 0x0C, BIT(21), 0 },
+};
+
+extern void aspeed_clk_enable(char *ctrl_name)
+{
+	int i = 0;
+	for(i = 0; i < ARRAY_SIZE(ast2500_clk); i++) {
+		if(!strcmp(ctrl_name, ast2500_clk[i].ctrl_name )) {
+			if(ast2500_clk[i].flag) {
+				writel(readl(ast2500_clk[i].reg) | ast2500_clk[i].clk_en_bit, ast2500_clk[i].reg);
+			} else {
+				writel(readl(ast2500_clk[i].reg) & ~(ast2500_clk[i].clk_en_bit), ast2500_clk[i].reg);
+			}
+			break;
+		}
+	}
+}
+
 #endif

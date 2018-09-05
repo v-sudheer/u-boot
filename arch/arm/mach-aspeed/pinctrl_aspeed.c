@@ -127,9 +127,6 @@ U_BOOT_DRIVER(pinctrl_ast2500) = {
 	.probe = ast2500_pinctrl_probe,
 };
 #else
-#define ASPEED_SCU_BASE 0x1e6e2000
-
-
 struct aspeed_pinctrl_group_config {
 	char *group_name;
 	u32 reg;
@@ -137,10 +134,10 @@ struct aspeed_pinctrl_group_config {
 };
 
 static const struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
-	{ "MAC1LINK", 0x1e6e2080, BIT(0) },
-	{ "MDIO1", 0x1e6e2088, BIT(31) | BIT(30) },
-	{ "MAC2LINK", 0x1e6e2080, BIT(1) },
-	{ "MDIO2", 0x1e6e2090, BIT(2) },
+	{ "MAC1LINK", ASPEED_SCU_BASE + 0x80, BIT(0) },
+	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30) },
+	{ "MAC2LINK", ASPEED_SCU_BASE + 0x80, BIT(1) },
+	{ "MDIO2", ASPEED_SCU_BASE + 0x90, BIT(2) },
 };
 
 extern int aspeed_pinctrl_group_set(char *group_name)

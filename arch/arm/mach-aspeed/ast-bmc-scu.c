@@ -188,56 +188,6 @@ ast_scu_init_uart(u8 uart)
 }
 #endif
 
-extern void
-ast_scu_init_eth(u8 num)
-{
-
-//Set MAC delay Timing
-#if defined(CONFIG_MACH_ASPEED_G5)
-	//a1 
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK);
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK_DELAY_100M);
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK_DELAY_10M);
-//	ast_scu_write((0x6a << 16) | (0x6a << 8), AST_SCU_MAC_CLK_DUTY); 
-#elif defined(CONFIG_ARCH_AST1010)
-// do nothing 
-#else
-	//AST2300 max clk to 125Mhz, AST2400 max clk to 198Mhz
-	if(ast_scu_read(AST_SCU_HW_STRAP1) & (SCU_HW_STRAP_MAC1_RGMII | SCU_HW_STRAP_MAC0_RGMII))	//RGMII --> H-PLL/6
-		ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_MAC_MASK) | SCU_CLK_MAC_DIV(2), AST_SCU_CLK_SEL);
-	else	//RMII --> H-PLL/10
-		ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_MAC_MASK) | SCU_CLK_MAC_DIV(4), AST_SCU_CLK_SEL);
-
-	ast_scu_write(0x2255, AST_SCU_MAC_CLK);	
-#endif
-
-	switch(num) {
-		case 0:
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_MAC0, 
-							AST_SCU_RESET);		
-			udelay(100);
-			ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_MAC0CLK_STOP_EN, 
-							AST_SCU_CLK_STOP);		
-			udelay(1000);
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_MAC0, 
-							AST_SCU_RESET);		
-			
-			break;
-#if defined(AST_MAC1_BASE)
-		case 1:
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_MAC1, 
-							AST_SCU_RESET);			
-			udelay(100);
-			ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_MAC1CLK_STOP_EN, 
-							AST_SCU_CLK_STOP);		
-			udelay(1000);
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_MAC1, 
-							AST_SCU_RESET);			
-			break;
-#endif			
-	}		
-}
-
 #ifdef SCU_RESET_USB11
 extern void
 ast_scu_init_uhci(void)

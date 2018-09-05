@@ -65,8 +65,7 @@ int board_eth_init(bd_t *bd)
 	aspeed_pinctrl_group_set("MDIO1");
 	aspeed_pinctrl_group_set("MDIO2");
 
-	for(i = 0; i < 2; i++) {
-		ast_scu_init_eth(i);
+	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
 		ret += ftgmac100_initialize(iobase[i]);
 	}
 	return 0;

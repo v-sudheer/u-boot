@@ -230,16 +230,6 @@
 
 
 /*	AST_SCU_CLK_STOP : 0x0C - clock stop control register	*/
-#if defined(CONFIG_ARCH_AST1010)
-#define SCU_LHCLK_STOP_EN			(0x1 << 7)
-#define SCU_MAC0CLK_STOP_EN			(0x1 << 6)
-#define SCU_UART3_CLK_STOP_EN		(0x1 << 5)
-#define SCU_UART2_CLK_STOP_EN		(0x1 << 4)
-#define SCU_UART1_CLK_STOP_EN		(0x1 << 3)
-#define SCU_LCLK_STOP_EN			(0x1 << 2)
-#define SCU_REFCLK_STOP_EN			(0x1 << 1)
-#define SCU_MCLK_STOP_EN			(0x1)
-#else
 #define SCU_LHCLK_STOP_EN			(0x1 << 28)
 #define SCU_SDCLK_STOP_EN			(0x1 << 27)
 #define SCU_UART4CLK_STOP_EN		(0x1 << 26)
@@ -247,8 +237,6 @@
 #define SCU_RSACLK_STOP_EN			(0x1 << 24)
 //bit 23 must keep 1 
 #define SCU_H264_STOP_EN			(0x1 << 22)
-#define SCU_MAC1CLK_STOP_EN		(0x1 << 21)
-#define SCU_MAC0CLK_STOP_EN		(0x1 << 20)
 //bit 19 must keep 1 
 #if defined(CONFIG_MACH_ASPEED_G5)
 #define SCU_ESPI_CLK_STOP_EN		(0x1 << 19)
@@ -274,7 +262,6 @@
 #define SCU_MCLK_STOP_EN			(0x1 << 2)
 #define SCU_GCLK_STOP_EN			(0x1 << 1)
 #define SCU_ECLK_STOP_EN			(0x1 << 0)
-#endif
 
 /* AST_SCU_CLK_STOP2	: 0xDC - clock stop control register set 2*/
 #define SCU_NIC2_STOP_EN			(0x1 << 10)

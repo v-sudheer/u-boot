@@ -84,48 +84,6 @@ ast_scu_write(u32 val, u32 reg)
 #endif
 }
 
-/* SoC mapping Table */
-struct soc_id {
-	const char *name;
-	u32	   rev_id;
-};
-
-#define SOC_ID(str, rev) { .name = str, .rev_id = rev, }
-
-static struct soc_id soc_map_table[] = {
-	SOC_ID("AST1100/AST2050-A0", 0x00000200),
-	SOC_ID("AST1100/AST2050-A1", 0x00000201),
-	SOC_ID("AST1100/AST2050-A2,3/AST2150-A0,1", 0x00000202),
-	SOC_ID("AST1510/AST2100-A0", 0x00000300),
-	SOC_ID("AST1510/AST2100-A1", 0x00000301),
-	SOC_ID("AST1510/AST2100-A2,3", 0x00000302),
-	SOC_ID("AST2200-A0,1", 0x00000102),
-	SOC_ID("AST2300-A0", 0x01000003),
-	SOC_ID("AST2300-A1", 0x01010303),
-	SOC_ID("AST1300-A1", 0x01010003),
-	SOC_ID("AST1050-A1", 0x01010203),
-	SOC_ID("AST2400-A0", 0x02000303),
-	SOC_ID("AST2400-A1", 0x02010303),
-	SOC_ID("AST1010-A0", 0x03000003),
-	SOC_ID("AST1010-A1", 0x03010003),
-	SOC_ID("AST3200-A0", 0x04002003),
-	SOC_ID("AST3200-A1", 0x04012003),
-	SOC_ID("AST3200-A2", 0x04032003),
-	SOC_ID("AST1520-A0", 0x03000203),	
-	SOC_ID("AST1520-A1", 0x03010203),
-	SOC_ID("AST2510-A0", 0x04000103),
-	SOC_ID("AST2510-A1", 0x04010103),
-	SOC_ID("AST2510-A2", 0x04030103),	
-	SOC_ID("AST2520-A0", 0x04000203),
-	SOC_ID("AST2520-A1", 0x04010203),
-	SOC_ID("AST2520-A2", 0x04030203),
-	SOC_ID("AST2500-A0", 0x04000303),	
-	SOC_ID("AST2500-A1", 0x04010303),
-	SOC_ID("AST2500-A2", 0x04030303),	
-	SOC_ID("AST2530-A0", 0x04000403),
-	SOC_ID("AST2530-A1", 0x04010403),
-	SOC_ID("AST2530-A2", 0x04030403),	
-};
 //***********************************Initial control***********************************
 #ifdef SCU_RESET_VIDEO
 extern void
@@ -263,13 +221,6 @@ ast_scu_init_sdhci(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SD, AST_SCU_RESET);
 }
 #endif
-
-extern void
-ast_scu_init_i2c(void)
-{
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_I2C, AST_SCU_RESET);
-}
-
 
 extern void
 ast_scu_init_pwm_tacho(void)
@@ -1135,23 +1086,6 @@ ast_scu_multi_func_sgpio(void)
 
 
 //***********************************Information ***********************************
-extern u32
-ast_scu_revision_id(void)
-{
-	int i;
-	u32 rev_id = ast_scu_read(AST_SCU_REVISION_ID);
-	for(i=0;i<ARRAY_SIZE(soc_map_table);i++) {
-		if(rev_id == soc_map_table[i].rev_id)
-			break;
-	}
-	if(i == ARRAY_SIZE(soc_map_table))
-		SCUMSG("UnKnow-SOC : %x \n",rev_id);
-	else
-		SCUMSG("SOC : %4s \n",soc_map_table[i].name);
-	
-	return rev_id;
-}	
-
 
 extern void
 ast_scu_security_info(void)

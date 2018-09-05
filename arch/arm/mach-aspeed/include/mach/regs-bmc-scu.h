@@ -125,15 +125,6 @@
 #define SCU_PROTECT_UNLOCK			0x1688A8A8
 
 /*	AST_SCU_RESET :0x04	 - system reset control register */
-#if defined (CONFIG_ARCH_AST1010)
-#define SCU_RESET_ADC				(0x1 << 6)
-#define SCU_RESET_JTAG				(0x1 << 5)
-#define SCU_RESET_MAC0				(0x1 << 4)
-#define SCU_RESET_PECI				(0x1 << 3)
-#define SCU_RESET_PWM				(0x1 << 2)
-#define SCU_RESET_LPC				(0x1 << 1)
-#define SCU_RESET_I2C				(0x1)
-#else
 #define SCU_RESET_H264				(0x1 << 26) 
 #define SCU_RESET_XDMA				(0x1 << 25)
 #define SCU_RESET_MCTP				(0x1 << 24)
@@ -167,7 +158,6 @@
 #define SCU_RESET_I2C				(0x1 << 2)
 #define SCU_RESET_AHB				(0x1 << 1)
 #define SCU_RESET_SRAM_CTRL			(0x1 << 0)
-#endif
 
 /* AST_SCU_RESET2				0xD4		Reset Control register set 2	*/
 #define SCU_RESET_CRT3				(0x1 << 8)

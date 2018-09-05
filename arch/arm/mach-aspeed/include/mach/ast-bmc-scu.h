@@ -58,7 +58,6 @@ extern void ast_scu_init_usb_port1(void);
 extern void ast_scu_init_usb_port2(void);
 extern void ast_scu_init_uhci(void);
 extern void ast_scu_init_sdhci(void);
-extern void ast_scu_init_i2c(void);
 extern void ast_scu_init_pwm_tacho(void);
 extern void ast_scu_init_adc(void);
 extern void ast_scu_init_mctp(void);

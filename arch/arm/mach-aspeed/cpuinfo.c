@@ -18,7 +18,7 @@ int print_cpuinfo(void)
 	int i = 0;
 	ulong size = 0;
 
-	ast_scu_revision_id();
+	aspeed_get_revision_id();
 
 	ast_scu_sys_rest_info();
 

@@ -160,16 +160,6 @@ ast_scu_init_sdhci(void)
 
 }
 
-extern void
-ast_scu_init_i2c(void)
-{
-
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_I2C, AST_SCU_RESET);
-	udelay(3);
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_I2C, AST_SCU_RESET);
-
-}
-
 //***********************************CLK Information***********************************
 extern u32
 ast_get_clk_source(void)

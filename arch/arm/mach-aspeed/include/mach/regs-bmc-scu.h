@@ -509,8 +509,6 @@
 #define SCU_HW_STRAP_SPI_MASTER			(0x1 << 12)
 #define SCU_HW_STRAP_SPI_M_S_EN			(0x2 << 12)
 #define SCU_HW_STRAP_SPI_PASS_THROUGH	(0x3 << 12)
-#define SCU_HW_STRAP_MAC1_RGMII		(0x1 << 7)
-#define SCU_HW_STRAP_MAC0_RGMII		(0x1 << 6)
 #define SCU_HW_STRAP_VGA_BIOS_ROM	(0x1 << 5)
 #define SCU_HW_STRAP_SPI_WIDTH		(0x1 << 4)
 
@@ -576,8 +574,6 @@
 #define CPU_336MHZ		2
 #define CPU_408MHZ		3
 
-#define SCU_HW_STRAP_MAC1_RGMII		(0x1 << 7)
-#define SCU_HW_STRAP_MAC0_RGMII		(0x1 << 6)
 #define SCU_HW_STRAP_VGA_BIOS_ROM	(0x1 << 5)
 #define SCU_HW_STRAP_SPI_WIDTH		(0x1 << 4)
 #define SCU_HW_STRAP_VGA_SIZE_GET(x)		((x >> 2)& 0x3)

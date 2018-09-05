@@ -132,99 +132,28 @@ U_BOOT_DRIVER(pinctrl_ast2500) = {
 
 struct aspeed_pinctrl_group_config {
 	char *group_name;
-	u32 offset;
-	/* The mask of control bits in the register */
-	u32 ctrl_bit_mask;
+	u32 reg;
+	u32 bit_mask;
 };
 
 static const struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
-	{ "MAC1LINK", 0x80, (1 << 0) },
-	{ "MAC2LINK", 0x80, (1 << 1) },
+	{ "MAC1LINK", 0x1e6e2080, BIT(0) },
+	{ "MDIO1", 0x1e6e2088, BIT(31) | BIT(30) },
+	{ "MAC2LINK", 0x1e6e2080, BIT(1) },
+	{ "MDIO2", 0x1e6e2090, BIT(2) },
 };
 
 extern int aspeed_pinctrl_group_set(char *group_name)
 {
 	int i = 0;
 	for(i = 0; i < ARRAY_SIZE(ast2500_pin_groups); i++) {
-		if(strcmp(group_name, ast2500_pin_groups[i].group_name )) {
-			printf("group_name %s, ast2500_pin_groups[i].group_name %s \n", group_name, ast2500_pin_groups[i].group_name);
+		if(!strcmp(group_name, ast2500_pin_groups[i].group_name )) {
+			writel(readl(ast2500_pin_groups[i].reg) | ast2500_pin_groups[i].bit_mask, ast2500_pin_groups[i].reg);
 			break;
+			
 		}
 		
 	}
 	return 0;
-}
-
-#define AST_SCU_FUN_PIN_CTRL1		0x80		/*	Multi-function Pin Control#1*/
-#define AST_SCU_FUN_PIN_CTRL3		0x88		/*	Multi-function Pin Control#3*/
-
-
-#define SCU_FUN_PIN_MAC1_PHY_LINK	(0x1 << 1)
-#define SCU_FUN_PIN_MAC0_PHY_LINK	(0x1)
-
-#define SCU_HW_STRAP_MAC1_RGMII		(0x1 << 7)
-#define SCU_HW_STRAP_MAC0_RGMII		(0x1 << 6)
-
-
-#define SCU_FUN_PIN_MAC0_MDIO	(0x1 << 31)
-#define SCU_FUN_PIN_MAC0_MDC	(0x1 << 30)
-
-#define AST_SCU_FUN_PIN_CTRL5		0x90		/*	Multi-function Pin Control#5*/
-
-#define SCU_FUC_PIN_MAC1_MDIO		(0x1 << 2)
-
-extern void
-ast_scu_multi_func_eth(u8 num)
-{
-	u32 strap = readl(ASPEED_HW_STRAP1);
-	switch(num) {
-		case 0:
-			if(strap & SCU_HW_STRAP_MAC0_RGMII) {
-				printf("MAC0 : RGMII \n");
-				writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) | 
-							SCU_FUN_PIN_MAC0_PHY_LINK, 
-					ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-			} else {
-				printf("MAC0 : RMII/NCSI \n");			
-				writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) &
-							~SCU_FUN_PIN_MAC0_PHY_LINK, 
-					ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-			}
-
-#ifdef CONFIG_MACH_ASPEED_G5
-			writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC0_PHY_LINK, 
-				ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-
-#endif
-			writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL3) | 
-						SCU_FUN_PIN_MAC0_MDIO |
-						SCU_FUN_PIN_MAC0_MDC, 
-				ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL3); 
-			
-			break;
-		case 1:
-			if(strap & SCU_HW_STRAP_MAC1_RGMII) {
-				printf("MAC1 : RGMII \n");
-				writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) | 
-							SCU_FUN_PIN_MAC1_PHY_LINK, 
-					ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-			} else {
-				printf("MAC1 : RMII/NCSI \n");
-				writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) & 
-						~SCU_FUN_PIN_MAC1_PHY_LINK, 
-					ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-			}
-		
-			writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC1_PHY_LINK, 
-				ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL1); 
-			
-			writel(readl(ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL5) | 
-						SCU_FUC_PIN_MAC1_MDIO,
-				ASPEED_SCU_BASE + AST_SCU_FUN_PIN_CTRL5); 
-
-			break;
-	}
 }
 #endif

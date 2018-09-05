@@ -26,7 +26,6 @@
 extern void ast_scu_sys_rest_info(void);
 extern void ast_scu_security_info(void);
 extern u32 ast_scu_revision_id(void);
-extern u32 ast_scu_get_phy_interface(u8 mac_num);
 extern u32 ast_scu_get_phy_config(u8 mac_num);
 extern void ast_scu_get_who_init_dram(void);
 extern int ast_scu_espi_mode(void);

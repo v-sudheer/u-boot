@@ -1298,31 +1298,6 @@ ast_scu_get_phy_config(u8 mac_num)
 	return -1;
 }
 
-extern u32
-ast_scu_get_phy_interface(u8 mac_num)
-{
-	u32 trap1 = ast_scu_read(AST_SCU_HW_STRAP1);
-
-	switch(mac_num) {
-		case 0:
-			if(SCU_HW_STRAP_MAC0_RGMII & trap1)
-				return 1;
-			else
-				return 0;
-			break;
-		case 1:
-			if(SCU_HW_STRAP_MAC1_RGMII & trap1)
-				return 1;
-			else
-				return 0;
-			break;
-		default:
-			SCUMSG("error mac number \n");
-			break;
-	}
-	return -1;
-}
-
 extern void
 ast_scu_set_vga_display(u8 enable)
 {

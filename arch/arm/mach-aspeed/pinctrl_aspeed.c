@@ -129,13 +129,6 @@ U_BOOT_DRIVER(pinctrl_ast2500) = {
 #else
 #define ASPEED_SCU_BASE 0x1e6e2000
 
-#ifdef CONFIG_MACH_ASPEED_G6
-#define ASPEED_STRAP 0x500
-#define AST_SCU_HW_STRAP1			0x500		/*	hardware strapping register */
-#else
-#define ASPEED_STRAP 0x70
-#define AST_SCU_HW_STRAP1			0x70		/*	hardware strapping register */
-#endif
 
 struct aspeed_pinctrl_group_config {
 	char *group_name;
@@ -183,7 +176,7 @@ extern int aspeed_pinctrl_group_set(char *group_name)
 extern void
 ast_scu_multi_func_eth(u8 num)
 {
-	u32 strap = readl(ASPEED_SCU_BASE + AST_SCU_HW_STRAP1);
+	u32 strap = readl(ASPEED_HW_STRAP1);
 	switch(num) {
 		case 0:
 			if(strap & SCU_HW_STRAP_MAC0_RGMII) {

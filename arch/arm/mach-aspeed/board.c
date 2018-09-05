@@ -22,6 +22,8 @@
 #include <common.h>
 #include <netdev.h>
 #include <asm/arch/ast-scu.h>
+#include <asm/arch/pinctrl_aspeed.h>
+#include <asm/arch/clk_aspeed.h>
 #include <asm/arch/ast-sdmc.h>
 #include <asm/io.h>
 

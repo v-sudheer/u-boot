@@ -455,12 +455,6 @@ U_BOOT_DRIVER(aspeed_ast2500_scu) = {
 #else
 #define ASPEED_SCU_BASE 0x1e6e2000
 
-#ifdef CONFIG_MACH_ASPEED_G6
-#define ASPEED_STRAP 0x500
-#else
-#define ASPEED_STRAP 0x70
-#endif
-
 #define CLKIN_25MHZ_EN BIT(23)
 #define AST2400_CLK_SOURCE_SEL BIT(18)
 
@@ -473,7 +467,7 @@ extern u32 aspeed_get_clk_in_rate(void)
 extern u32 aspeed_get_clk_in_rate(void)
 {
 	u32 clkin;
-	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
+	u32 strap = readl(ASPEED_HW_STRAP1);
 #ifdef CONFIG_MACH_ASPEED_G6
 	if (strap & CLKIN_25MHZ_EN)
 		clkin = 25000000;
@@ -587,13 +581,13 @@ extern u32 aspeed_get_hpll_clk_rate(void)
 	else
 	{
 		//fix
-		val = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
+		u32 strap = readl(ASPEED_HW_STRAP1);
 		u16 rate = (val >> 8) & 3;
-		if (val & CLKIN_25MHZ_EN)
+		if (strap & CLKIN_25MHZ_EN)
 		{
 			clkin = hpll_rates[1][rate];
 		}
-		else if (val & AST2400_CLK_SOURCE_SEL)
+		else if (strap & AST2400_CLK_SOURCE_SEL)
 		{
 			clkin = hpll_rates[0][rate];
 		}
@@ -622,7 +616,7 @@ extern u32 aspeed_get_h_clk_rate(void)
 extern u32 aspeed_get_h_clk_rate(void)
 {
 	u32 axi_div, ahb_div, clk;
-	u32 strap = readl(ASPEED_SCU_BASE + ASPEED_STRAP);
+	u32 strap = readl(ASPEED_HW_STRAP1);
 	u32 hpll = aspeed_get_hpll_clk_rate();
 #if defined(CONFIG_MACH_ASPEED_G6) || (CONFIG_MACH_ASPEED_G5)
 	axi_div = 2;

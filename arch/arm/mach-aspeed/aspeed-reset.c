@@ -118,6 +118,7 @@ static struct aspeed_reset_config ast2600_reset[] = {
 static struct aspeed_reset_config ast2500_reset[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x04, BIT(11) },
 	{ "MAC2", ASPEED_SCU_BASE + 0x04, BIT(12) },
+	{ "I2C", ASPEED_SCU_BASE + 0x04, BIT(2) },
 };
 #else
 #endif

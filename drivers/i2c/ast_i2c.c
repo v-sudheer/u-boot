@@ -628,7 +628,9 @@ void i2c_init(int speed, int slaveaddr)
 	struct ast_i2c_bus *i2c_bus;
 
 	//SCU I2C Reset 
-	ast_scu_init_i2c();
+	aspeed_reset_assert("I2C");
+	udelay(3);
+	aspeed_reset_deassert("I2C");
 
 	/* This will override the speed selected in the fdt for that port */
 	debug("i2c_init(speed=%u, slaveaddr=0x%x)\n", speed, slaveaddr);

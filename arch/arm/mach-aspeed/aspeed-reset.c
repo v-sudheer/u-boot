@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright 2017 Google, Inc
+ * Copyright (C) ASPEED Technology Inc.
+ * Ryan Chen <ryan_chen@aspeedtech.com> 
  */
 
 #include <common.h>
@@ -105,43 +107,60 @@ struct aspeed_reset_config {
 	u32 reset_bit;
 };
 
-static const struct aspeed_reset_config ast2500_reset[] = {
+#ifdef CONFIG_MACH_ASPEED_G6
+static struct aspeed_reset_config ast2600_reset[] = {
+	{ "MAC1", ASPEED_SCU_BASE + 0x40, BIT(11) },
+	{ "MAC2", ASPEED_SCU_BASE + 0x40, BIT(12) },
+	{ "MAC3", ASPEED_SCU_BASE + 0x50, BIT(11) },
+	{ "MAC4", ASPEED_SCU_BASE + 0x50, BIT(12) },
+};
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+static struct aspeed_reset_config ast2500_reset[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x04, BIT(11) },
 	{ "MAC2", ASPEED_SCU_BASE + 0x04, BIT(12) },
 };
-
+#else
+#endif
 extern void aspeed_reset_assert(char *ctrl_name)
 {
 	int i = 0;
 #if defined(CONFIG_MACH_ASPEED_G6) 
-		xx
+	struct aspeed_reset_config *reset_config = ast2600_reset;
+	int arrary_size = ARRAY_SIZE(ast2600_reset);
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
-	for(i = 0; i < ARRAY_SIZE(ast2500_reset); i++) {
-		if(!strcmp(ctrl_name, ast2500_reset[i].ctrl_name )) {
-			writel(readl(ast2500_reset[i].reg) | ast2500_reset[i].reset_bit, ast2500_reset[i].reg);
-			break;
-		}
-	}
+	struct aspeed_reset_config *reset_config = ast2500_reset;
+	int arrary_size = ARRAY_SIZE(ast2500_reset);
 #else
 #err "No define for aspeed_reset_assert"
 #endif	
+	for(i = 0; i < arrary_size; i++) {
+		if(!strcmp(ctrl_name, reset_config[i].ctrl_name )) {
+			writel(readl(reset_config[i].reg) | reset_config[i].reset_bit, reset_config[i].reg);
+			break;
+		}
+	}
+
 }
 
 extern void aspeed_reset_deassert(char *ctrl_name)
 {
-#if defined(CONFIG_MACH_ASPEED_G6) 
-			xx
-#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 	int i = 0;
-	for(i = 0; i < ARRAY_SIZE(ast2500_reset); i++) {
-		if(!strcmp(ctrl_name, ast2500_reset[i].ctrl_name )) {
-			writel(readl(ast2500_reset[i].reg) & ~(ast2500_reset[i].reset_bit), ast2500_reset[i].reg);
+
+#if defined(CONFIG_MACH_ASPEED_G6) 
+	struct aspeed_reset_config *reset_config = ast2600_reset;
+	int arrary_size = ARRAY_SIZE(ast2600_reset);
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+	struct aspeed_reset_config *reset_config = ast2500_reset;
+	int arrary_size = ARRAY_SIZE(ast2500_reset);
+#else
+#err "No define for aspeed_reset_assert"
+#endif	
+	for(i = 0; i < arrary_size; i++) {
+		if(!strcmp(ctrl_name, reset_config[i].ctrl_name )) {
+			writel(readl(reset_config[i].reg) & ~(reset_config[i].reset_bit), reset_config[i].reg);
 			break;
 		}
 	}
-#else
-#err "No define for aspeed_reset_assert"
-#endif		
 }
 
 #endif

@@ -60,12 +60,25 @@ int board_eth_init(bd_t *bd)
 	iobase[0] = AST_MAC0_BASE;
 	iobase[1] = AST_MAC1_BASE;
 
-	aspeed_pinctrl_group_set("MAC1LINK");
-	aspeed_pinctrl_group_set("MAC2LINK");
-	aspeed_pinctrl_group_set("MDIO1");
-	aspeed_pinctrl_group_set("MDIO2");
-
 	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
+		switch(i) {
+			case 0:
+				aspeed_pinctrl_group_set("MAC1LINK");
+				aspeed_pinctrl_group_set("MDIO1");
+				break;
+			case 1:
+				aspeed_pinctrl_group_set("MAC2LINK");
+				aspeed_pinctrl_group_set("MDIO2");				
+				break;
+			case 2:
+				aspeed_pinctrl_group_set("MAC3LINK");
+				aspeed_pinctrl_group_set("MDIO3");
+				break;
+			case 3:
+				aspeed_pinctrl_group_set("MAC4LINK");
+				aspeed_pinctrl_group_set("MDIO4");				
+				break;
+		};
 		ret += ftgmac100_initialize(iobase[i]);
 	}
 	return 0;

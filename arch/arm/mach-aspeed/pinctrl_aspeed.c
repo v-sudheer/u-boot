@@ -133,24 +133,48 @@ struct aspeed_pinctrl_group_config {
 	u32 bit_mask;
 };
 
-static const struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
+#if defined(CONFIG_MACH_ASPEED_G6) 
+static struct aspeed_pinctrl_group_config ast2600_pin_groups[] = {
+	{ "MAC1LINK", ASPEED_SCU_BASE + 0x410, BIT(4) },
+	{ "MAC2LINK", ASPEED_SCU_BASE + 0x410, BIT(5) },
+	{ "MAC3LINK", ASPEED_SCU_BASE + 0x410, BIT(6) },
+	{ "MAC4LINK", ASPEED_SCU_BASE + 0x410, BIT(7) },	
+//	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30) },	
+	{ "MDIO2", ASPEED_SCU_BASE + 0x410, BIT(14) | BIT(13)  },
+	{ "MDIO3", ASPEED_SCU_BASE + 0x410, BIT(1) | BIT(0)  },
+	{ "MDIO4", ASPEED_SCU_BASE + 0x410, BIT(3) | BIT(2)  },	
+};
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+static struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
 	{ "MAC1LINK", ASPEED_SCU_BASE + 0x80, BIT(0) },
 	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30) },
 	{ "MAC2LINK", ASPEED_SCU_BASE + 0x80, BIT(1) },
 	{ "MDIO2", ASPEED_SCU_BASE + 0x90, BIT(2) },
 };
+#else
+#err "No define for clk enable"xx
+#endif
 
-extern int aspeed_pinctrl_group_set(char *group_name)
+extern void aspeed_pinctrl_group_set(char *group_name)
 {
 	int i = 0;
-	for(i = 0; i < ARRAY_SIZE(ast2500_pin_groups); i++) {
-		if(!strcmp(group_name, ast2500_pin_groups[i].group_name )) {
-			writel(readl(ast2500_pin_groups[i].reg) | ast2500_pin_groups[i].bit_mask, ast2500_pin_groups[i].reg);
+#if defined(CONFIG_MACH_ASPEED_G6) 
+	struct aspeed_pinctrl_group_config *pin_config = ast2600_pin_groups;
+	int array_size = ARRAY_SIZE(ast2600_pin_groups);
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+	struct aspeed_pinctrl_group_config *pin_config = ast2500_pin_groups;
+	int array_size = ARRAY_SIZE(ast2500_pin_groups);
+#else
+#err "No define for clk enable"xx
+#endif
+
+	for(i = 0; i < array_size; i++) {
+		if(!strcmp(group_name, pin_config[i].group_name )) {
+			writel(readl(pin_config[i].reg) | pin_config[i].bit_mask, pin_config[i].reg);
 			break;
 			
 		}
 		
 	}
-	return 0;
 }
 #endif

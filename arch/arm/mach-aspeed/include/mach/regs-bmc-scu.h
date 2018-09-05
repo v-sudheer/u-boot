@@ -664,8 +664,6 @@
 
 
 
-#define SCU_FUN_PIN_MAC1_PHY_LINK	(0x1 << 1)
-#define SCU_FUN_PIN_MAC0_PHY_LINK	(0x1)
 
 
 /*	AST_SCU_FUN_PIN_CTRL2		0x84		Multi-function Pin Control#2*/
@@ -723,12 +721,6 @@
 #endif
 
 /*	AST_SCU_FUN_PIN_CTRL3		0x88		Multi-function Pin Control#3*/
-#if	defined(CONFIG_ARCH_AST1010)
-#define SCU_FUN_PIN_MAC0_MDIO	(0x1 << 23)
-#define SCU_FUN_PIN_MAC0_MDC	(0x1 << 22)
-#else
-#define SCU_FUN_PIN_MAC0_MDIO	(0x1 << 31)
-#define SCU_FUN_PIN_MAC0_MDC	(0x1 << 30)
 #define SCU_FUN_PIN_ROMA25		(0x1 << 29)
 #define SCU_FUN_PIN_ROMA24		(0x1 << 28)
 #define SCU_FUN_PIN_ROMCS4		(0x1 << 27)
@@ -762,8 +754,6 @@
 #define SCU_FUN_PIN_VPIG2		(0x1 << 2)
 #define SCU_FUN_PIN_VPIG1		(0x1 << 1)
 #define SCU_FUN_PIN_VPIG0		(0x1 << 0)
-#endif
-
 
 //pwm pin
 #define SCU_FUN_PIN_PWM_TACHO	(0)

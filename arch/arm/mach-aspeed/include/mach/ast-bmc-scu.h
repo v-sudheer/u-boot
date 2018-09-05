@@ -78,8 +78,6 @@ extern void ast_scu_spi_master(u8 mode);
 //Share pin
 extern void ast_scu_multi_func_uart(u8 uart);
 extern void ast_scu_multi_func_video(void);
-extern void ast_scu_multi_func_eth(u8 num);
-
 extern void ast_scu_multi_func_nand(void);
 
 extern void ast_scu_multi_func_nor(void);

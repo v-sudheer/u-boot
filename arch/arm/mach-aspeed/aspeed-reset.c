@@ -113,16 +113,25 @@ static const struct aspeed_reset_config ast2500_reset[] = {
 extern void aspeed_reset_assert(char *ctrl_name)
 {
 	int i = 0;
+#if defined(CONFIG_MACH_ASPEED_G6) 
+		xx
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 	for(i = 0; i < ARRAY_SIZE(ast2500_reset); i++) {
 		if(!strcmp(ctrl_name, ast2500_reset[i].ctrl_name )) {
 			writel(readl(ast2500_reset[i].reg) | ast2500_reset[i].reset_bit, ast2500_reset[i].reg);
 			break;
 		}
 	}
+#else
+#err "No define for aspeed_reset_assert"
+#endif	
 }
 
 extern void aspeed_reset_deassert(char *ctrl_name)
 {
+#if defined(CONFIG_MACH_ASPEED_G6) 
+			xx
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 	int i = 0;
 	for(i = 0; i < ARRAY_SIZE(ast2500_reset); i++) {
 		if(!strcmp(ctrl_name, ast2500_reset[i].ctrl_name )) {
@@ -130,6 +139,9 @@ extern void aspeed_reset_deassert(char *ctrl_name)
 			break;
 		}
 	}
+#else
+#err "No define for aspeed_reset_assert"
+#endif		
 }
 
 #endif

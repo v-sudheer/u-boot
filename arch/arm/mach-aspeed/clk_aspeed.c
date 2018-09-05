@@ -453,7 +453,6 @@ U_BOOT_DRIVER(aspeed_ast2500_scu) = {
     .probe = ast2500_clk_probe,
 };
 #else
-#define ASPEED_SCU_BASE 0x1e6e2000
 
 #define CLKIN_25MHZ_EN BIT(23)
 #define AST2400_CLK_SOURCE_SEL BIT(18)
@@ -870,7 +869,6 @@ extern u32 aspeed_get_sd_clk_rate(void)
 	return (hpll / sd_div);
 }
 
-
 struct aspeed_clock {
 	char *ctrl_name;
 	u32 reg;
@@ -878,23 +876,37 @@ struct aspeed_clock {
 	int flag;
 };
 
-#define SCU_MAC1CLK_STOP_EN		(0x1 << 21)
-#define SCU_MAC0CLK_STOP_EN		(0x1 << 20)
-
-static const struct aspeed_clock ast2500_clk[] = {
+#ifdef CONFIG_MACH_ASPEED_G6
+static struct aspeed_clock ast2600_clk[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x0C, BIT(20), 0 },
 	{ "MAC2", ASPEED_SCU_BASE + 0x0C, BIT(21), 0 },
 };
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+static struct aspeed_clock ast2500_clk[] = {
+	{ "MAC1", ASPEED_SCU_BASE + 0x0C, BIT(20), 0 },
+	{ "MAC2", ASPEED_SCU_BASE + 0x0C, BIT(21), 0 },
+};
+#endif
 
 extern void aspeed_clk_enable(char *ctrl_name)
 {
 	int i = 0;
-	for(i = 0; i < ARRAY_SIZE(ast2500_clk); i++) {
-		if(!strcmp(ctrl_name, ast2500_clk[i].ctrl_name )) {
-			if(ast2500_clk[i].flag) {
-				writel(readl(ast2500_clk[i].reg) | ast2500_clk[i].clk_en_bit, ast2500_clk[i].reg);
+#if defined(CONFIG_MACH_ASPEED_G6) 
+	struct aspeed_clock *clk_config = ast2600_clk;
+	int array_size = ARRAY_SIZE(ast2600_clk);
+#elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
+	struct aspeed_clock *clk_config = ast2500_clk;
+	int array_size = ARRAY_SIZE(ast2500_clk);
+#else
+#err "No define for clk enable"xx
+#endif
+
+	for(i = 0; i < array_size; i++) {
+		if(!strcmp(ctrl_name, clk_config[i].ctrl_name )) {
+			if(clk_config[i].flag) {
+				writel(readl(clk_config[i].reg) | clk_config[i].clk_en_bit, clk_config[i].reg);
 			} else {
-				writel(readl(ast2500_clk[i].reg) & ~(ast2500_clk[i].clk_en_bit), ast2500_clk[i].reg);
+				writel(readl(clk_config[i].reg) & ~(clk_config[i].clk_en_bit), clk_config[i].reg);
 			}
 			break;
 		}

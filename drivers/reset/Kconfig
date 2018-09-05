@@ -12,6 +12,9 @@ config DM_RESET
 	  although driving such reset isgnals using GPIOs may be more
 	  appropriate in this case.
 
+config ASPEED_RESET
+	bool "Enable Aspeed Reset driver"
+
 config SANDBOX_RESET
 	bool "Enable the sandbox reset test driver"
 	depends on DM_MAILBOX && SANDBOX

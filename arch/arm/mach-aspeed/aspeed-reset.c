@@ -147,7 +147,6 @@ extern void aspeed_reset_assert(char *ctrl_name)
 extern void aspeed_reset_deassert(char *ctrl_name)
 {
 	int i = 0;
-
 #if defined(CONFIG_MACH_ASPEED_G6) 
 	struct aspeed_reset_config *reset_config = ast2600_reset;
 	int arrary_size = ARRAY_SIZE(ast2600_reset);
@@ -159,7 +158,11 @@ extern void aspeed_reset_deassert(char *ctrl_name)
 #endif	
 	for(i = 0; i < arrary_size; i++) {
 		if(!strcmp(ctrl_name, reset_config[i].ctrl_name )) {
-			writel(readl(reset_config[i].reg) & ~(reset_config[i].reset_bit), reset_config[i].reg);
+#ifdef CONFIG_MACH_ASPEED_G6
+			writel(readl(reset_config[i].reg + 0x04) | (reset_config[i].reset_bit), reset_config[i].reg + 0x04);
+#else
+			writel(readl(reset_config[i].reg) & ~(reset_config[i].reset_bit), reset_config[i].reg);			
+#endif
 			break;
 		}
 	}

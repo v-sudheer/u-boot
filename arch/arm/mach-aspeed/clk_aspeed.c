@@ -878,10 +878,10 @@ struct aspeed_clock {
 
 #ifdef CONFIG_MACH_ASPEED_G6
 static struct aspeed_clock ast2600_clk[] = {
-	{ "MAC1", ASPEED_SCU_BASE + 0x80, BIT(20), 0 },
-	{ "MAC2", ASPEED_SCU_BASE + 0x80, BIT(21), 0 },
-	{ "MAC3", ASPEED_SCU_BASE + 0x90, BIT(20), 0 },
-	{ "MAC4", ASPEED_SCU_BASE + 0x90, BIT(21), 0 },	
+	{ "MAC1", ASPEED_SCU_BASE + 0x84, BIT(20), 1 },
+	{ "MAC2", ASPEED_SCU_BASE + 0x84, BIT(21), 1 },
+	{ "MAC3", ASPEED_SCU_BASE + 0x94, BIT(20), 1 },
+	{ "MAC4", ASPEED_SCU_BASE + 0x94, BIT(21), 1 },	
 };
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 static struct aspeed_clock ast2500_clk[] = {

@@ -113,6 +113,7 @@ static struct aspeed_reset_config ast2600_reset[] = {
 	{ "MAC2", ASPEED_SCU_BASE + 0x40, BIT(12) },
 	{ "MAC3", ASPEED_SCU_BASE + 0x50, BIT(11) },
 	{ "MAC4", ASPEED_SCU_BASE + 0x50, BIT(12) },
+	{ "MDIO", ASPEED_SCU_BASE + 0x50, BIT(13) },	
 };
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 static struct aspeed_reset_config ast2500_reset[] = {

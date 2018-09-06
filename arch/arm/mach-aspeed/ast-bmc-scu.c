@@ -94,7 +94,6 @@ ast_scu_reset_video(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_VIDEO, AST_SCU_RESET);
 }
 
-
 extern void
 ast_scu_init_video(u8 dynamic_en)
 {
@@ -1153,35 +1152,6 @@ ast_scu_sys_rest_info(void)
 #endif
 }	
 
-
-/*
-* D[15:11] in 0x1E6E2040 is NCSI scratch from U-Boot. D[15:14] = MAC1, D[13:12] = MAC2
-* The meanings of the 2 bits are:
-* 00(0): Dedicated PHY
-* 01(1): ASPEED's EVA + INTEL's NC-SI PHY chip EVA
-* 10(2): ASPEED's MAC is connected to NC-SI PHY chip directly
-* 11: Reserved
-*/
-
-extern u32
-ast_scu_get_phy_config(u8 mac_num)
-{
-	u32 scatch = ast_scu_read(AST_SCU_SOC_SCRATCH0);
-
-	switch(mac_num) {
-		case 0:
-			return (SCU_MAC0_GET_PHY_MODE(scatch));
-			break;
-		case 1:
-			return (SCU_MAC1_GET_PHY_MODE(scatch));
-			break;
-		default:
-			SCUMSG("error mac number \n");
-			break;
-	}
-	return -1;
-}
-
 extern void
 ast_scu_set_vga_display(u8 enable)
 {
@@ -1198,16 +1168,6 @@ ast_scu_get_vga_display(void)
 		return 0;
 	else
 		return 1;
-}
-
-extern u32
-ast_scu_get_soc_dram_base(void)
-{
-	u32 rev_id = ast_scu_read(AST_SCU_REVISION_ID);
-	if((rev_id >> AST_SOC_GEN) > 3) 
-		return AST_DRAM_BASE_8;
-	else
-		return AST_DRAM_BASE_4;
 }
 
 extern void

@@ -26,7 +26,6 @@
 extern void ast_scu_sys_rest_info(void);
 extern void ast_scu_security_info(void);
 extern u32 ast_scu_revision_id(void);
-extern u32 ast_scu_get_phy_config(u8 mac_num);
 extern void ast_scu_get_who_init_dram(void);
 extern int ast_scu_espi_mode(void);
 extern int ast_scu_2nd_wdt_mode(void);
@@ -51,7 +50,6 @@ extern u8 ast_scu_get_vga_display(void);
 //Ctrl Initial
 extern void ast_scu_init_uart(u8);
 extern void ast_scu_init_video(u8 dynamic_en);
-extern void ast_scu_reset_video(void);
 extern void ast_scu_init_lpc(void);
 extern u8 ast_scu_get_lpc_plus_enable(void);
 extern void ast_scu_init_usb_port1(void);

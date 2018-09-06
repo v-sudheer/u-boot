@@ -92,6 +92,7 @@
 
 #define CONFIG_MISC_INIT_R
 #define CONFIG_PHY_REALTEK
+#define CONFIG_PHY_GIGE
 /* ------------------------------------------------------------------------- */
 /* SD/MMC definition */
 #ifdef CONFIG_AST_SDHCI

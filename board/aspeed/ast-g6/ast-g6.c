@@ -50,6 +50,8 @@ int misc_init_r (void)
 		saveenv();	
 	}
 
+	//TODO unlock .13 scu
+	writel(0x1688a8a8, 0x1e6e2010);
 	return 0;
 
 }

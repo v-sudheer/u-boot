@@ -47,7 +47,7 @@ int ethoc_initialize(u8 dev_num, int base_addr);
 int fec_initialize (bd_t *bis);
 int fecmxc_initialize(bd_t *bis);
 int fecmxc_initialize_multi(bd_t *bis, int dev_id, int phy_id, uint32_t addr);
-int ftgmac100_initialize(unsigned long iobase);
+int ftgmac100_initialize(unsigned long iobase, unsigned long mdio_base);
 int ftmac100_initialize(bd_t *bits);
 int ftmac110_initialize(bd_t *bits);
 int greth_initialize(bd_t *bis);

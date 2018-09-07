@@ -24,6 +24,7 @@
 #include <asm/arch/ast-scu.h>
 #include <asm/arch/pinctrl_aspeed.h>
 #include <asm/arch/clk_aspeed.h>
+#include <asm/arch/aspeed-reset.h>
 #include <asm/arch/ast-sdmc.h>
 #include <asm/io.h>
 
@@ -56,7 +57,8 @@ int dram_init(void)
 int board_eth_init(bd_t *bd)
 {
 	int ret = 0, i = 0;
-	u32 iobase[] = {
+	char *ctrl_name;
+	unsigned long iobase[] = {
 		AST_MAC0_BASE,
 		AST_MAC1_BASE,
 #ifdef AST_MAC2_BASE		
@@ -67,26 +69,53 @@ int board_eth_init(bd_t *bd)
 #endif		
 	};
 
+	unsigned long mdiobase[] = {
+		ASPEED_MDIO0_BASE,
+		ASPEED_MDIO1_BASE,
+#ifdef ASPEED_MDIO2_BASE
+		ASPEED_MDIO2_BASE,
+#endif
+#ifdef ASPEED_MDIO3_BASE
+		ASPEED_MDIO3_BASE,
+#endif		
+	};
+
+#ifdef CONFIG_MACH_ASPEED_G6
+	ctrl_name = "MDIO";
+ 	aspeed_reset_assert(ctrl_name);
+ 	aspeed_reset_deassert(ctrl_name);
+#endif
+
 	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
 		switch(i) {
 			case 0:
+				ctrl_name = "MAC1";
 				aspeed_pinctrl_group_set("MAC1LINK");
 				aspeed_pinctrl_group_set("MDIO1");
 				break;
 			case 1:
+				ctrl_name = "MAC2";
 				aspeed_pinctrl_group_set("MAC2LINK");
 				aspeed_pinctrl_group_set("MDIO2");				
 				break;
 			case 2:
+				ctrl_name = "MAC3";
 				aspeed_pinctrl_group_set("MAC3LINK");
 				aspeed_pinctrl_group_set("MDIO3");
 				break;
 			case 3:
+				ctrl_name = "MAC4";
 				aspeed_pinctrl_group_set("MAC4LINK");
 				aspeed_pinctrl_group_set("MDIO4");				
 				break;
 		};
-		ret += ftgmac100_initialize(iobase[i]);
+		aspeed_reset_assert(ctrl_name);
+		udelay(100);
+		aspeed_clk_enable(ctrl_name);
+		udelay(1000);
+		aspeed_reset_deassert(ctrl_name);
+
+		ret += ftgmac100_initialize(iobase[i], mdiobase[i]);
 	}
 
 	return 0;

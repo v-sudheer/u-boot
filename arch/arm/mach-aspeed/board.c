@@ -56,9 +56,16 @@ int dram_init(void)
 int board_eth_init(bd_t *bd)
 {
 	int ret = 0, i = 0;
-	u32 iobase[2];
-	iobase[0] = AST_MAC0_BASE;
-	iobase[1] = AST_MAC1_BASE;
+	u32 iobase[] = {
+		AST_MAC0_BASE,
+		AST_MAC1_BASE,
+#ifdef AST_MAC2_BASE		
+		AST_MAC2_BASE,
+#endif
+#ifdef AST_MAC3_BASE
+		AST_MAC3_BASE,
+#endif		
+	};
 
 	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
 		switch(i) {
@@ -81,6 +88,7 @@ int board_eth_init(bd_t *bd)
 		};
 		ret += ftgmac100_initialize(iobase[i]);
 	}
+
 	return 0;
 }
 

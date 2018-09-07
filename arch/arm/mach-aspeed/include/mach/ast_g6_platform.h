@@ -51,6 +51,8 @@
 #define AST_MIC_BASE					0x1E650000	/* Memory Integrity Check Controller */
 #define AST_MAC0_BASE					0x1E660000	/* MAC1 */ 
 #define AST_MAC1_BASE					0x1E680000	/* MAC2 */ 
+#define AST_MAC2_BASE					0x1E670000	/* MAC3 */ 
+#define AST_MAC3_BASE					0x1E690000	/* MAC4 */ 
 
 #define AST_VHUB_BASE					0x1E6A0000	/* USB 2.0 VIRTUAL HUB CONTROLLER */
 #define AST_EHCI0_BASE					0x1E6A1000	/* USB 2.0 HOST CONTROLLER */

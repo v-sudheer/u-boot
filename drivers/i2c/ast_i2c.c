@@ -15,6 +15,7 @@
 #include <i2c.h>
 #include <asm/arch/ast-scu.h>
 #include <asm/arch/clk_aspeed.h>
+#include <asm/arch/aspeed-reset.h>
 
 #include <asm/io.h>
 #include <asm/arch/regs-iic.h>

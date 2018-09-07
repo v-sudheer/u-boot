@@ -36,20 +36,17 @@
 #include "ast_g3_platform.h"
 #elif defined(CONFIG_MACH_ASPEED_G4)
 #include "ast_g4_platform.h"
-#define ASPEED_SCU_BASE		0x1e6e2000
 #define ASPEED_HW_STRAP1	0x1e6e2070
 #define ASPEED_REVISION_ID	0x1e6e207C
 #elif defined(CONFIG_MACH_ASPEED_G5)
 #define ASPEED_MAC_COUNT	2
 #include "ast_g5_platform.h"
-#define ASPEED_SCU_BASE		0x1e6e2000
 #define ASPEED_HW_STRAP1	0x1e6e2070
 #define ASPEED_HW_STRAP2	0x1e6e20D0
 #define ASPEED_REVISION_ID	0x1e6e207C
 #define ASPEED_MAC_COUNT	2
 #elif defined(CONFIG_MACH_ASPEED_G6)
 #include "ast_g6_platform.h"
-#define ASPEED_SCU_BASE		0x1e6e2000
 #define ASPEED_HW_STRAP1	0x1e6e2500
 #define ASPEED_HW_STRAP2	0x1e6e2510
 #define ASPEED_REVISION_ID	0x1e6e2004

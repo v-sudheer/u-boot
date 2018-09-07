@@ -39,7 +39,9 @@
 #define AST_VIC_BASE                       0x1E6C0000	/* VIC */
 #define AST_SDMC_BASE                       0x1E6E0000	/* SDRAM CTRL */
 #define AST_HID_BASE                     0x1E6E1000	/* USB11 */
-#define AST_SCU_BASE                       0x1E6E2000	/* SCU */
+
+#define ASPEED_SCU_BASE		0x1e6e2000
+
 #define AST_CRYPTO_BASE                    0x1E6E3000	/* Crypto */
 #define AST_JTAG_BASE                      0x1E6E4000	/* JTAG */
 #define AST_CRT0_BASE						0x1E6E6000	/* CRT0 */

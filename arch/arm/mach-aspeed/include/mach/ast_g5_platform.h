@@ -61,7 +61,9 @@
 #define AST_CVIC_BASE					0x1E6C2000	/* CVIC */
 #define AST_SDMC_BASE					0x1E6E0000	/* MMC SDRAM*/
 #define AST_HID_BASE					0x1E6E1000	/* USB 1.1 Controller */
-#define AST_SCU_BASE					0x1E6E2000	/* SCU */
+
+#define ASPEED_SCU_BASE		0x1e6e2000
+
 #define AST_CRYPTO_BASE				0x1E6E3000	/* Crypto */
 #define AST_JTAG_BASE					0x1E6E4000	/* JTAG */
 #define AST_I2S_BASE					0x1E6E5000	/* I2S */

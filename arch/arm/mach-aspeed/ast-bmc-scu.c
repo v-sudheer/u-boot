@@ -54,7 +54,7 @@
 
 #define SCUMSG(fmt, args...) printf(fmt, ## args)
 
-static u32 ast_scu_base = AST_SCU_BASE;
+static u32 ast_scu_base = ASPEED_SCU_BASE;
 
 static inline u32 
 ast_scu_read(u32 reg)

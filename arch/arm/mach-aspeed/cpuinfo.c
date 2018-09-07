@@ -27,27 +27,16 @@ int print_cpuinfo(void)
 #endif
 	printf("PLL :   %4s MHz\n", strmhz(buf, aspeed_get_clk_in_rate()));
 	printf("CPU :   %4s MHz\n", strmhz(buf, aspeed_get_hpll_clk_rate()));
+	printf("MPLL :	%4s MHz, ECC: %s, ",
+	       strmhz(buf, aspeed_get_mpll_clk_rate()),
+	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
+	if(ast_sdmc_get_ecc())
+		printf("recover %d, un-recover %d", ast_sdmc_get_ecc_recover_count(), ast_sdmc_get_ecc_unrecover_count());
+	if(ast_sdmc_get_ecc())
+		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
+
 #if defined(CONFIG_MACH_ASPEED_G5)
-	printf("MEM :	%4s MHz, ECC: %s, ",
-	       strmhz(buf, aspeed_get_mpll_clk_rate() * 2),
-	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
-
-	if(ast_sdmc_get_ecc())
-		printf("recover %d, un-recover %d", ast_sdmc_get_ecc_recover_count(), ast_sdmc_get_ecc_unrecover_count());
-
-	if(ast_sdmc_get_ecc())
-		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
 	printf("Cache: %s ",ast_sdmc_get_cache() ? "Enable" : "Disable");
-#else
-	printf("MEM :   %4s MHz, EEC:%s ",
-	       strmhz(buf, ast_get_m_pll_clk()),
-	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
-
-	if(ast_sdmc_get_ecc())
-		printf("recover %d, un-recover %d", ast_sdmc_get_ecc_recover_count(), ast_sdmc_get_ecc_unrecover_count());
-
-	if(ast_sdmc_get_ecc())
-		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
 #endif
 	ast_scu_get_who_init_dram();
 
@@ -72,6 +61,8 @@ int print_cpuinfo(void)
 	puts("Eth :    ");
 	for(i = 0; i < ASPEED_MAC_COUNT; i++) {
 		printf("MAC%d: %s ",i, aspeed_get_mac_phy_interface(i) ? "RGMII" : "RMII/NCSI");
+		if(i != (ASPEED_MAC_COUNT - 1))
+			printf(",");
 	}
 	puts("\n");
 

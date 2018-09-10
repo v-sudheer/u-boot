@@ -181,32 +181,6 @@ struct ftgmac100 {
 #define FTGMAC100_PHY_REQ_EN		(1 << 31)
 
 /*
- * PHY control register
- */
-#define FTGMAC100_PHYCR_MDC_CYCTHR_MASK	0x3f
-#define FTGMAC100_PHYCR_MDC_CYCTHR(x)	((x) & 0x3f)
-#define FTGMAC100_PHYCR_PHYAD(x)	(((x) & 0x1f) << 16)
-#define FTGMAC100_PHYCR_REGAD(x)	(((x) & 0x1f) << 21)
-#define FTGMAC100_PHYCR_MIIRD		(1 << 26)
-#define FTGMAC100_PHYCR_MIIWR		(1 << 27)
-
-//New MDC/MDIO 
-#define FTGMAC100_PHYCR_NEW_FIRE		(1 << 15)
-#define FTGMAC100_PHYCR_ST_22			(1 << 12)
-#define FTGMAC100_PHYCR_NEW_WRITE		(1 << 10)
-#define FTGMAC100_PHYCR_NEW_READ		(2 << 10)
-#define FTGMAC100_PHYCR_NEW_PHYAD(x)	(((x) & 0x1f) << 5)
-#define FTGMAC100_PHYCR_NEW_REGAD(x)	((x) & 0x1f)
-
-/*
- * PHY data register
- */
-#define FTGMAC100_PHYDATA_MIIWDATA(x)		((x) & 0xffff)
-#define FTGMAC100_PHYDATA_MIIRDATA(phydata)	(((phydata) >> 16) & 0xffff)
-
-#define FTGMAC100_PHYDATA_NEW_MIIWDATA(x)		((x) & 0xffff)
-
-/*
  * Transmit descriptor, aligned to 16 bytes
  */
 struct ftgmac100_txdes {

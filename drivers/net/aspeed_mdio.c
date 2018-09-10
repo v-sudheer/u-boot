@@ -21,13 +21,25 @@
 #define FTGMAC100_PHYCR_MIIRD		(1 << 26)
 #define FTGMAC100_PHYCR_MIIWR		(1 << 27)
 
+#ifdef CONFIG_MACH_ASPEED_G6
+//G6 MDC/MDIO 
+#define FTGMAC100_PHYCR_NEW_FIRE		BIT(31)
+#define FTGMAC100_PHYCR_ST_22			BIT(28)
+#define FTGMAC100_PHYCR_NEW_WRITE		BIT(26)
+#define FTGMAC100_PHYCR_NEW_READ		BIT(27)
+#define FTGMAC100_PHYCR_NEW_WDATA(x)	(x & 0xffff)
+#define FTGMAC100_PHYCR_NEW_PHYAD(x)	(((x) & 0x1f) << 21)
+#define FTGMAC100_PHYCR_NEW_REGAD(x)	(((x) & 0x1f) << 16)
+#else
 //New MDC/MDIO 
 #define FTGMAC100_PHYCR_NEW_FIRE		BIT(15)
 #define FTGMAC100_PHYCR_ST_22			BIT(12)
 #define FTGMAC100_PHYCR_NEW_WRITE		BIT(10)
 #define FTGMAC100_PHYCR_NEW_READ		BIT(11)
+#define FTGMAC100_PHYCR_NEW_WDATA(x)	((x & 0xffff) << 16)
 #define FTGMAC100_PHYCR_NEW_PHYAD(x)	(((x) & 0x1f) << 5)
 #define FTGMAC100_PHYCR_NEW_REGAD(x)	((x) & 0x1f)
+#endif
 
 /*
  * PHY data register
@@ -116,7 +128,7 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 		  |  FTGMAC100_PHYCR_REGAD(reg)
 		  |  FTGMAC100_PHYCR_MIIWR | 0x34;
 
-	data = FTGMAC100_PHYDATA_MIIWDATA(value);
+	data = FTGMAC100_PHYDATA_MIIWDATA(val);
 
 	writel(data, &mdio_regs->phydata);
 	writel(phycr, &mdio_regs->phycr);
@@ -134,7 +146,7 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 	}
 #else
 
-	phycr = (val << 16) |
+	phycr = FTGMAC100_PHYCR_NEW_WDATA(val) |
 			FTGMAC100_PHYCR_NEW_FIRE | FTGMAC100_PHYCR_ST_22 |
 			FTGMAC100_PHYCR_NEW_WRITE |
 			FTGMAC100_PHYCR_NEW_PHYAD(addr) | // 20141114

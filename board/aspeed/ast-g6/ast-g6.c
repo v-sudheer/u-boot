@@ -24,23 +24,16 @@ int misc_init_r (void)
 	wdt_start(CONFIG_AST_WATCHDOG_TIMEOUT);
 #endif
 	int update = 0, i;
-	u32 random;
-	uchar board_mac_addr[6];
+	uchar ethaddr[6];
 
-	for (i = 0; i < 2; i++) {
-		if (!eth_getenv_enetaddr_by_index("eth", i, board_mac_addr)) {
-			board_mac_addr[0] = 0x00;
-			board_mac_addr[1] = 0x0c;
-			board_mac_addr[2] = (random >> 20) & 0xff;
-			board_mac_addr[3] = (random >> 16) & 0xff;
-			board_mac_addr[4] = (random >> 8) & 0xff;
-			board_mac_addr[5] = (random) & 0xff + i;
-
-			if (eth_setenv_enetaddr_by_index("eth", i, board_mac_addr)) {
+	for (i = 0; i < ASPEED_MAC_COUNT; i++) {
+		if (!eth_getenv_enetaddr_by_index("eth", i, ethaddr)) {
+			net_random_ethaddr(ethaddr);
+			if (eth_setenv_enetaddr_by_index("eth", i, ethaddr)) {
 				printf("Failed to set random ethernet address\n");
 			} else {
 				printf("Setting random ethernet address %pM.\n",
-					   (uchar *)&random);
+					   (uchar *)&ethaddr);
 			}
 			update++;
 		}

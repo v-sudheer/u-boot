@@ -174,7 +174,7 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 static int aspeed_mdio_reset(struct mii_dev *bus)
 {
 	struct eth_device *dev = bus->priv;
-	printf("aspeed_mdio_reset \n");
+//	printf("aspeed_mdio_reset \n");
 	return 0;
 }
 

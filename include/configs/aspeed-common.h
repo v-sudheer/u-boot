@@ -46,6 +46,9 @@
 #define CONFIG_BAUDRATE					115200
 #endif
 
+#define PHY_ANEG_TIMEOUT		800
+#define CONFIG_PHY_GIGE
+
 /***************** BOOTP options  *****************/
 #define CONFIG_BOOTP_BOOTFILESIZE
 #define CONFIG_BOOTP_BOOTPATH

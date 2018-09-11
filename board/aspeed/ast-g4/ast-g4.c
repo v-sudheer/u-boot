@@ -10,11 +10,10 @@
 
 #include <common.h>
 #include <netdev.h>
-#include <asm/arch/platform.h>
+#include <asm/arch/ast-scu.h>
 #include <asm/arch/ast-sdmc.h>
 #include <asm/arch/regs-ahbc.h>
-#include <asm/arch/regs-scu.h>
-#include <asm/arch/ast-scu.h>
+#include <asm/arch/regs-bmc-scu.h>
 #include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -30,9 +29,6 @@ int misc_init_r(void)
 	reg = readl(AST_AHBC_BASE + AST_AHBC_ADDR_REMAP);
 	writel(reg | BIT(0), AST_AHBC_BASE + AST_AHBC_ADDR_REMAP);
 
-	/* Unlock SCU */
-	writel(SCU_PROTECT_UNLOCK, AST_SCU_BASE);
-
 	/*
 	 * The original file contained these comments.
 	 * TODO: verify the register write does what it claims
@@ -41,10 +37,10 @@ int misc_init_r(void)
 	 * PCLK  = HPLL/8
 	 * BHCLK = HPLL/8
 	 */
-	reg = readl(AST_SCU_BASE + AST_SCU_CLK_SEL);
+	reg = readl(ASPEED_SCU_BASE + AST_SCU_CLK_SEL);
 	reg &= 0x1c0fffff;
 	reg |= 0x61800000;
-	writel(reg, AST_SCU_BASE + AST_SCU_CLK_SEL);
+	writel(reg, ASPEED_SCU_BASE + AST_SCU_CLK_SEL);
 
 	return 0;
 }

@@ -89,6 +89,7 @@ aspeed_get_mac_phy_interface(u8 num)
 				return 0;
 			}
 			break;
+#ifdef ASPEED_HW_STRAP2			
 		case 2:
 			if(strap2 & BIT(6)) {
 				return 1;
@@ -103,6 +104,7 @@ aspeed_get_mac_phy_interface(u8 num)
 				return 0;
 			}
 			break;
+#endif			
 	}
 	return -1;
 }

@@ -35,6 +35,7 @@
 #elif defined(CONFIG_MACH_ASPEED_G3)
 #include "ast_g3_platform.h"
 #elif defined(CONFIG_MACH_ASPEED_G4)
+#define ASPEED_MAC_COUNT	2
 #include "ast_g4_platform.h"
 #define ASPEED_HW_STRAP1	0x1e6e2070
 #define ASPEED_REVISION_ID	0x1e6e207C

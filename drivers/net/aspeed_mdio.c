@@ -70,10 +70,10 @@ static int aspeed_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 		  |  FTGMAC100_PHYCR_REGAD(reg)
 		  |  FTGMAC100_PHYCR_MIIRD | 0x34;
 
-	writel(phycr, &ftgmac100->phycr);
+	writel(phycr, &mdio_regs->phycr);
 
 	for (i = 0; i < 10; i++) {
-		phycr = readl(&ftgmac100->phycr);
+		phycr = readl(&mdio_regs->phycr);
 
 		if ((phycr & FTGMAC100_PHYCR_MIIRD) == 0) {
 			int data;
@@ -173,7 +173,7 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 
 static int aspeed_mdio_reset(struct mii_dev *bus)
 {
-	struct eth_device *dev = bus->priv;
+//	struct eth_device *dev = bus->priv;
 //	printf("aspeed_mdio_reset \n");
 	return 0;
 }

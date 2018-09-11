@@ -51,6 +51,7 @@ config ARM1176
 config CORTEX_A7
 	select ARMV7_LPAE
 	select CPU_V7
+	select CPU_V7_HAS_NONSEC
 	bool "CPU Cortex-A7"
 endif
 

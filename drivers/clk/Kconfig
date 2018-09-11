@@ -20,6 +20,10 @@ config SPL_CLK
 	  setting up clocks within SPL, and allows the same drivers to be
 	  used as U-Boot proper.
 
+config CLK_ASPEED
+	bool "Enable clock support for ASPEED"
+	depends on ARCH_ASPEED
+	
 config CLK_BOSTON
 	def_bool y if TARGET_BOSTON
 	depends on CLK

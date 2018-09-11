@@ -41,6 +41,7 @@
 #include <asm/arch/regs-bmc-scu.h>
 #include <asm/arch/ast-bmc-scu.h>
 #include <asm/arch/platform.h>
+#include <asm/arch/clk_aspeed.h>
 
 //#define ASPEED_SCU_LOCK
 //#define ASPEED_SCU_DEBUG
@@ -53,7 +54,7 @@
 
 #define SCUMSG(fmt, args...) printf(fmt, ## args)
 
-static u32 ast_scu_base = AST_SCU_BASE;
+static u32 ast_scu_base = ASPEED_SCU_BASE;
 
 static inline u32 
 ast_scu_read(u32 reg)
@@ -83,48 +84,6 @@ ast_scu_write(u32 val, u32 reg)
 #endif
 }
 
-/* SoC mapping Table */
-struct soc_id {
-	const char *name;
-	u32	   rev_id;
-};
-
-#define SOC_ID(str, rev) { .name = str, .rev_id = rev, }
-
-static struct soc_id soc_map_table[] = {
-	SOC_ID("AST1100/AST2050-A0", 0x00000200),
-	SOC_ID("AST1100/AST2050-A1", 0x00000201),
-	SOC_ID("AST1100/AST2050-A2,3/AST2150-A0,1", 0x00000202),
-	SOC_ID("AST1510/AST2100-A0", 0x00000300),
-	SOC_ID("AST1510/AST2100-A1", 0x00000301),
-	SOC_ID("AST1510/AST2100-A2,3", 0x00000302),
-	SOC_ID("AST2200-A0,1", 0x00000102),
-	SOC_ID("AST2300-A0", 0x01000003),
-	SOC_ID("AST2300-A1", 0x01010303),
-	SOC_ID("AST1300-A1", 0x01010003),
-	SOC_ID("AST1050-A1", 0x01010203),
-	SOC_ID("AST2400-A0", 0x02000303),
-	SOC_ID("AST2400-A1", 0x02010303),
-	SOC_ID("AST1010-A0", 0x03000003),
-	SOC_ID("AST1010-A1", 0x03010003),
-	SOC_ID("AST3200-A0", 0x04002003),
-	SOC_ID("AST3200-A1", 0x04012003),
-	SOC_ID("AST3200-A2", 0x04032003),
-	SOC_ID("AST1520-A0", 0x03000203),	
-	SOC_ID("AST1520-A1", 0x03010203),
-	SOC_ID("AST2510-A0", 0x04000103),
-	SOC_ID("AST2510-A1", 0x04010103),
-	SOC_ID("AST2510-A2", 0x04030103),	
-	SOC_ID("AST2520-A0", 0x04000203),
-	SOC_ID("AST2520-A1", 0x04010203),
-	SOC_ID("AST2520-A2", 0x04030203),
-	SOC_ID("AST2500-A0", 0x04000303),	
-	SOC_ID("AST2500-A1", 0x04010303),
-	SOC_ID("AST2500-A2", 0x04030303),	
-	SOC_ID("AST2530-A0", 0x04000403),
-	SOC_ID("AST2530-A1", 0x04010403),
-	SOC_ID("AST2530-A2", 0x04030403),	
-};
 //***********************************Initial control***********************************
 #ifdef SCU_RESET_VIDEO
 extern void
@@ -134,7 +93,6 @@ ast_scu_reset_video(void)
 	udelay(100);
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_VIDEO, AST_SCU_RESET);
 }
-
 
 extern void
 ast_scu_init_video(u8 dynamic_en)
@@ -187,56 +145,6 @@ ast_scu_init_uart(u8 uart)
 }
 #endif
 
-extern void
-ast_scu_init_eth(u8 num)
-{
-
-//Set MAC delay Timing
-#if defined(CONFIG_MACH_ASPEED_G5)
-	//a1 
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK);
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK_DELAY_100M);
-//	ast_scu_write(0x00145249, AST_SCU_MAC_CLK_DELAY_10M);
-//	ast_scu_write((0x6a << 16) | (0x6a << 8), AST_SCU_MAC_CLK_DUTY); 
-#elif defined(CONFIG_ARCH_AST1010)
-// do nothing 
-#else
-	//AST2300 max clk to 125Mhz, AST2400 max clk to 198Mhz
-	if(ast_scu_read(AST_SCU_HW_STRAP1) & (SCU_HW_STRAP_MAC1_RGMII | SCU_HW_STRAP_MAC0_RGMII))	//RGMII --> H-PLL/6
-		ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_MAC_MASK) | SCU_CLK_MAC_DIV(2), AST_SCU_CLK_SEL);
-	else	//RMII --> H-PLL/10
-		ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_MAC_MASK) | SCU_CLK_MAC_DIV(4), AST_SCU_CLK_SEL);
-
-	ast_scu_write(0x2255, AST_SCU_MAC_CLK);	
-#endif
-
-	switch(num) {
-		case 0:
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_MAC0, 
-							AST_SCU_RESET);		
-			udelay(100);
-			ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_MAC0CLK_STOP_EN, 
-							AST_SCU_CLK_STOP);		
-			udelay(1000);
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_MAC0, 
-							AST_SCU_RESET);		
-			
-			break;
-#if defined(AST_MAC1_BASE)
-		case 1:
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_MAC1, 
-							AST_SCU_RESET);			
-			udelay(100);
-			ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_MAC1CLK_STOP_EN, 
-							AST_SCU_CLK_STOP);		
-			udelay(1000);
-			ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_MAC1, 
-							AST_SCU_RESET);			
-			break;
-#endif			
-	}		
-}
-
 #ifdef SCU_RESET_USB11
 extern void
 ast_scu_init_uhci(void)
@@ -282,6 +190,9 @@ ast_scu_init_usb_port2(void)
 #endif
 
 #ifdef SCU_RESET_SD
+#define SCU_CLK_SD_DIV(x)			(x << 12)
+#define SCU_CLK_SD_MASK				(0x7 << 12)
+
 extern void
 ast_scu_init_sdhci(void)
 {
@@ -309,13 +220,6 @@ ast_scu_init_sdhci(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SD, AST_SCU_RESET);
 }
 #endif
-
-extern void
-ast_scu_init_i2c(void)
-{
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_I2C, AST_SCU_RESET);
-}
-
 
 extern void
 ast_scu_init_pwm_tacho(void)
@@ -425,6 +329,8 @@ ast_scu_reset_lpc(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_LPC, AST_SCU_RESET);
 }
 
+#define SCU_LHCLK_SOURCE_EN			BIT(19)
+#define SCU_SET_LHCLK_DIV(x)		(x << 20)
 
 extern void
 ast_scu_init_lpc(void)
@@ -451,7 +357,7 @@ ast_scu_get_lpc_plus_enable(void)
 }
 
 
-#ifdef CONFIG_MACH_ASPEED_G5
+#if 0
 extern void
 ast_scu_init_rfx(void)
 {
@@ -641,407 +547,7 @@ ast_scu_clk_stop(u32 clk_name,u8 stop_enable)
 	}
 }
 
-
 //***********************************CLK Information***********************************
-#ifdef CONFIG_ARCH_AST1010
-extern u32
-ast_get_clk_source(void)
-{
-	return AST_PLL_CLOCK;
-}
-#else
-extern u32
-ast_get_clk_source(void)
-{
-	if(ast_scu_read(AST_SCU_HW_STRAP1) & CLK_25M_IN)
-		return AST_PLL_25MHZ;
-	else
-		return AST_PLL_24MHZ;
-}
-#endif
-
-#if defined(CONFIG_MACH_ASPEED_G5)
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 clk=0;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	if(h_pll_set & SCU_H_PLL_OFF)
-		return 0;
-	
-	// Programming
-	clk = ast_get_clk_source();
-	if(h_pll_set & SCU_H_PLL_BYPASS_EN) {
-		return clk;
-	} else {
-		//P = SCU24[18:13]
-		//M = SCU24[12:5]
-		//N = SCU24[4:0]
-		//hpll = 24MHz * [(M+1) /(N+1)] / (P+1)
-		clk = ((clk * (SCU_H_PLL_GET_MNUM(h_pll_set) + 1)) / (SCU_H_PLL_GET_NNUM(h_pll_set) + 1)) /(SCU_H_PLL_GET_PNUM(h_pll_set) + 1);
-	}
-	SCUDBUG("h_pll = %d\n",clk);
-	return clk;
-}
-
-
-extern u32
-ast_get_m_pll_clk(void)
-{
-	u32 clk=0;
-	u32 m_pll_set = ast_scu_read(AST_SCU_M_PLL);
-
-	if(m_pll_set & SCU_M_PLL_OFF)
-		return 0;
-	
-	// Programming
-	clk = ast_get_clk_source();
-	if(m_pll_set & SCU_M_PLL_BYPASS) {
-		return clk;
-	} else {
-		//PD  == SCU20[13:18]
-		//M  == SCU20[5:12]	
-		//N  == SCU20[0:4]		
-		//mpll =  24MHz * [(M+1) /(N+1)] / (P+1)
-		clk = ((clk * (SCU_M_PLL_GET_MNUM(m_pll_set) + 1)) / (SCU_M_PLL_GET_NNUM(m_pll_set) + 1))/(SCU_M_PLL_GET_PDNUM(m_pll_set) + 1);
-	}
-	SCUDBUG("m_pll = %d\n",clk);
-	return clk;
-}
-
-
-extern u32
-ast_get_ahbclk(void)
-{
-	unsigned int axi_div, ahb_div, hpll;
-
-	hpll = ast_get_h_pll_clk();
-	//AST2500 A1 fix 
-	axi_div = 2;
-	ahb_div = (SCU_HW_STRAP_GET_AXI_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) + 1); 
-	
-	SCUDBUG("HPLL=%d, AXI_Div=%d, AHB_DIV = %d, AHB CLK=%d\n", hpll, axi_div, ahb_div, (hpll/axi_div)/ahb_div);	
-	return ((hpll/axi_div)/ahb_div);
-
-}
-
-
-extern u32
-ast_get_d2_pll_clk(void)
-{
-	u32 clk=0;
-	u32 d2_pll_set = ast_scu_read(AST_SCU_D2_PLL);
-	u32 d2_pll_conf = ast_scu_read(AST_SCU_D2_PLL_EXTEND);	
-	u32 MNUM,NNUM,PNUM,ODNUM;
-
-	if(d2_pll_conf & SCU_D2_PLL_OFF)
-		return 0;
-
-	// Programming
-	clk = ast_get_clk_source();
-	if(d2_pll_conf & SCU_D2_PLL_BYPASS) {
-		return clk;
-	} else {
-		MNUM = SCU_D2_PLL_GET_MNUM(d2_pll_set);
-		MNUM += 1;
-		NNUM = SCU_D2_PLL_GET_NNUM(d2_pll_set);
-		NNUM += 1;
-		PNUM = SCU_D2_PLL_GET_PNUM(d2_pll_set);
-		PNUM += 1;
-		ODNUM = SCU_D2_PLL_GET_ODNUM(d2_pll_set);
-		ODNUM += 1;
-//		printf("clk %d ,num %d ,denum %d ,od %d ,pd %d ,pd2 %d \n",clk, NUM , DENUM, OD, PD, PD2);
-		//hpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
-		clk = (clk * MNUM) / (NNUM) / PNUM / ODNUM;
-	}
-
-	SCUDBUG("d2_pll = %d\n",clk);
-	return clk;
-}
-
-
-extern void
-ast_set_d2_pll_clk(u32 pll_setting)
-{
-	//Off D2-PLL
-//	ast_scu_write(ast_scu_read(AST_SCU_D2_PLL_EXTEND) |  SCU_D2_PLL_OFF | SCU_D2_PLL_RESET , AST_SCU_D2_PLL_EXTEND);
-	ast_scu_write(0x585, AST_SCU_D2_PLL_EXTEND);
-
-	//set D2-PLL parameter 
-	ast_scu_write(pll_setting, AST_SCU_D2_PLL);
-
-	//enable D2-PLL
-//	ast_scu_write(ast_scu_read(AST_SCU_D2_PLL_EXTEND) &  ~(SCU_D2_PLL_OFF | SCU_D2_PLL_RESET) , AST_SCU_D2_PLL_EXTEND);
-	ast_scu_write(0x580, AST_SCU_D2_PLL_EXTEND);
-
-}
-
-
-extern u32
-ast_get_d_pll_clk(void)
-{
-	u32 clk=0;
-	u32 d_pll_set = ast_scu_read(AST_SCU_D_PLL);
-	u32 d_pll_conf = ast_scu_read(AST_SCU_D_PLL_EXTEND0);	
-	u32 MNUM,NNUM,PNUM,ODNUM;
-
-	if(d_pll_conf & SCU_D_PLL_OFF)
-		return 0;
-
-	// Programming
-	clk = ast_get_clk_source();
-	if(d_pll_conf & SCU_D_PLL_BYPASS) {
-		return clk;
-	} else {
-		MNUM = SCU_D_PLL_GET_MNUM(d_pll_set);
-		MNUM += 1;
-		NNUM = SCU_D_PLL_GET_NNUM(d_pll_set);
-		NNUM += 1;
-		PNUM = SCU_D_PLL_GET_PNUM(d_pll_set);
-		PNUM += 1;
-		ODNUM = SCU_D_PLL_GET_ODNUM(d_pll_set);
-		ODNUM += 1;
-//		printf("clk %d ,num %d ,denum %d ,od %d ,pd %d ,pd2 %d \n",clk, NUM , DENUM, OD, PD, PD2);
-		//hpll = 24MHz * [(M + 1) /(N + 1)] / (P + 1) / (OD + 1)
-		clk = (clk * MNUM) / (NNUM) / PNUM / ODNUM;
-	}
-
-	SCUDBUG("d_pll = %d\n",clk);
-	return clk;
-}
-
-
-#elif defined(CONFIG_ARCH_AST1010)
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 speed,clk=0;
-	u32 OD, NUM, DENUM;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	clk = AST_PLL_CLOCK;
-	OD = (1 << (SCU_H_PLL_GET_DIV(h_pll_set)));
-	NUM = SCU_H_PLL_GET_NUM(h_pll_set);
-	DENUM = SCU_H_PLL_GET_DENUM(h_pll_set);
-	//hpll = 24MHz * (Numerator+1) / ((OD) * (Denumerator+1))
-	clk = clk * (NUM + 1) / OD / (DENUM + 1);
-
-//	printf("h_pll = %d\n",clk);
-	return clk;
-}
-
-extern u32
-ast_get_ahbclk(void)
-{
-	return ast_get_h_pll_clk();
-}
-
-
-extern u32
-ast_get_ahb_div(void)
-{
-	u32 div = ast_scu_read(AST_SCU_CLK_SEL);
-	div = SCU_GET_AHB_DIV(div);
-	div = (div + 1) * 2;
-	return div;
-}
-
-extern u32
-ast_get_pclk(void)
-{
-        unsigned int div, hpll;
-
-        hpll = ast_get_h_pll_clk();
-        div = SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-        if((div >> 2) == 1) {
-                SCUDBUG("div=%d , return 24000000\n", div);
-                return 24000000;
-        } else {
-                SCUDBUG("hpll=%d, Div=%d, PCLK=%d\n", hpll, div, hpll/div);
-                div = (div+1) << 1;
-                return (hpll/div);
-        }
-
-//      SCUDBUG("HPLL=%d, Div=%d, PCLK=%d\n", hpll, div, hpll/div);
-//      return (hpll/div);
-
-}
-
-#else
-extern u32
-ast_get_h_pll_clk(void)
-{
-	u32 speed,clk=0;
-	u32 h_pll_set = ast_scu_read(AST_SCU_H_PLL);
-
-	if(h_pll_set & SCU_H_PLL_OFF)
-		return 0;
-	
-	if(h_pll_set & SCU_H_PLL_PARAMETER) {
-		// Programming
-		clk = ast_get_clk_source();
-		if(h_pll_set & SCU_H_PLL_BYPASS_EN) {
-			return clk;
-		} else {
-			//OD == SCU24[4]
-			//OD = SCU_H_PLL_GET_DIV(h_pll_set);
-			//Numerator == SCU24[10:5]
-			//num = SCU_H_PLL_GET_NUM(h_pll_set);
-			//Denumerator == SCU24[3:0]
-			//denum = SCU_H_PLL_GET_DENUM(h_pll_set);
-
-			//hpll = 24MHz * (2-OD) * ((Numerator+2)/(Denumerator+1))
-			clk = ((clk * (2-SCU_H_PLL_GET_DIV(h_pll_set)) * (SCU_H_PLL_GET_NUM(h_pll_set)+2))/(SCU_H_PLL_GET_DENUM(h_pll_set)+1));
-		}
-	} else {
-		// HW Trap
-		speed = SCU_HW_STRAP_GET_H_PLL_CLK(ast_scu_read(AST_SCU_HW_STRAP1));
-		switch (speed) {
-			case 0:
-				clk = 384000000; 
-				break;
-			case 1:
-				clk = 360000000; 
-				break;
-			case 2:
-				clk = 336000000; 
-				break;
-			case 3:
-				clk = 408000000; 
-				break;
-			default:
-				BUG(); 
-				break;
-		}		
-	}
-	SCUDBUG("h_pll = %d\n",clk);
-	return clk;
-}
-
-
-extern u32
-ast_get_m_pll_clk(void)
-{
-	u32 clk=0;
-	u32 m_pll_set = ast_scu_read(AST_SCU_M_PLL);
-
-	if(m_pll_set & SCU_M_PLL_OFF)
-		return 0;
-	
-	// Programming
-	clk = ast_get_clk_source();
-	if(m_pll_set & SCU_M_PLL_BYPASS) {
-		return clk;
-	} else {
-		//OD == SCU24[4]
-		//OD = SCU_M_PLL_GET_DIV(h_pll_set);
-		//Numerator == SCU24[10:5]
-		//num = SCU_M_PLL_GET_NUM(h_pll_set);
-		//Denumerator == SCU24[3:0]
-		//denum = SCU_M_PLL_GET_DENUM(h_pll_set);
-
-		//hpll = 24MHz * (2-OD) * ((Numerator+2)/(Denumerator+1))
-		clk = (clk * (2-SCU_M_PLL_GET_DIV(m_pll_set)) * ((SCU_M_PLL_GET_NUM(m_pll_set)+2)/(SCU_M_PLL_GET_DENUM(m_pll_set)+1)));
-	}
-	SCUDBUG("m_pll = %d\n",clk);
-	return clk;
-}
-
-
-extern u32
-ast_get_ahbclk(void)
-{
-	unsigned int div, hpll;
-
-	hpll = ast_get_h_pll_clk();
-	div = SCU_HW_STRAP_GET_CPU_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1));
-	div += 1;
-	
-	SCUDBUG("HPLL=%d, Div=%d, AHB CLK=%d\n", hpll, div, hpll/div);	
-	return (hpll/div);
-}
-
-
-extern u32
-ast_get_d2_pll_clk(void)
-{
-	u32 clk=0;
-	u32 d2_pll_set = ast_scu_read(AST_SCU_D2_PLL);
-	u32 OD,NUM,DENUM,PD,PD2;
-
-	if(d2_pll_set & SCU_D2_PLL_OFF)
-		return 0;
-
-	// Programming
-	clk = ast_get_clk_source();
-	if(d2_pll_set & SCU_D2_PLL_BYPASS) {
-		return clk;
-	} else {
-		NUM = SCU_D2_PLL_GET_NUM(d2_pll_set);
-		DENUM = SCU_D2_PLL_GET_DENUM(d2_pll_set);
-		OD = SCU_D2_PLL_GET_OD(d2_pll_set);
-		OD = (1 << (OD - 1));
-		PD = SCU_D2_PLL_GET_PD(d2_pll_set);
-		PD += 1;
-		PD2 = SCU_D2_PLL_GET_PD2(d2_pll_set);
-		PD2 += 1;
-//		printf("clk %d ,num %d ,denum %d ,od %d ,pd %d ,pd2 %d \n",clk, NUM , DENUM, OD, PD, PD2);
-		//hpll = 24MHz * (Numerator * 2) / (Denumerator * OD * PD * PD2)
-		clk = (clk * NUM * 2) / (DENUM* OD * PD * PD2);
-	}
-
-	SCUDBUG("d2_pll = %d\n",clk);
-	return clk;
-}
-
-
-#endif
-
-extern u32
-ast_get_pclk(void)
-{
-	unsigned int div, hpll;
-
-	hpll = ast_get_h_pll_clk();
-	div = SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-#ifdef CONFIG_MACH_ASPEED_G5
-	div = (div+1) << 2;
-#else
-	div = (div+1) << 1;
-#endif
-	
-	SCUDBUG("HPLL=%d, Div=%d, PCLK=%d\n", hpll, div, hpll/div);	
-	return (hpll/div);
-
-}
-
-
-extern u32
-ast_get_lhclk(void)
-{
-	unsigned int div, hpll;
-	u32 clk_sel = ast_scu_read(AST_SCU_CLK_SEL);
-//FPGA AST1070 is default 100/2 Mhz input
-//	return 50000000;	
-	hpll = ast_get_h_pll_clk();
-	if(SCU_LHCLK_SOURCE_EN & clk_sel) {
-		div = SCU_GET_LHCLK_DIV(clk_sel);
-#ifdef CONFIG_MACH_ASPEED_G5
-		div = (div+1) << 2;
-#else
-		div = (div+1) << 1;
-#endif
-		SCUDBUG("HPLL=%d, Div=%d, LHCLK = %d\n", hpll, div, hpll/div);	
-		return (hpll/div);
-	} else {
-		SCUMSG("LPC CLK not enable \n");
-		return 0;
-	}
-
-}
-
-
 extern void
 ast_scu_osc_clk_output(void)
 {
@@ -1053,57 +559,6 @@ ast_scu_osc_clk_output(void)
 //	}
 }
 
-
-//Because value 0 is not allowed in SDIO12C D[15:8]: Host Control Settings #1 Register, we have to increase the maximum
-//host's clock in case that system will not ask host to set 1 in the sdhci_set_clock() function
-/*
-SCU7C: Silicon Revision ID Register
-D[31:24]: Chip ID
-0: AST2050/AST2100/AST2150/AST2200/AST3000
-1: AST2300
-
-D[23:16] Silicon revision ID for AST2300 generation and later
-0: A0
-1: A1
-2: A2
-.
-.
-.
-FPGA revision starts from 0x80
-
-
-D[11:8] Bounding option
-
-D[7:0] Silicon revision ID for AST2050/AST2100 generation (for software compatible)
-0: A0
-1: A1
-2: A2
-3: A3
-.
-.
-FPGA revision starts from 0x08, 8~10 means A0, 11+ means A1, AST2300 should be assigned to 3
-*/
-
-extern u32
-ast_get_sd_clock_src(void)
-{
-	u32 clk=0, sd_div;
-
-	clk = ast_get_h_pll_clk();
-	//get div
-	sd_div = SCU_CLK_SD_GET_DIV(ast_scu_read(AST_SCU_CLK_SEL));
-#ifdef CONFIG_MACH_ASPEED_G5
-		sd_div = (sd_div+1) << 2;
-#else
-		sd_div = (sd_div+1) << 1;
-#endif
-		SCUDBUG("div %d, sdclk =%d \n",sd_div,clk/sd_div);
-		clk /= sd_div;
-
-	return clk;
-}
-
-
 extern void
 ast_scu_set_lpc_mode(void)
 {
@@ -1111,43 +566,6 @@ ast_scu_set_lpc_mode(void)
 	ast_scu_write(SCU_HW_STRAP_ESPI_MODE , AST_SCU_REVISION_ID);
 #endif
 }
-
-extern void
-ast_scu_show_system_info (void)
-{
-
-#ifdef CONFIG_MACH_ASPEED_G5
-	u32 axi_div, ahb_div, h_pll, pclk_div;
-
-	h_pll = ast_get_h_pll_clk();
-
-	//AST2500 A1 fix 
-	axi_div = 2;
-	ahb_div = (SCU_HW_STRAP_GET_AXI_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1)) + 1);
-	pclk_div = (SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL)) + 1) * 4;
-
-	SCUMSG("CPU = %d MHz , AXI = %d MHz, AHB = %d MHz, PCLK = %d Mhz (div: %d:%d:%d) \n", 
-			h_pll/1000000, 
-			h_pll/axi_div/1000000,
-			h_pll/axi_div/ahb_div/1000000,
-			h_pll/pclk_div/1000000, axi_div, ahb_div, pclk_div); 
-
-#else
-	u32 h_pll, ahb_div, pclk_div;
-
-	h_pll = ast_get_h_pll_clk();
-
-	ahb_div = SCU_HW_STRAP_GET_CPU_AHB_RATIO(ast_scu_read(AST_SCU_HW_STRAP1));
-	ahb_div += 1;
-	pclk_div = (SCU_GET_PCLK_DIV(ast_scu_read(AST_SCU_CLK_SEL)) + 1) * 4;
-	
-	SCUMSG("CPU = %d MHz ,AHB = %d MHz, PCLK = %d Mhz (div : %d:%d) \n", 
-			h_pll/1000000, h_pll/ahb_div/1000000, h_pll/ahb_div/1000000, 
-			ahb_div, pclk_div); 
-#endif
-	return ;
-}
-
 
 //*********************************** Multi-function pin control ***********************************
 extern void
@@ -1274,90 +692,6 @@ ast_scu_multi_func_video(void)
 
 #endif
 }
-
-#ifdef CONFIG_ARCH_AST1010
-extern void
-ast_scu_multi_func_eth(u8 num)
-{
-	switch(num) {
-		case 0:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL3) | 
-						SCU_FUN_PIN_MAC0_MDIO |
-						SCU_FUN_PIN_MAC0_MDC |
-						0xff000000, 
-				AST_SCU_FUN_PIN_CTRL3); 
-
-			/* Currently we use fix value in MAC timing on EVB */
-			ast_scu_write(0x2255, AST_SCU_MAC_CLK); 
-			
-			break;
-		case 1:
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC1_PHY_LINK, 
-				AST_SCU_FUN_PIN_CTRL1); 
-			
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | 
-						SCU_FUC_PIN_MAC1_MDIO,
-				AST_SCU_FUN_PIN_CTRL5); 
-
-			break;
-	}
-}
-#else
-extern void
-ast_scu_multi_func_eth(u8 num)
-{
-	switch(num) {
-		case 0:
-			if(ast_scu_read(AST_SCU_HW_STRAP1) & SCU_HW_STRAP_MAC0_RGMII) {
-				SCUMSG("MAC0 : RGMII \n");
-				ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-							SCU_FUN_PIN_MAC0_PHY_LINK, 
-					AST_SCU_FUN_PIN_CTRL1); 
-			} else {
-				SCUMSG("MAC0 : RMII/NCSI \n");			
-				ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) &
-							~SCU_FUN_PIN_MAC0_PHY_LINK, 
-					AST_SCU_FUN_PIN_CTRL1); 
-			}
-
-#ifdef CONFIG_MACH_ASPEED_G5
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC0_PHY_LINK, 
-				AST_SCU_FUN_PIN_CTRL1); 
-
-#endif
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL3) | 
-						SCU_FUN_PIN_MAC0_MDIO |
-						SCU_FUN_PIN_MAC0_MDC, 
-				AST_SCU_FUN_PIN_CTRL3); 
-			
-			break;
-		case 1:
-			if(ast_scu_read(AST_SCU_HW_STRAP1) & SCU_HW_STRAP_MAC1_RGMII) {
-				SCUMSG("MAC1 : RGMII \n");
-				ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-							SCU_FUN_PIN_MAC1_PHY_LINK, 
-					AST_SCU_FUN_PIN_CTRL1); 
-			} else {
-				SCUMSG("MAC1 : RMII/NCSI \n");
-				ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) & 
-						~SCU_FUN_PIN_MAC1_PHY_LINK, 
-					AST_SCU_FUN_PIN_CTRL1); 
-			}
-		
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) | 
-						SCU_FUN_PIN_MAC1_PHY_LINK, 
-				AST_SCU_FUN_PIN_CTRL1); 
-			
-			ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL5) | 
-						SCU_FUC_PIN_MAC1_MDIO,
-				AST_SCU_FUN_PIN_CTRL5); 
-
-			break;
-	}
-}
-#endif
 
 extern void
 ast_scu_multi_func_nand(void)
@@ -1751,23 +1085,6 @@ ast_scu_multi_func_sgpio(void)
 
 
 //***********************************Information ***********************************
-extern u32
-ast_scu_revision_id(void)
-{
-	int i;
-	u32 rev_id = ast_scu_read(AST_SCU_REVISION_ID);
-	for(i=0;i<ARRAY_SIZE(soc_map_table);i++) {
-		if(rev_id == soc_map_table[i].rev_id)
-			break;
-	}
-	if(i == ARRAY_SIZE(soc_map_table))
-		SCUMSG("UnKnow-SOC : %x \n",rev_id);
-	else
-		SCUMSG("SOC : %4s \n",soc_map_table[i].name);
-	
-	return rev_id;
-}	
-
 
 extern void
 ast_scu_security_info(void)
@@ -1835,60 +1152,6 @@ ast_scu_sys_rest_info(void)
 #endif
 }	
 
-
-/*
-* D[15:11] in 0x1E6E2040 is NCSI scratch from U-Boot. D[15:14] = MAC1, D[13:12] = MAC2
-* The meanings of the 2 bits are:
-* 00(0): Dedicated PHY
-* 01(1): ASPEED's EVA + INTEL's NC-SI PHY chip EVA
-* 10(2): ASPEED's MAC is connected to NC-SI PHY chip directly
-* 11: Reserved
-*/
-
-extern u32
-ast_scu_get_phy_config(u8 mac_num)
-{
-	u32 scatch = ast_scu_read(AST_SCU_SOC_SCRATCH0);
-
-	switch(mac_num) {
-		case 0:
-			return (SCU_MAC0_GET_PHY_MODE(scatch));
-			break;
-		case 1:
-			return (SCU_MAC1_GET_PHY_MODE(scatch));
-			break;
-		default:
-			SCUMSG("error mac number \n");
-			break;
-	}
-	return -1;
-}
-
-extern u32
-ast_scu_get_phy_interface(u8 mac_num)
-{
-	u32 trap1 = ast_scu_read(AST_SCU_HW_STRAP1);
-
-	switch(mac_num) {
-		case 0:
-			if(SCU_HW_STRAP_MAC0_RGMII & trap1)
-				return 1;
-			else
-				return 0;
-			break;
-		case 1:
-			if(SCU_HW_STRAP_MAC1_RGMII & trap1)
-				return 1;
-			else
-				return 0;
-			break;
-		default:
-			SCUMSG("error mac number \n");
-			break;
-	}
-	return -1;
-}
-
 extern void
 ast_scu_set_vga_display(u8 enable)
 {
@@ -1898,7 +1161,6 @@ ast_scu_set_vga_display(u8 enable)
 		ast_scu_write(ast_scu_read(AST_SCU_MISC1_CTRL) | SCU_MISC_VGA_CRT_DIS, AST_SCU_MISC1_CTRL);
 }
 
-
 extern u8
 ast_scu_get_vga_display(void)
 {
@@ -1906,43 +1168,6 @@ ast_scu_get_vga_display(void)
 		return 0;
 	else
 		return 1;
-}
-
-
-extern u32
-ast_scu_get_vga_memsize(void)
-{
-	u32 size=0;
-
-	switch(SCU_HW_STRAP_VGA_SIZE_GET(ast_scu_read(AST_SCU_HW_STRAP1))) {
-		case VGA_8M_DRAM:
-			size = 8*1024*1024;
-			break;
-		case VGA_16M_DRAM:
-			size = 16*1024*1024;
-			break;
-		case VGA_32M_DRAM:
-			size = 32*1024*1024;
-			break;
-		case VGA_64M_DRAM:
-			size = 64*1024*1024;
-			break;
-		default:
-			SCUMSG("error vga size \n");
-			break;
-	}
-	return size;
-}
-
-
-extern u32
-ast_scu_get_soc_dram_base(void)
-{
-	u32 rev_id = ast_scu_read(AST_SCU_REVISION_ID);
-	if((rev_id >> AST_SOC_GEN) > 3) 
-		return AST_DRAM_BASE_8;
-	else
-		return AST_DRAM_BASE_4;
 }
 
 extern void

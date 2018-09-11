@@ -52,6 +52,9 @@
 #define AST_MAC0_BASE					0x1E660000	/* MAC1 */ 
 #define AST_MAC1_BASE					0x1E680000	/* MAC2 */ 
 
+#define ASPEED_MDIO0_BASE	0x1E660060
+#define ASPEED_MDIO1_BASE   0x1E680060
+
 #define AST_VHUB_BASE					0x1E6A0000	/* USB 2.0 VIRTUAL HUB CONTROLLER */
 #define AST_EHCI0_BASE					0x1E6A1000	/* USB 2.0 HOST CONTROLLER */
 #define AST_UDC1_BASE					0x1E6A2000	/* USB 2.0 Device CONTROLLER */
@@ -61,7 +64,9 @@
 #define AST_CVIC_BASE					0x1E6C2000	/* CVIC */
 #define AST_SDMC_BASE					0x1E6E0000	/* MMC SDRAM*/
 #define AST_HID_BASE					0x1E6E1000	/* USB 1.1 Controller */
-#define AST_SCU_BASE					0x1E6E2000	/* SCU */
+
+#define ASPEED_SCU_BASE		0x1e6e2000
+
 #define AST_CRYPTO_BASE				0x1E6E3000	/* Crypto */
 #define AST_JTAG_BASE					0x1E6E4000	/* JTAG */
 #define AST_I2S_BASE					0x1E6E5000	/* I2S */
@@ -101,7 +106,6 @@
 #define AST_SGPIO_BASE					0x1E780200	/* SGPIO */
 #define AST_SGPIO_S_BASE				0x1E780300	/* SGPIO Slave*/
 #define AST_RTC_BASE					0x1E781000	/* RTC */
-#define AST_TIMER_BASE              			0x1E782000	/* TIMER #0~2*/
 #define AST_UART1_BASE              			0x1E783000	/* UART1 */
 #define AST_UART0_BASE              			0x1E784000	/* UART5 */
 #define AST_WDT_BASE                			0x1E785000	/* WDT */

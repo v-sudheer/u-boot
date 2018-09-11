@@ -23,13 +23,9 @@
 #define __AST_SCU_H_INCLUDED
 
 //information
-extern void ast_scu_show_system_info (void);
 extern void ast_scu_sys_rest_info(void);
 extern void ast_scu_security_info(void);
 extern u32 ast_scu_revision_id(void);
-extern u32 ast_scu_get_phy_interface(u8 mac_num);
-extern u32 ast_scu_get_phy_config(u8 mac_num);
-extern u32 ast_scu_get_vga_memsize(void);
 extern void ast_scu_get_who_init_dram(void);
 extern int ast_scu_espi_mode(void);
 extern int ast_scu_2nd_wdt_mode(void);
@@ -44,30 +40,22 @@ extern u32 ast_get_ahb_div(void);
 extern u32 ast_get_m_pll_clk(void);
 extern u32 ast_get_ahbclk(void);
 
-extern u32 ast_get_pclk(void);
-extern u32 ast_get_sd_clock_src(void);
 extern u32 ast_get_d2_pll_clk(void);
-extern void ast_set_d2_pll_clk(u32 pll_setting);
 
 extern u32 ast_get_lhclk(void);
 
 extern void ast_scu_set_vga_display(u8 enable);
 extern u8 ast_scu_get_vga_display(void);
 
-extern u32 ast_scu_get_vga_memsize(void);
-
 //Ctrl Initial
 extern void ast_scu_init_uart(u8);
 extern void ast_scu_init_video(u8 dynamic_en);
-extern void ast_scu_reset_video(void);
-extern void ast_scu_init_eth(u8 num);
 extern void ast_scu_init_lpc(void);
 extern u8 ast_scu_get_lpc_plus_enable(void);
 extern void ast_scu_init_usb_port1(void);
 extern void ast_scu_init_usb_port2(void);
 extern void ast_scu_init_uhci(void);
 extern void ast_scu_init_sdhci(void);
-extern void ast_scu_init_i2c(void);
 extern void ast_scu_init_pwm_tacho(void);
 extern void ast_scu_init_adc(void);
 extern void ast_scu_init_mctp(void);
@@ -75,7 +63,6 @@ extern void ast_scu_init_pcie(void);
 extern void ast_scu_init_xdma(void);
 extern void ast_scu_init_peci(void);
 extern void ast_scu_init_jtag(void);
-extern void ast_scu_init_rfx(void);
 extern void ast_scu_init_h264(void);
 extern void ast_scu_set_crt_source(u8 dac_soource);
 extern void ast_scu_init_crt(void);
@@ -86,8 +73,6 @@ extern void ast_scu_spi_master(u8 mode);
 //Share pin
 extern void ast_scu_multi_func_uart(u8 uart);
 extern void ast_scu_multi_func_video(void);
-extern void ast_scu_multi_func_eth(u8 num);
-
 extern void ast_scu_multi_func_nand(void);
 
 extern void ast_scu_multi_func_nor(void);

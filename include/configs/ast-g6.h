@@ -18,7 +18,7 @@
 
 #ifdef CONFIG_CPU_V7
 #define CONFIG_SYS_ARCH_TIMER
-#define CONFIG_SYS_HZ_CLOCK	(25000000)
+#define CONFIG_SYS_HZ_CLOCK	(24000000)
 #endif
 
 #define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"

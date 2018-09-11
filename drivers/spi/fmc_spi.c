@@ -16,6 +16,7 @@
 #include <spi_flash.h>
 
 #include <asm/arch/ast-scu.h>
+#include <asm/arch/clk_aspeed.h>
 #include <asm/arch/platform.h>
 #include "../mtd/spi/sf_internal.h"
 
@@ -138,7 +139,7 @@ static u32 ast_spi_calculate_divisor(u32 max_speed_hz)
 	u8 SPI_DIV[16] = {16, 7, 14, 6, 13, 5, 12, 4, 11, 3, 10, 2, 9, 1, 8, 0};
 	u32 i, hclk, spi_cdvr=0;
 
-	hclk = ast_get_ahbclk();
+	hclk = aspeed_get_h_clk_rate();
 	for(i=1;i<17;i++) {
 		if(max_speed_hz >= (hclk/i)) {
 			spi_cdvr = SPI_DIV[i-1];

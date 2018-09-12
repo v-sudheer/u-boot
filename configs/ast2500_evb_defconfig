@@ -646,6 +646,7 @@ CONFIG_FMC_SPI=y
 # Timer Support
 #
 # CONFIG_TIMER is not set
+CONFIG_ASPEED_TIMER=y
 
 #
 # TPM support

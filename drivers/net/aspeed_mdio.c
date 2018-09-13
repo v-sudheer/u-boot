@@ -59,8 +59,28 @@ static int aspeed_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 	struct aspeed_mdio_regs __iomem *mdio_regs = (struct aspeed_mdio_regs __iomem *)bus->priv;
 	int phycr;
 	int i;
-
-#ifdef CONFIG_MACH_ASPEED_G4
+	
+	//Use New MDC and MDIO interface
+#if 1
+	phycr = FTGMAC100_PHYCR_NEW_FIRE | FTGMAC100_PHYCR_ST_22 | FTGMAC100_PHYCR_NEW_READ |
+			FTGMAC100_PHYCR_NEW_PHYAD(addr) | // 20141114
+			FTGMAC100_PHYCR_NEW_REGAD(reg); // 20141114
+	
+	writel(phycr, &mdio_regs->phycr);
+	
+	for (i = 0; i < 10; i++) {
+		phycr = readl(&mdio_regs->phycr);
+	
+		if ((phycr & FTGMAC100_PHYCR_NEW_FIRE) == 0) {
+			int data;
+	
+			data = readl(&mdio_regs->phydata);
+			return FTGMAC100_PHYDATA_NEW_MIIWDATA(data);
+		}
+	
+		mdelay(10);
+	}
+#else
 	phycr = readl(&mdio_regs->phycr);
 
 	/* preserve MDC cycle threshold */
@@ -82,25 +102,6 @@ static int aspeed_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 			return FTGMAC100_PHYDATA_MIIRDATA(data);
 		}
 
-		mdelay(10);
-	}
-#else
-	phycr = FTGMAC100_PHYCR_NEW_FIRE | FTGMAC100_PHYCR_ST_22 | FTGMAC100_PHYCR_NEW_READ |
-			FTGMAC100_PHYCR_NEW_PHYAD(addr) | // 20141114
-			FTGMAC100_PHYCR_NEW_REGAD(reg); // 20141114
-	
-	writel(phycr, &mdio_regs->phycr);
-	
-	for (i = 0; i < 10; i++) {
-		phycr = readl(&mdio_regs->phycr);
-	
-		if ((phycr & FTGMAC100_PHYCR_NEW_FIRE) == 0) {
-			int data;
-	
-			data = readl(&mdio_regs->phydata);
-			return FTGMAC100_PHYDATA_NEW_MIIWDATA(data);
-		}
-	
 		mdelay(10);
 	}
 #endif

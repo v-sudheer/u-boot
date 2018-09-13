@@ -352,7 +352,7 @@ CONFIG_CMD_NET=y
 CONFIG_CMD_DHCP=y
 # CONFIG_CMD_PXE is not set
 CONFIG_CMD_NFS=y
-# CONFIG_CMD_MII is not set
+CONFIG_CMD_MII=y
 CONFIG_CMD_PING=y
 # CONFIG_CMD_CDP is not set
 # CONFIG_CMD_SNTP is not set
@@ -646,6 +646,7 @@ CONFIG_FMC_SPI=y
 # Timer Support
 #
 # CONFIG_TIMER is not set
+CONFIG_ASPEED_TIMER=y
 
 #
 # TPM support

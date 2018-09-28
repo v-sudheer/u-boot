@@ -131,6 +131,8 @@ struct aspeed_pinctrl_group_config {
 	char *group_name;
 	u32 reg;
 	u32 bit_mask;
+	u32 reg_unmask;
+	u32 bit_unmask;
 };
 
 #if defined(CONFIG_MACH_ASPEED_G6) 
@@ -140,16 +142,28 @@ static struct aspeed_pinctrl_group_config ast2600_pin_groups[] = {
 	{ "MAC3LINK", ASPEED_SCU_BASE + 0x410, BIT(6) },
 	{ "MAC4LINK", ASPEED_SCU_BASE + 0x410, BIT(7) },	
 //	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30) },	
-	{ "MDIO2", ASPEED_SCU_BASE + 0x410, BIT(14) | BIT(13)  },
-	{ "MDIO3", ASPEED_SCU_BASE + 0x410, BIT(1) | BIT(0)  },
-	{ "MDIO4", ASPEED_SCU_BASE + 0x410, BIT(3) | BIT(2)  },	
+	{ "MDIO2", ASPEED_SCU_BASE + 0x410, BIT(14) | BIT(13) },
+	{ "MDIO3", ASPEED_SCU_BASE + 0x410, BIT(1) | BIT(0) },
+	{ "MDIO4", ASPEED_SCU_BASE + 0x410, BIT(3) | BIT(2) },	
 };
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 static struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
-	{ "MAC1LINK", ASPEED_SCU_BASE + 0x80, BIT(0) },
-	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30) },
-	{ "MAC2LINK", ASPEED_SCU_BASE + 0x80, BIT(1) },
-	{ "MDIO2", ASPEED_SCU_BASE + 0x90, BIT(2) },
+	{ "MAC1LINK", ASPEED_SCU_BASE + 0x80, BIT(0), 0, 0 },
+	{ "MDIO1", ASPEED_SCU_BASE + 0x88, BIT(31) | BIT(30), 0, 0 },
+	{ "MAC2LINK", ASPEED_SCU_BASE + 0x80, BIT(1), 0, 0},
+	{ "MDIO2", ASPEED_SCU_BASE + 0x90, BIT(2), 0, 0 },
+	{ "I2C3", ASPEED_SCU_BASE + 0x90, BIT(16), 0, 0 },
+	{ "I2C4", ASPEED_SCU_BASE + 0x90, BIT(17), 0, 0 },
+	{ "I2C5", ASPEED_SCU_BASE + 0x90, BIT(18), 0, 0 },
+	{ "I2C6", ASPEED_SCU_BASE + 0x90, BIT(19), 0, 0 },
+	{ "I2C7", ASPEED_SCU_BASE + 0x90, BIT(20), 0, 0 },
+	{ "I2C8", ASPEED_SCU_BASE + 0x90, BIT(21), 0, 0 },
+	{ "I2C9", ASPEED_SCU_BASE + 0x90, BIT(22), ASPEED_SCU_BASE + 0x90, BIT(6) },
+	{ "I2C10", ASPEED_SCU_BASE + 0x90, BIT(23), ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C11", ASPEED_SCU_BASE + 0x90, BIT(24), ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C12", ASPEED_SCU_BASE + 0x90, BIT(25), ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C13", ASPEED_SCU_BASE + 0x90, BIT(26), ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C14", ASPEED_SCU_BASE + 0x90, BIT(27), 0, 0 },
 };
 #else
 #err "No define for clk enable"xx
@@ -165,12 +179,14 @@ extern void aspeed_pinctrl_group_set(char *group_name)
 	struct aspeed_pinctrl_group_config *pin_config = ast2500_pin_groups;
 	int array_size = ARRAY_SIZE(ast2500_pin_groups);
 #else
-#err "No define for clk enable"xx
+#err "No define for clk enable"
 #endif
 
 	for(i = 0; i < array_size; i++) {
 		if(!strcmp(group_name, pin_config[i].group_name )) {
 			writel(readl(pin_config[i].reg) | pin_config[i].bit_mask, pin_config[i].reg);
+			if(pin_config[i].reg_unmask) 
+				writel(readl(pin_config[i].reg_unmask) & ~pin_config[i].bit_unmask, pin_config[i].reg_unmask);
 			break;
 			
 		}

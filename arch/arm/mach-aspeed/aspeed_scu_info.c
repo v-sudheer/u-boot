@@ -108,3 +108,26 @@ aspeed_get_mac_phy_interface(u8 num)
 	}
 	return -1;
 }
+
+extern void
+aspeed_security_info(void)
+{
+#if defined(CONFIG_MACH_ASPEED_G6)
+	if(readl(ASPEED_HW_STRAP2) & BIT(1))
+		printf("Security Boot \n");
+#elif defined(CONFIG_MACH_ASPEED_G5)
+	switch((readl(ASPEED_HW_STRAP2) >> 18) & 0x3) {
+		case 1:
+			printf("SEC : DSS Mode \n");
+			break;
+		case 2:
+			printf("SEC : UnKnow \n");
+			break;			
+		case 3:
+			printf("SEC : SPI2 Mode \n");
+			break;						
+	}
+#else	
+#endif
+}	
+

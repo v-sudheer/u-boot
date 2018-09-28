@@ -985,24 +985,6 @@ ast_scu_multi_func_sgpio(void)
 
 
 //***********************************Information ***********************************
-
-extern void
-ast_scu_security_info(void)
-{
-	switch((ast_scu_read(AST_SCU_HW_STRAP2) >> 18) & 0x3) {
-		case 1:
-			printf("SEC : DSS Mode \n");
-			break;
-		case 2:
-			printf("SEC : UnKnow \n");
-			break;			
-		case 3:
-			printf("SEC : SPI2 Mode \n");
-			break;						
-	}
-
-}	
-
 extern void
 ast_scu_sys_rest_info(void)
 {

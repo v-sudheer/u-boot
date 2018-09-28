@@ -85,7 +85,7 @@ TIME_TABLE_DDR3:
     .word   0x05021133       // MCR14
     .word   0x06010200       // MCR18
     .word   0x00000020       // MCR1C
-    .word   0x00411320       // MCR20
+    .word   0x00401320       // MCR20
     .word   0x00000200       // MCR24
     .word   0x00000000       // MCR28
     .word   0x00000000       // MCR2C

@@ -91,14 +91,14 @@ aspeed_get_mac_phy_interface(u8 num)
 			break;
 #ifdef ASPEED_HW_STRAP2			
 		case 2:
-			if(strap2 & BIT(6)) {
+			if(strap2 & BIT(0)) {
 				return 1;
 			} else {
 				return 0;
 			}
 			break;
 		case 3:
-			if(strap2 & BIT(7)) {
+			if(strap2 & BIT(1)) {
 				return 1;
 			} else {
 				return 0;

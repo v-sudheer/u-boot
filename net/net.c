@@ -109,6 +109,7 @@
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
+#include "ncsi.h"
 
 /** BOOTP EXTENTIONS **/
 
@@ -377,6 +378,7 @@ void net_init(void)
 				(i + 1) * PKTSIZE_ALIGN;
 		}
 		arp_init();
+//		ncsi_init();
 		net_clear_handlers();
 
 		/* Only need to setup buffer pointers once. */
@@ -1271,7 +1273,9 @@ void net_process_received_packet(uchar *in_packet, int len)
 				      src_ip,
 				      ntohs(ip->udp_src),
 				      ntohs(ip->udp_len) - UDP_HDR_SIZE);
-		break;
+//	case PROT_NCSI:
+//		ncsi_receive(et, ip, len);
+//		break;
 	}
 }
 

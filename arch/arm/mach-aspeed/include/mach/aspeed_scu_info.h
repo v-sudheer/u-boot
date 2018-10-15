@@ -3,5 +3,6 @@
 
 extern void aspeed_get_revision_id(void);
 extern int aspeed_get_mac_phy_interface(u8 num);
+extern void aspeed_security_info(void);
 
 #endif

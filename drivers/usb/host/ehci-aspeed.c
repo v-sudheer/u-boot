@@ -1,5 +1,5 @@
 /*
- * ehci-ast.c - EHCI driver for the Aspeed SoC
+ * ehci-aspeed.c - EHCI driver for the Aspeed SoC
  *
  * Copyright (C) ASPEED Technology Inc.
  * Ryan Chen <ryan_chen@aspeedtech.com>
@@ -15,21 +15,21 @@
 #include <asm/arch/ast-scu.h>
 #include "ehci.h"
 
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Create the appropriate control structures to manage
  * a new EHCI host controller.
  */
-int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
+int ehci_hcd_init(int index, enum usb_init_type init,
+		struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
 	ast_scu_multi_func_usb_port1_mode(1);
 	ast_scu_init_usb_port1();
 //	ast_scu_multi_func_usb_port2_mode(1);
 //	ast_scu_init_usb_port2();
-
-	*hccr = (struct ehci_hccr *)(AST_EHCI_BASE);
+printf("ehci_hcd_init index %d \n", index);
+	*hccr = (struct ehci_hccr *)(AST_EHCI0_BASE);
 	*hcor = (struct ehci_hcor *)((uint32_t) *hccr
 			+ HC_LENGTH(ehci_readl(&(*hccr)->cr_capbase)));
 

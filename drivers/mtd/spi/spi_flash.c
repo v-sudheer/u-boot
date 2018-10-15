@@ -1188,8 +1188,14 @@ int spi_flash_scan(struct spi_flash *flash)
 		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
 #else	
 		u8 cmd;
-		cmd = CMD_ENTER_4B_ADDR;
-		spi_flash_write_common(flash, &cmd, 1, NULL, 0);
+		if(JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SPANSION) {
+			cmd = 0x17;
+			u8 data = 0x80;
+			spi_flash_write_common(flash, &cmd, 1, &data, 1);		
+		} else {			
+			cmd = CMD_ENTER_4B_ADDR;
+			spi_flash_write_common(flash, &cmd, 1, NULL, 0);
+		}
 		puts(" (Enter 4 byte mode) \n");
 #endif		
 	} else 

@@ -24,7 +24,6 @@
 
 //information
 extern void ast_scu_sys_rest_info(void);
-extern void ast_scu_security_info(void);
 extern u32 ast_scu_revision_id(void);
 extern void ast_scu_get_who_init_dram(void);
 extern int ast_scu_espi_mode(void);

@@ -26,6 +26,7 @@ obj-$(CONFIG_USB_OHCI_GENERIC) += ohci-generic.o
 # echi
 obj-$(CONFIG_USB_EHCI) += ehci-hcd.o
 obj-$(CONFIG_USB_EHCI_ARMADA100) += ehci-armada100.o utmi-armada100.o
+obj-$(CONFIG_USB_EHCI_ASPEED) += ehci-aspeed.o
 obj-$(CONFIG_USB_EHCI_ATMEL) += ehci-atmel.o
 ifdef CONFIG_MPC512X
 obj-$(CONFIG_USB_EHCI_FSL) += ehci-mpc512x.o
@@ -52,7 +53,6 @@ obj-$(CONFIG_USB_EHCI_VCT) += ehci-vct.o
 obj-$(CONFIG_USB_EHCI_VF) += ehci-vf.o
 obj-$(CONFIG_USB_EHCI_RMOBILE) += ehci-rmobile.o
 obj-$(CONFIG_USB_EHCI_ZYNQ) += ehci-zynq.o
-obj-$(CONFIG_USB_EHCI_AST) += ehci-ast.o
 
 # xhci
 obj-$(CONFIG_USB_XHCI_HCD) += xhci.o xhci-mem.o xhci-ring.o

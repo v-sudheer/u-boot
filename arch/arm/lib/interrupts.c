@@ -49,14 +49,31 @@ int interrupt_init (void)
 	IRQ_STACK_START = gd->irq_sp - 4;
 	IRQ_STACK_START_IN = gd->irq_sp + 8;
 	FIQ_STACK_START = IRQ_STACK_START - CONFIG_STACKSIZE_IRQ;
-
+#ifdef PILOT4_ORION
+	return 0;
+#else
 	return arch_interrupt_init();
+#endif
+}
+
+static inline void set_vbar(unsigned int val)
+{
+	asm volatile("mcr p15, 0, %0, c12, c0, 0	@ set VBAR"
+	  : : "r" (val) : "cc");
 }
 
 /* enable IRQ interrupts */
 void enable_interrupts (void)
 {
+	extern unsigned int UBOOT_IRQ_VBAR;
 	unsigned long temp;
+	disable_interrupts();
+	printf("IRQ EN %x %x IRQ_STACK_START %x\n", UBOOT_IRQ_VBAR, &UBOOT_IRQ_VBAR, IRQ_STACK_START);
+	if(UBOOT_IRQ_VBAR != 0) {
+		set_vbar(UBOOT_IRQ_VBAR);
+	} else {
+		printf("UBOOT VBAR still showing 0 not possible?\n");
+	}
 	__asm__ __volatile__("mrs %0, cpsr\n"
 			     "bic %0, %0, #0x80\n"
 			     "msr cpsr_c, %0"
@@ -194,5 +211,11 @@ void do_irq (struct pt_regs *pt_regs)
 	printf ("interrupt request\n");
 	show_regs (pt_regs);
 	bad_mode ();
+}
+#else
+
+void do_irq (struct pt_regs *pt_regs)
+{
+	gic_handle_irq();
 }
 #endif

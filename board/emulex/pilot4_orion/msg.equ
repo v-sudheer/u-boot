@@ -1,0 +1,69 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+#Module Message code are here
+
+MSGLPCROM		=               0x00010000 
+MSGDDRRAM		=               0x00020000
+MSGSRAM			=               0x00030000
+MSGEDRAM		=               0x00040000
+MSGVIC			=               0x00050000
+MSGMemoryLPCROM     	=               0x00060000     
+MSGMemoryDDRSRAM  	=               0x00070000     
+MSGMemoryEDRAM     	=               0x00080000     
+MSGAHBSecAHBBridge	=               0x00090000     
+MSGAHBPeriAPBBridge  	=               0x000a0000      
+MSGEthernet 		=               0x000b0000      
+MSGFrameGrabber      	=               0x000c0000      
+MSGDMAController     	=               0x000d0000      
+MSGAHBSysAPBBridge	=               0x000e0000      
+MSGAHBSIOAPBBridge   	=               0x000f0000      
+MSGGPIO          	=               0x00100000      
+MSGUART1          	=               0x00110000      
+MSGUART2          	=               0x00120000      
+MSGVitrualUART1      	=               0x00110000      
+MSGVirtualUART2      	=               0x00120000      
+MSGSystemWakeup      	=               0x00130000      
+MSGMailbox          	=               0x00140000      
+MSGWatchdogTimerMSFT 	=               0x00150000      
+MSGRealTimeClock     	=               0x00160000 
+MSGRTCbase		=               0x00170000      
+MSGWatchdogTimer     	=               0x00180000      
+MSGTimer1	        =               0x00190000      
+MSGPS2Interface      	=               0x001a0000      
+MSGFanTachandPWM     	=               0x001b0000      
+MSGADCandThermal     	=               0x001c0000      
+MSGUART3        	=               0x001d0000      
+MSGUART4          	=               0x001e0000      
+MSGUART5          	=               0x001f0000      
+MSGI2C1          	=               0x00200000      
+MSGI2C2          	=               0x00210000      
+MSGI2C3          	=               0x00220000 
+MSGI2C4          	=               0x00230000 
+MSGI2C5          	=               0x00240000 
+MSGI2C6          	=               0x00250000 
+MSGREGCAP		=		0x00260000
+MSGTFEngine		=		0x00270000
+MSGUSBDevice         	=               0x00300000
+MSGSPI			=		0x00400000
+
+MSGsystem		=               0x01000000   
+
+ 

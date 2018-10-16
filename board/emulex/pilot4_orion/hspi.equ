@@ -1,0 +1,58 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+LPC_SPI_MEM_CFG         = 0x40
+LPC_SPI_MEM_BAR_LO      = 0x41
+LPC_SPI_MEM_BAR_HI      = 0x42
+LPC_SPI_MEM_SIZE        = 0x43
+LPC_SPI_SWAP_CTRL       = 0x44
+LPC_SPI_STS             = 0x45
+
+@@ SPI_RDATA_REG    = 0x00
+@@ SPI_DEV_ID0      = 0x01
+@@ SPI_DEV_ID1          = 0x02
+@@ SPI_WDATA            = 0x03
+@@ 
+@@ SPI_CMD0             = 0x04
+@@ SPI_CMD1             = 0x05
+@@ 
+@@ SPI_ADDR0            = 0x08
+@@ SPI_ADDR1            = 0x09
+@@ SPI_ADDR2            = 0x0a
+@@ 
+@@ SPI_CTRL             = 0x0c
+@@ SPI_STS              = 0x0d
+@@ SPI_CLKDIVL          = 0x0e
+@@ SPI_CLKDIVH          = 0x0f
+@@ 
+@@ SPI_TCS              = 0x10
+@@ SPI_TCSL             = 0x11
+@@ SPI_TCSH             = 0x12
+@@ SPI_TREC             = 0x13
+@@ 
+@@ HOST_MEM_CFG         = 0x14
+@@ HOST_MEM_BAR_LO      = 0x15
+@@ HOST_MEM_BAR_HI      = 0x16
+@@ HOST_MEM_SIZE        = 0x17
+@@ 
+@@ HOST_F_BAR	     = 0x18
+@@ HOST_E_BAR	     = 0x19
+@@ SPI_WM 		     = 0x1A
+@@ SPI_DUMMY_BYTE       = 0x1B

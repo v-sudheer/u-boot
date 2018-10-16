@@ -1,0 +1,128 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+		.include "buffer.equ"
+
+#	KCS Equates
+
+IDR		=	KCS1BASE+0x00
+ODRKB		=	KCS1BASE+0x00
+ODRMOUSE	=	KCS1BASE+0x01
+KCR		=	KCS1BASE+0x02
+KST		=	KCS1BASE+0x03
+
+IDR3		=	KCS3BASE+0x00
+ODR3		=	KCS3BASE+0x00
+KCR3		=	KCS3BASE+0x02	
+KST3		=	KCS3BASE+0x03	
+
+IDR4		=	KCS4BASE+0x00
+ODR4		=	KCS4BASE+0x00
+KCR4		=	KCS4BASE+0x02	
+KST4		=	KCS4BASE+0x03	
+
+IDR5		=	KCS5BASE+0x00
+ODR5		=	KCS5BASE+0x00
+KCR5		=	KCS5BASE+0x02	
+KST5		=	KCS5BASE+0x03
+
+IDROFF		=	0
+ODROFF		=	0
+KCROFF		=	2
+KSTOFF		=	3	
+#	KST register
+
+BMC4		=	1<<7
+BMC3		=	1<<6
+BMC2		=	1<<5
+BMC1		=	1<<4
+COMDAT		=	1<<3
+SMCATN		=	1<<2
+IBF		=	1<<1
+OBF		=	1<<0
+KCSCD		=	1<<3
+
+
+
+#	SMIC Equates
+#	Register Offset from KCS5BASE
+SMICFLG		=	7	@Offset from KCS5BASE
+SMICCSR		=	6
+SMICDTR		=	5
+SMICIR0		=	0X10
+SMICIR1		=	0X11
+
+
+#	SMICFLG Register Bit Definitions
+
+SMICBUSY	=	1<<0
+SMICSMSATN	=	1<<2
+SMICSEVTATN	=	1<<3
+SMICSMI		=	1<<4
+SMICTXRDY	=	1<<6
+SMICRXRDY	=	1<<7
+
+
+
+#	SMICIR0-SMICIR1 FIELD DEFINITIONS
+
+BUSYI		=	1<<0
+CTLWI		=	1<<1
+STARI		=	1<<2
+HDTRI		=	1<<3
+HDTWI		=	1<<4
+
+
+#	BT Equates
+
+#	Register Offsets From KCS5BASE
+BTCR		=	0x08	@CONTROL REGISTER
+BTDR		=	0x09	@DATA REGISTER
+BTIMSR		=	0X0A	@INTERRUPT MASK REGISTER
+
+
+#BTCR Register Bit Definitions
+
+CLRWRPTR	=	1<<0
+CLRRDPTR	=	1<<1
+H2BATN		=	1<<2
+B2HATN		=	1<<3
+BTSMSATN	=	1<<4
+OEM0		=	1<<5
+BTHBUSY		=	1<<6
+BTBBUSY		=	1<<7
+
+
+#BTIMSR Register Bit Definitions
+B2HIRQEN	=	1<<0
+B2HIRQ		=	1<<1
+H2BIRQEN	=	1<<2
+OEM2		=	1<<3
+OEM3		=	1<<4
+BTHWRST		=	1<<7
+
+SIRQMBSTS	=	1<<15
+SIRQKCS1STS	=	1<<1
+SIRQKCS2STS	=	1<<12
+SIRQKCS3STS	=	1<<5
+SIRQKCS4STS	=	1<<6
+		.ltorg
+
+

@@ -1,0 +1,37 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+		.include "buffer.equ"
+
+CONFIGSPACE_OFFSET      = 0x02834400
+IOSPACE_OFFEST          = 0x02834000
+ROMSPACE_OFFSET         = 0x02824000
+VGAMEMSPACE_OFFSET      = 0x02804000
+MGABASE1SPACE_OFFSET    = 0x02800000
+MGABASE2SPACE_OFFSET    = 0x0
+MGABASE3SPACE_OFFSET    = 0x02000000
+ 
+AHB2PCI_CONFIG		= (AHB2PCIBase + CONFIGSPACE_OFFSET)
+AHB2PCI_IO		= (AHB2PCIBase + IOSPACE_OFFEST)
+AHB2PCI_ROM		= (AHB2PCIBase + ROMSPACE_OFFSET)
+AHB2PCI_VGAMEM		= (AHB2PCIBase + VGAMEMSPACE_OFFSET)
+AHB2PCI_MGABASE1	= (AHB2PCIBase + MGABASE1SPACE_OFFSET)
+AHB2PCI_MGABASE2	= (AHB2PCIBase + MGABASE2SPACE_OFFSET)
+AHB2PCI_MGABASE3	= (AHB2PCIBase + MGABASE3SPACE_OFFSET)

@@ -1,0 +1,51 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+
+		.include "adc.equ"
+		.include  "arm.equ"
+		.include "bomber.equ"
+	         .include "buffer.equ"
+	         .include  "ddrsramedram.equ"
+	         .include "fgee.equ"
+	         .include "gpio.equ"
+	         .include "i2c.equ"
+	         .include "int.equ"
+	         .include "mac.equ"
+	         .include "mailbox.equ"
+	         .include "msg.equ"
+	         .include "pilot.equ"
+	         .include "ps2.equ"
+	         .include "psr.equ"
+	         .include "pwm.equ"
+	         .include "rtc.equ"
+	         .include "sio.equ"
+	         .include "swc.equ"
+	         .include "timer.equ"
+	         .include "uart.equ"
+	         .include "wdt.equ"
+	         .include "host.equ"
+	         .include "tap.equ"
+	         .include "hspi.equ"
+	         .include "spi_common.equ"
+		 .include "ahb2pci.equ"
+                 .include "sysctrl.equ"
+                 .include "ddr_cfg.equ" 
+		 .include "function1_pcie.equ"

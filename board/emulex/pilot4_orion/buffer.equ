@@ -1,0 +1,347 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+DDRBASE     =       DDRRAM
+DDRTOP      =       0x10000000             @total of 128MB
+
+
+@@@@ first 8mb for graphics data.. code starts at 0x08800000
+@@@@ Leave 4 Mb for code. thus buffers start at 0x04c00000
+
+NAND_ASRAM_START             = 0x20000000
+NAND_ASRAM_END_ONBOARD       = NAND_ASRAM_START+0x20000
+NAND_ASRAM_END               = 0x24000000
+
+
+.ifdef CODE_IN_ASRAM
+Bank1start  =         NAND_ASRAM_START+0x3200
+Bank2start  =         NAND_ASRAM_START+0x6400
+Bank3start  =         NAND_ASRAM_START+0x100000 
+.else
+Bank1start  =         DDRBASE + 0x00900000  @@ 0x08C00000            @ 8Mb for code 
+Bank2start  =         Bank1start+0x32000    @200k for code 
+Bank3start  =         Bank1start + 0x200000  @ DDRBASE + 0x01000000 
+.endif
+
+
+SSP_MEMSTART	=        LMEMSTART
+FGB_MEMSTART	 =       LMEMSTART
+
+SSP_MEMEND	  =      LMEMSTART + 0x00007FFC @@ 0x04007FFC
+FGB_MEMEND	   =     LMEMSTART + 0x00007FFC @@ 0x04007FFC     
+
+
+
+LSI_FIFO_TRAINING            = 0x10007c00
+  
+
+TXPTR	=		0
+CTXPTR	=	4
+TXSIZE	=	8
+CTXSIZE	=	0xC
+
+RXPTR	=	0x10
+CRXPTR	=	0x14
+RXSIZE	=	0x18
+CRXSIZE	=	0x1C
+
+
+
+SystemWorkBase    =   Bank1start	
+.ifdef SPI_BOOT
+INTVectors        =   LMEMSTART + 0x00004000 @@ 0x04004000
+.else
+INTVectors        =   SystemWorkBase+0x400
+.endif
+AbortStackBase    =   SystemWorkBase+0x800
+UndefStackBase    =   SystemWorkBase+0xC00
+SVCStackBase      =   SystemWorkBase+0x1000
+FIQStackBase      =   SystemWorkBase+0x1400
+IRQStackBase      =   SystemWorkBase+0x1800
+UserStackBase     =   SystemWorkBase+0x1C00  
+
+
+UART1WorkBase     =   SystemWorkBase+0x2000
+UART2WorkBase     =   SystemWorkBase+0x2400
+GPIOWorkBase      =   SystemWorkBase+0x2800	
+INTWorkBase       =   SystemWorkBase+0x2C00
+KBDWorkBase       =   SystemWorkBase+0x3000
+#;UFCWorkBase       =   SystemWorkBase+0x3400
+MAC1WORKBASE	  =   SystemWorkBase+0x3400    
+MAC2WORKBASE	=	SystemWorkBase+0x3c00  
+
+I2C1WorkBase =        SystemWorkBase+0x4000      
+I2C2WorkBase =         SystemWorkBase+0x4400 
+I2C3WorkBase =         SystemWorkBase+0x4800 
+I2C4WorkBase   =       SystemWorkBase+0x4C00 
+I2C5WorkBase   =       SystemWorkBase+0x5000 
+I2C6WorkBase   =       SystemWorkBase+0x5400 
+FGEEWorkBase=	    SystemWorkBase+0x5800
+BMCWDTWorkBase	  =  SystemWorkBase+0x9800
+PS2WorkBase	  =  SystemWorkBase+0x9840
+UART3WorkBase     =   SystemWorkBase+0x98C0
+UART4WorkBase     =   SystemWorkBase+0x9940
+UART5WorkBase     =   SystemWorkBase+0x99C0
+MBWorkBase	  =   SystemWorkBase+0x9A40
+KCS1WorkBase	  =   SystemWorkBase+0x9B40
+KCS2WorkBase	  =   SystemWorkBase+0x9B80
+KCS3WorkBase	  =   SystemWorkBase+0x9C00
+KCS4WorkBase	  =   SystemWorkBase+0x9C40
+KCS5WorkBase	  =   SystemWorkBase+0x9C80
+SMICWorkBase	  =   SystemWorkBase+0x9CC0
+BTWorkBase	  =   SystemWorkBase+0x9D40
+UART6WorkBase     =   SystemWorkBase+0x9DC0
+UART7WorkBase     =   SystemWorkBase+0x9E40
+PSRWorkBase       = SystemWorkBase+0x9EC0
+RTCWorkBase       = SystemWorkBase+0x9F40
+FTWorkBase        = SystemWorkBase+0xA0C0
+SWCWorkBase       = SystemWorkBase+0xA040
+Timer1WorkBase	  = SystemWorkBase+0xA0C0
+Timer2WorkBase	=	   SystemWorkBase+0xA140
+Timer3WorkBase	=	   SystemWorkBase+0xA1C0
+SPIWorkBase	=	   SystemWorkBase+0xA240
+SMBWorkBase	=	   SystemWorkBase+0xA340
+RTCIntCount	=	SystemWorkBase+0xA400
+WdogIntCount	=	SystemWorkBase+0xA480
+GPIO0IntCount	=        SystemWorkBase+0xA484
+RTCMatchValue	=        SystemWorkBase+0xA488
+KCS1INTCount	=        SystemWorkBase+0xA48C
+KCS3INTCount	=        SystemWorkBase+0xA490
+KCS4INTCount	=        SystemWorkBase+0xA494
+KCS5INTCount	=        SystemWorkBase+0xA498
+SMICINTCount	=        SystemWorkBase+0xA49C
+BTINTCount	=        SystemWorkBase+0xA4A0
+HSPIWorkBase	=        SystemWorkBase+0xA500
+
+BomberWorkBase	=        SystemWorkBase+0xA540
+
+
+MBINTFLAG     	=	    MBWorkBase+0x100
+I2CConfigTable  =     I2C1WorkBase+0x0
+I2COperationTable  =  I2C1WorkBase+0x80
+
+GPIOConfigTable    =  GPIOWorkBase+0
+GPIOOperationTable =  GPIOWorkBase+0x180
+
+
+UART1ConfigTable   =  UART1WorkBase+0
+UART1OperationTable=  UART1WorkBase+0x40
+
+UART2ConfigTable   =  UART2WorkBase+0
+UART2OperationTable = UART2WorkBase+0x40
+
+
+UART1XmitBuffer     =        Bank2start
+UART1RecvBuffer     =        Bank2start+0x800
+
+UART2XmitBuffer     =        Bank2start+0x1000
+UART2RecvBuffer     =        Bank2start+0x1800
+
+KBDXmitBuffer       =        Bank2start+0x2000
+KBDRecvBuffer       =        Bank2start+0x2800
+
+I2C1XmitBuffer      =         Bank2start+0x3000
+I2C1RecvBuffer      =         Bank2start+0x3800
+
+I2C2XmitBuffer      =         Bank2start+0x4000
+I2C2RecvBuffer      =         Bank2start+0x4800
+
+I2C3XmitBuffer      =         Bank2start+0x5000
+I2C3RecvBuffer      =         Bank2start+0x5800
+
+I2C4XmitBuffer      =         Bank2start+0x6000
+I2C4RecvBuffer      =         Bank2start+0x6800
+
+I2C5XmitBuffer      =         Bank2start+0x7000
+I2C5RecvBuffer      =         Bank2start+0x7800
+ 
+I2C6XmitBuffer      =         Bank2start+0x8000
+I2C6RecvBuffer      =         Bank2start+0x8800
+
+
+PS2XmitBuffer       =        Bank2start+0x9000
+PS2RecvBuffer       =        Bank2start+0x9800
+
+UART3XmitBuffer     =        Bank2start+0xA000
+UART3RecvBuffer     =        Bank2start+0xA800
+
+UART4XmitBuffer     =        Bank2start+0xB000
+UART4RecvBuffer     =        Bank2start+0xB800
+
+MBXmitBuffer        = 	    Bank2start+0xC000
+MBRecvBuffer        = 	    Bank2start+0xC800
+
+KCS1XmitBuffer	=	    Bank2start+0xD000
+KCS1RecvBuffer	=	    Bank2start+0xD800
+	
+KCS2XmitBuffer	=	    Bank2start+0xE000
+KCS2RecvBuffer	=	    Bank2start+0xE800
+
+KCS3XmitBuffer		 =   Bank2start+0xF000
+KCS3RecvBuffer		 =   Bank2start+0xF800
+
+KCS4XmitBuffer		 =   Bank2start+0x20000
+KCS4RecvBuffer		 =   Bank2start+0x20800
+
+KCS5XmitBuffer		 =   Bank2start+0x21000
+KCS5RecvBuffer		 =   Bank2start+0x21800
+
+SMICXmitBuffer		 =   Bank2start+0x22000
+SMICRecvBuffer		 =   Bank2start+0x22800
+
+BTXmitBuffer		 =   Bank2start+0x23000
+BTRecvBuffer		 =   Bank2start+0x23800
+
+UART5XmitBuffer          =   Bank2start+0x24000
+UART5RecvBuffer          =   Bank2start+0x24800
+
+UART6XmitBuffer          =   Bank2start+0x25000
+UART6RecvBuffer          =   Bank2start+0x25800
+
+UART7XmitBuffer          =   Bank2start+0x26000
+UART7RecvBuffer          =   Bank2start+0x26800
+
+PSRXmitBuffer            = Bank2start+0x27000
+PSRRecvBuffer            = Bank2start+0x27800
+
+RTCRecvBuffer            = Bank2start+0x28800
+
+SPIXmitBuffer            = Bank2start+0x29000
+SPIRecvBuffer            = Bank2start+0x29800
+
+SMBXmitBuffer       =      Bank2start+0x2A000
+SMBRecvBuffer       =      Bank2start+0x2A800
+
+USBXmitBuffer       =        Bank2start+0x2B000	
+USBRecvBuffer       =        Bank2start+0x2C000
+
+MAC1XmitBuffer      =         Bank2start+0x2D000	
+MAC1RecvBuffer      =         Bank2start+0x2f000
+
+MAC2XmitBuffer      =         Bank2start+0x31000	
+MAC2RecvBuffer      =         Bank2start+0x33000
+
+
+
+
+@Uncached area starts from here
+.ifdef CODE_IN_ASRAM
+SYSTEST_WORKBASE_START            =         Bank3start  
+SYSTEST_SSP_CODE_WORKAREA         =      SYSTEST_WORKBASE_START
+SYSTEST_SSP_CODE_WORKAREA_END     =  SYSTEST_WORKBASE_START + 0xc0000
+SYSTEST_BSE_WORKBASE              =  SYSTEST_WORKBASE_START 
+SYSTEST_LDMA_WORKBASE             =           SYSTEST_WORKBASE_START
+SYSTEST_GDMA_WORKBASE             =          SYSTEST_WORKBASE_START 
+SYSTEST_TFE_WORKBASE              =         SYSTEST_WORKBASE_START 
+SYSTEST_MAC1_WORKBASE             =          SYSTEST_WORKBASE_START
+SYSTEST_MAC2_WORKBASE             =         SYSTEST_WORKBASE_START 
+SYSTEST_USB1_WORKBASE             =          SYSTEST_WORKBASE_START
+SYSTEST_LPCTEST_WORKBASE          =        SYSTEST_WORKBASE_START 
+SYSTEST_SPITEST_WORKBASE          =      SYSTEST_WORKBASE_START 
+SYSTEST_ARMUCST_WORKBASE          =       SYSTEST_WORKBASE_START 
+SYSTEST_ARMUCEND_WORKBASE         =     SYSTEST_WORKBASE_START 
+SYSTEST_MEMTEST_WORKBASE          =     SYSTEST_WORKBASE_START 
+SYSTEST_MEMTESTEND_WORKBASE       =    SYSTEST_WORKBASE_START 
+SYSTEST_USB2_WORKBASE             =         SYSTEST_WORKBASE_START 
+SYSTEST_BOMBER_WORKAREA           =         SYSTEST_WORKBASE_START
+SYSTEST_XDMA_WORKAREA             =          SYSTEST_WORKBASE_START
+SYSTEST_SDHC_UC_WORKAREA          =       SYSTEST_WORKBASE_START 
+SYSTEST_BSE_DPTR_WORKAREA         =      SYSTEST_WORKBASE_START 
+SYSTEST_NAND_WORKAREA             =         SYSTEST_WORKBASE_START 
+NEXT_GUYS_DDR_START_ADDR          =       SYSTEST_WORKBASE_START 
+SYSTEST_WORKBASE_END              =     SYSTEST_WORKBASE_START+0xc0000 
+.else
+SYSTEST_WORKBASE_START            =         Bank3start  
+SYSTEST_SSP_CODE_WORKAREA         =      SYSTEST_WORKBASE_START
+SYSTEST_SSP_CODE_WORKAREA_END     =  SYSTEST_WORKBASE_START + 0x00200000 
+SYSTEST_BSE_WORKBASE              =  SYSTEST_WORKBASE_START + 0x00200000 
+SYSTEST_LDMA_WORKBASE             =           SYSTEST_WORKBASE_START + 0x00A00000
+SYSTEST_GDMA_WORKBASE             =          SYSTEST_WORKBASE_START + 0x00A80000
+SYSTEST_TFE_WORKBASE              =         SYSTEST_WORKBASE_START + 0x00B00000
+SYSTEST_MAC1_WORKBASE             =          SYSTEST_WORKBASE_START + 0x00C00000
+SYSTEST_MAC2_WORKBASE             =         SYSTEST_WORKBASE_START + 0x00D00000
+SYSTEST_USB1_WORKBASE             =          SYSTEST_WORKBASE_START + 0x00E00000
+SYSTEST_LPCTEST_WORKBASE          =        SYSTEST_WORKBASE_START + 0x00E02000
+SYSTEST_SPITEST_WORKBASE          =      SYSTEST_WORKBASE_START + 0x00E02800    
+SYSTEST_ARMUCST_WORKBASE          =       SYSTEST_WORKBASE_START + 0x00E03000
+SYSTEST_ARMUCEND_WORKBASE         =     SYSTEST_WORKBASE_START + 0x00E05000      
+SYSTEST_MEMTEST_WORKBASE          =     SYSTEST_WORKBASE_START + 0x00E05800
+SYSTEST_MEMTESTEND_WORKBASE       =    SYSTEST_WORKBASE_START + 0x00E06000      
+SYSTEST_USB2_WORKBASE             =         SYSTEST_WORKBASE_START + 0x00E80000
+SYSTEST_BOMBER_WORKAREA           =         SYSTEST_WORKBASE_START + 0x00E90000     
+SYSTEST_XDMA_WORKAREA             =          SYSTEST_WORKBASE_START + 0x00EA0000
+SYSTEST_SDHC_UC_WORKAREA          =       SYSTEST_WORKBASE_START + 0x00EB0000
+SYSTEST_BSE_DPTR_WORKAREA         =      SYSTEST_WORKBASE_START + 0x00FB0000
+SYSTEST_NAND_WORKAREA             =         SYSTEST_WORKBASE_START + 0x00FB1000
+NEXT_GUYS_DDR_START_ADDR          =       SYSTEST_WORKBASE_START + 0x00FB6000
+SYSTEST_WORKBASE_END              =     SYSTEST_WORKBASE_START + 0x014f8000 
+
+.endif
+
+MISC_WORKBASE_START                =   SYSTEST_WORKBASE_END
+#SYSTEST_MODEL PARAM                =           	MISC_WORKBASE_START  
+SYSTEST_BSE_MODEL_PARAM            =   		MISC_WORKBASE_START
+SYSTEST_VERILOG_MEM_CMP            =   		MISC_WORKBASE_START + 0x40 
+VERILOG_TASK_INIT_PATTERN_PARAMS   =     		MISC_WORKBASE_START + 0x80 
+VERILOG_TASK_RLE_PARAMS            =	MISC_WORKBASE_START + 0xc0 
+VERILOG_TASK_TFE_INIT              =	MISC_WORKBASE_START + 0x100
+DDR_WRITE_SIMULATOR_FLAG        =		MISC_WORKBASE_START + 0x140
+DDR_WRITE_SIMULATOR_OPCODE      =		MISC_WORKBASE_START + 0x150
+DDR_PRINT_STRING_BASE           =		MISC_WORKBASE_START + 0x160
+VERILOG_CALC_CHKSUM             =		MISC_WORKBASE_START + 0x200
+VERILOG_RANDOM_NO               =		MISC_WORKBASE_START + 0x220
+LFSR                            =		MISC_WORKBASE_START + 0x23C
+VERILOG_TASK_SDHC               =		MISC_WORKBASE_START + 0x250            
+VERILOG_TASK_SDHC_END           =		MISC_WORKBASE_START + 0x290
+
+MONITOR_WORKAREA                =		MISC_WORKBASE_START + 0x2C00
+DDRINTFLAG                      =               MISC_WORKBASE_START + 0x2D00
+DDRERR_STS                      =               MISC_WORKBASE_START + 0x2E80
+
+SYSTEST_GVARS                   =		MISC_WORKBASE_START + 0x3000
+MISC_WORKBASE_ENDS              =		MISC_WORKBASE_START + 0x3ffc
+
+@Note that there is no memory available below   MISC_WORKBASE_ENDS for s/w.
+
+.ifdef CODE_IN_ASRAM
+PTABLEINDDR    = NAND_ASRAM_START + 0x01fc000   @last 16 k is for page table
+.else
+PTABLEINDDR    = DDRBASE + 0x01ffc000   @last 16 k is for page table
+.endif
+
+
+@#//following are old defines we are keeping it for now and can be removed later:052209
+@#MISC_WORKBASE_START =    DDRBASE + 0x01ff8000   @@ 0x09ff8000
+@#DDR_WRITE_SIMULATOR_FLAG = MISC_WORKBASE_START + 0x140
+@#DDR_WRITE_SIMULATOR_OPCODE = MISC_WORKBASE_START + 0x150
+@#DDR_PRINT_STRING_BASE = MISC_WORKBASE_START + 0x160
+
+@#MONITOR_WORKAREA    =    MISC_WORKBASE_START + 0x2C00
+@#SYSTEST_WORKBASE_START       =   Bank3start             
+@#SYSTEST_MEMTEST_WORKBASE     =   SYSTEST_WORKBASE_START + 0x00C05800
+@#SYSTEST_MEMTESTEND_WORKBASE  =   SYSTEST_WORKBASE_START + 0x00C06000      
+
+
+
+
+
+
+
+

@@ -21,26 +21,57 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #ifndef _SPI_H_
 #define _SPI_H_
+
+#include <spi_sfdp.h>
 
 /* Controller-specific definitions: */
 
 /* SPI mode flags */
-#define	SPI_CPHA	0x01			/* clock phase */
-#define	SPI_CPOL	0x02			/* clock polarity */
-#define	SPI_MODE_0	(0|0)			/* (original MicroWire) */
-#define	SPI_MODE_1	(0|SPI_CPHA)
-#define	SPI_MODE_2	(SPI_CPOL|0)
-#define	SPI_MODE_3	(SPI_CPOL|SPI_CPHA)
-#define	SPI_CS_HIGH	0x04			/* CS active high */
-#define	SPI_LSB_FIRST	0x08			/* per-word bits-on-wire */
-#define	SPI_3WIRE	0x10			/* SI/SO signals shared */
-#define	SPI_LOOP	0x20			/* loopback mode */
+#define	SPI_CPHA				0x01		// clock phase
+#define	SPI_CPOL				0x02		// clock polarity
+#define	SPI_MODE_0				(0|0)		// (original MicroWire)
+#define	SPI_MODE_1				(0|SPI_CPHA)
+#define	SPI_MODE_2				(SPI_CPOL|0)
+#define	SPI_MODE_3				(SPI_CPOL|SPI_CPHA)
+#define	SPI_CS_HIGH				0x04		// CS active high
+#define	SPI_LSB_FIRST			0x08		// per-word bits-on-wire
+#define	SPI_3WIRE				0x10		// SI/SO signals shared
+#define	SPI_LOOP				0x20		// loopback mode
 
 /* SPI transfer flags */
-#define SPI_XFER_BEGIN	0x01			/* Assert CS before transfer */
-#define SPI_XFER_END	0x02			/* Deassert CS after transfer */
+#define SPI_XFER_BEGIN			0x01		// Assert CS before transfer
+#define SPI_XFER_END			0x02		// Deassert CS after transfer
+
+// Flag for flags in struct spi_slave
+#ifdef CONFIG_SFDP
+#define SPI_3BYTE_ONLY          (1 << 0)    // for 3 byte address
+#define SPI_4BYTE_ONLY          (1 << 1)    // for 4 byte address only
+#define SPI_4BYTE_PART          (1 << 2)    // for 4 byte address support
+#define SPI_4BYTE_ENABLE_NEEDED (1 << 3)    // for 3 byte upgraded to 4 byte
+#define SPI_RD_FLAG_STATUS      (1 << 4)    // for Micron devices, flag status register
+#define SPI_FAST_READ			(1 << 5)	// for spi devices for fast read
+#define SPI_QUAD_READ           (1 << 6)    // for spi devices supporting quad read
+#define SPI_DUAL_READ           (1 << 7)    // for spi devices supporting dual read
+#else
+#define SPI_FBYTE_SUPP			(1 << 0)
+#define SPI_4BREAD_SUPP			((1 << 1) | SPI_FBYTE_SUPP)
+#define SPI_4BWRIT_SUPP			((1 << 2) | SPI_FBYTE_SUPP)
+#define SPI_FLG_STS_RD			(1 << 3)
+#define SPI_FBYTE_SPANSION		((1 << 4) | SPI_FBYTE_SUPP)
+#endif
 
 /*-----------------------------------------------------------------------
  * Representation of a SPI slave, i.e. what we're communicating with.
@@ -49,10 +80,19 @@
  *
  *   bus:	ID of the bus that the slave is attached to.
  *   cs:	ID of the chip select connected to the slave.
+ *   is_dual:	Indicates whether dual memories are used
+ * #warning
  */
+
 struct spi_slave {
 	unsigned int	bus;
 	unsigned int	cs;
+	unsigned int	is_dual;
+	unsigned int	flags;
+#ifdef CONFIG_SFDP
+	struct SFDP_DATA sfdp_data;
+	unsigned int	read_opcode;
+#endif
 };
 
 /*-----------------------------------------------------------------------

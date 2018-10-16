@@ -62,6 +62,10 @@ typedef	struct	global_data {
 	unsigned long long	timer_reset_value;
 	unsigned long	lastinc;
 #endif
+#ifdef PILOT4_ORION
+	unsigned long prev_ctr_value;
+	u32 mult, shift;
+#endif
 #ifdef CONFIG_IXP425
 	unsigned long	timestamp;
 #endif

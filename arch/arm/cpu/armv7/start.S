@@ -29,13 +29,24 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <asm-offsets.h>
 #include <config.h>
 #include <version.h>
 #include <asm/system.h>
 #include <linux/linkage.h>
 
-.globl _start
+.global _start
 _start: b	reset
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
@@ -44,6 +55,41 @@ _start: b	reset
 	ldr	pc, _not_used
 	ldr	pc, _irq
 	ldr	pc, _fiq
+#ifdef CONFIG_ZYNQ_XILINX_FLASH_HEADER
+#if !defined(CONFIG_ZYNQ_XIP_START) || CONFIG_ZYNQ_XIP_START == 0
+#error CONFIG_ZYNQ_XIP_START must be defined for CONFIG_ZYNQ_XILINX_FLASH_HEADER
+#else
+/* These fields MUST immediately follow the vectors */
+#define HDR_20 0xAA995566
+#define HDR_24 0x584C4E58
+#define HDR_28 0x00000000
+#define HDR_2C 0x544F4F42
+#define HDR_30 0x00000120
+#define HDR_34 0x00000000
+#define HDR_38 0x00000000
+#define HDR_3C CONFIG_ZYNQ_XIP_START
+#define HDR_40 0x00000000
+#define HDR_44 0x00000001
+#define HDR_CSUM (~(HDR_20+HDR_24+HDR_28+HDR_2C+HDR_30+HDR_34+HDR_38+HDR_3C+HDR_40+HDR_44))
+
+.word   HDR_20	/* 0xaa995566 required for sizing of the FLASH */
+.word   HDR_24	/* signature 0x584C4E58 identifies the format of the image */
+.word   HDR_28	/* 0xA5C3C5A3 for encrypted images */
+.word   HDR_2C	/* UserData can be anything */
+.word   HDR_30	/* LoadStart offset into FLASH where image starts */
+.word   HDR_34	/* LoadLength length of image in bytes */
+.word   HDR_38	/* DestinationAddress where in OCM the image is to be written to */
+.word   HDR_3C	/* ImageStartAddress where to jump to at handoff (_start) */
+.word   HDR_40	/* TotalImageLength - should be the same for unencrypted images */
+.word   HDR_44	/* QSPIConfigWord x1 device */
+.word   HDR_CSUM	/* checksum - 0x20 - 0x44, complement */
+.word   0,0,0,0,0,0,0,0
+.word   0,0,0,0,0,0,0,0
+.word   0,0,0,0,0
+.word   0xFFFFFFFF      /* 0xA0 */
+.word   0x00000000
+#endif
+#endif
 #ifdef CONFIG_SPL_BUILD
 _undefined_instruction: .word _undefined_instruction
 _software_interrupt:	.word _software_interrupt
@@ -78,8 +124,7 @@ _end_vect:
  * setup stack
  *
  *************************************************************************/
-
-.globl _TEXT_BASE
+.global _TEXT_BASE
 _TEXT_BASE:
 	.word	CONFIG_SYS_TEXT_BASE
 
@@ -118,12 +163,36 @@ FIQ_STACK_START:
 .globl IRQ_STACK_START_IN
 IRQ_STACK_START_IN:
 	.word	0x0badc0de
+.globl UBOOT_IRQ_VBAR
+UBOOT_IRQ_VBAR:
+	.word 0
 
 /*
  * the actual reset code
  */
 
 reset:
+
+#if defined(PILOT4_ORION)
+
+	/* Enable SPI prefetch if it is not OEM-1 mode*/
+	ldr r0, =0x4010010C @; STRAP_STATUS
+	ldr r1, [r0]
+	ands r1, r1, #0x1
+	bne skip_spi_prefetch
+	ldr     r2,=0x10
+	ldr     r0,=0x40200010
+	ldr     r1,[r0]
+	orr     r1,r1,r2
+	str     r1,[r0]
+
+skip_spi_prefetch:
+	/* Put secondary core to sleep */
+	mrc	p15, 0, r0, c0, c0, 5		@; Read CPU 	ID register
+	ands	r0, r0, #0x03			@; Mask off, leaving the CPU ID field
+	blne	secondary_cpus_init_exp
+#endif
+
 	bl	save_boot_params
 	/*
 	 * set the cpu to SVC32 mode
@@ -138,7 +207,7 @@ reset:
  * (OMAP4 spl TEXT_BASE is not 32 byte aligned.
  * Continue to use ROM code vector only in OMAP4 spl)
  */
-#if !(defined(CONFIG_OMAP44XX) && defined(CONFIG_SPL_BUILD))
+#if (!(defined(CONFIG_OMAP44XX) && defined(CONFIG_SPL_BUILD)) && !defined(PILOT4_ORION))
 	/* Set V=0 in CP15 SCTRL register - for VBAR to point to vector */
 	mrc	p15, 0, r0, c1, c0, 0	@ Read CP15 SCTRL Register
 	bic	r0, #CR_V		@ V = 0
@@ -151,9 +220,71 @@ reset:
 
 	/* the mask ROM code should have PLL and others stable */
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
+	ldr sp, =(0x10008000) 	
+	bic sp, sp, #7			/* 8-byte alignment for ABI compliance */
+	adr r1, _start
+	ldr r0, =0x40100230		/*Storing _start Address of u-boot to appropriately calculate irq vectors*/
+	str r1, [r0]
+
+	mrc     p15, 0, r0, c0, c0, 5           @; Read CPU     ID register
+	ands    r0, r0, #0x03                   @; Mask off, leaving the CPU ID field
+	ldrne sp,=0x1000eff0
+	ldreq sp,=0x1000dff0
+	bl disable_caches
+#if (!defined(PILOT4_ORION))
+	bl invalidate_caches
+#endif
+
 	bl	cpu_init_cp15
 	bl	cpu_init_crit
+
 #endif
+
+back_here:
+	adr r0, _start
+	ldr r2, _TEXT_BASE
+	ldr r1, _TEXT_BASE
+	cmp r0, r1
+	beq call_board_init_f
+	ldr r3, _bss_end_ofs
+	add r3,r3,r2
+	sub r2, r3, r2 /* r2 <- size of armboot */
+	add r2, r0, r2 /* r2 <- source end address */
+
+copy_loop1:
+	ldmia r0!, {r3-r10} /* copy from source address [r0] */
+	stmia r1!, {r3-r10} /* copy to target address [r1] */
+	cmp r0, r2 /* until source end addreee [r2] */
+	ble copy_loop1
+#ifndef CONFIG_SYS_ICACHE_OFF
+        mcr     p15, 0, r0, c7, c5, 0   @ invalidate icache
+        mcr     p15, 0, r0, c7, c10, 4  @ DSB
+        mcr     p15, 0, r0, c7, c5, 4   @ ISB
+#endif
+
+#if 0 /*Only for debug*/
+	@Check if ddr init was ok
+	ldr r2, =0xbabababa
+	ldr r3, =0x80800000
+	str r2, [r3]
+	ldr r4, [r3]
+	ldr r5, [r3]
+	cmp r2, r4
+	beq hey
+screwd:
+	ldr r3, =0x40430000
+	ldr r4, =0x46
+	str r4, [r3]
+	ldr r4, =0x41
+	str r4, [r3]
+	ldr r4, =0x49
+	str r4, [r3]
+	ldr r4, =0x4c
+	str r4, [r3]
+	b .
+#endif
+hey:
+	ldr pc, =call_board_init_f
 
 /* Set stackpointer in internal RAM to call board_init_f */
 call_board_init_f:
@@ -161,7 +292,7 @@ call_board_init_f:
 	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
 	ldr	r0,=0x00000000
 	bl	board_init_f
-
+	bl stop_pilot_timer3
 /*------------------------------------------------------------------------------*/
 
 #ifndef CONFIG_SPL_BUILD
@@ -261,6 +392,8 @@ clbss_e:
  * initialization, now running from RAM.
  */
 jump_2_ram:
+	bl start_pilot_timer3
+
 /*
  * If I-cache is enabled invalidate it
  */
@@ -276,7 +409,11 @@ jump_2_ram:
 	/* Set vector address in CP15 VBAR register */
 	ldr     r0, =_start
 	add     r0, r0, r9
-	mcr     p15, 0, r0, c12, c0, 0  @Set VBAR
+	@mcr     p15, 0, r0, c12, c0, 0  @Set VBAR
+	ldr r1,=UBOOT_IRQ_VBAR
+	add r1, r1, r9
+	str r0, [r1]
+
 #endif /* !Tegra20 */
 
 	ldr	r0, _board_init_r_ofs
@@ -354,13 +491,15 @@ ENDPROC(cpu_init_cp15)
  *
  *************************************************************************/
 ENTRY(cpu_init_crit)
-	/*
-	 * Jump to board specific initialization...
-	 * The Mask ROM will have already initialized
-	 * basic memory. Go here to bump up clock rate and handle
-	 * wake up conditions.
-	 */
-	b	lowlevel_init		@ go setup pll,mux,memory
+/*
+* Jump to board specific initialization...
+* The Mask ROM will have already initialized
+* basic memory. Go here to bump up clock rate and handle
+* wake up conditions.
+*/
+
+b	lowlevel_init		@ go setup pll,mux,memory
+
 ENDPROC(cpu_init_crit)
 #endif
 
@@ -399,6 +538,8 @@ ENDPROC(cpu_init_crit)
 
 #define MODE_SVC 0x13
 #define I_BIT	 0x80
+#define stbyint_sts        0x4 
+#define stbyint_en          0x8
 
 /*
  * use bad_save_user_regs for abort/prefetch/undef/swi ...
@@ -529,7 +670,6 @@ irq:
 	irq_save_user_regs
 	bl	do_irq
 	irq_restore_user_regs
-
 	.align	5
 fiq:
 	get_fiq_stack
@@ -551,6 +691,73 @@ fiq:
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_fiq
-
 #endif /* CONFIG_USE_IRQ */
 #endif /* CONFIG_SPL_BUILD */
+
+  .global disable_caches
+  @; void disable_caches(void)
+disable_caches:
+  MRC     p15, 0, r0, c1, c0, 0   @; Read System Control Register configuration data
+  BIC     r0, r0, #(1 << 2)       @; Clear C bit
+  BIC     r0, r0, #(1 << 12)      @; Clear I bit
+  MCR     p15, 0, r0, c1, c0, 0   @; Write System Control Register configuration data
+  BX      lr
+
+  .global invalidate_caches
+  @; void invalidate_caches(void)@;
+invalidate_caches:
+  PUSH    {r4-r12}
+
+  @;
+  @; Based on code example given in section B2.2.4/11.2.4 of ARM DDI 0406B
+  @;
+
+  MOV     r0, #0
+  MCR     p15, 0, r0, c7, c5, 0     @; ICIALLU - Invalidate entire I Cache, and flushes branch target cache ref to arm v7 arch manual
+
+  MRC     p15, 1, r0, c0, c0, 1     @; Read CLIDR  cache level ID reg type of cache at each level, level of coherency pg 1814 armv7 arch ref manual
+  @ANDS    r3, r0, #7000000         @;   getting level of coherency bits[26:24]
+  ldr     r1, =0x7000000
+  ANDS    r3, r0,r1
+
+  MOV     r3, r3, LSR #23           @; Cache level value (naturally aligned)  level 1 cache alignment gives 0x2
+  BEQ     invalidate_caches_finished  @;  if r3=0 :i.e. if no cache?
+  MOV     r10, #0
+
+invalidate_caches_loop1:
+  ADD     r2, r10, r10, LSR #1      @; Work out 3xcachelevel  r2=0 initially
+  MOV     r1, r0, LSR r2            @; bottom 3 bits are the Cache type for this level
+  AND     r1, r1, #7                @; get those 3 bits alone :In r4p1 this value is 0x3
+  CMP     r1, #2
+  BLT     invalidate_caches_skip    @; no cache or only instruction cache at this level
+  MCR     p15, 2, r10, c0, c0, 0    @; write the Cache Size selection register  CSSELR pg 1832 armv7 arch ref manual level 1 data cache selected by 0x0
+  ISB                               @; ISB to sync the change to the CacheSizeID reg
+  MRC     p15, 1, r1, c0, c0, 0     @; reads current Cache Size ID register CCSIDR pg 1528 armv7 arch ref manual
+  AND     r2, r1, #7               @; extract the line length field  getting line size[2:0]
+  ADD     r2, r2, #4                @; add 4 for the line length offset (log2 16 bytes)  8 word cache line so r2=1 + 4  :This is for the format 2power of 5 = 32 register format Enjay!
+  LDR     r4, =0x3FF
+  ANDS    r4, r4, r1, LSR #3        @; R4 is the max number on the way size (right aligned)  reading associativity -1
+  CLZ     r5, r4                    @; R5 is the bit position of the way size increment  count leading zeroes ex: assoc 0x3 clz = 30
+  LDR     r7, =0x00007FFF
+  ANDS    r7, r7, r1, LSR #13       @; R7 is the max number of the index size (right aligned)  reading no of sets in the cache
+
+invalidate_caches_loop2:
+  MOV     r9, R4                    @; R9 working copy of the max way size (right aligned)
+
+invalidate_caches_loop3:
+  ORR     r11, r10, r9, LSL r5      @; factor in the way number and cache number into R11  r9 << 30 | r10 :B3.12.31 c7, Cache and branch predictor maintenance functions in armv7 spec
+  ORR     r11, r11, r7, LSL r2      @; factor in the index number  r7<<r2(=5)
+  MCR     p15, 0, r11, c7, c6, 2    @; DCISW - invalidate by set/way  refer to pg 1943 in arm v7 arch ref manual
+  SUBS    r9, r9, #1                @; decrement the way number
+  BGE     invalidate_caches_loop3
+  SUBS    r7, r7, #1                @; decrement the index  decrement the set number
+  BGE     invalidate_caches_loop2
+invalidate_caches_skip:
+  ADD     r10, r10, #2              @; increment the cache number  to cmp with cache level value in r3 :+ 2 because format of the register data for a set/way operation
+  CMP     r3, r10
+  BGT     invalidate_caches_loop1
+
+invalidate_caches_finished:
+  POP     {r4-r12}
+  BX      lr
+

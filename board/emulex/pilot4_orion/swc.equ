@@ -1,0 +1,230 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+		.include "buffer.equ"
+
+#	KCS Equates
+
+
+WKSTS0		=	0
+WKSTS1		=	1
+WKEN0		=	2
+WKEN1		=	3
+WKCFG0		=	4
+WKCFG1		=	5
+WKSMIEN0	=	6
+WKIRQEN0	=	8
+SWCTL		=	9
+SWCSTAT0	=	0X0A
+SWCSTAT1	=	0X0B
+OCTL0S31	=	0X0E
+OCTL1S31	=	0X0F
+OCTL0S45	=	0X10
+OCTL1S45	=	0X11
+PBOUT0S31	=	0X12
+PBOUT1S31	=	0X13
+PBOUT0S45	=	0X14
+PBOUT1S45	=	0X15
+PS2CTL		=	0X16
+PS2KEY0		=	0X18
+PS2KEY1		=	0X19
+PS2KEY2 	=	0X1A
+PS2KEY3		=	0X1B
+PS2KEY4		=	0X1C
+PS2KEY5		=	0X1D
+PS2KEY6		=	0X1E
+PS2KEY7		=	0X1F
+S0SLPTYP	=	0X20
+S1SLPTYP	=	0X21
+S2SLPTYP	=	0X22
+S3SLPTYP	=	0X23
+S4SLPTYP	=	0X24
+S5SLPTYP	=	0X25
+SLPSTCFG	=	0X26
+
+PASSTHRU_CNTL =      0x27
+PASSTHRU_STAT =      0x28
+PM1B_STS_LOW  =      0x29
+PM1B_STS_HIGH =      0x2a
+PM1B_EN_LOW   =      0x2b
+PM1B_EN_HIGH  =      0x2c
+PM1B_CNT_LOW  =      0x2d
+PM1B_CNT_HIGH =      0x2e
+GPE1_0_STS    =      0x2f
+GPE1_1_STS    =      0x30
+GPE1_0_EN     =      0x31
+GPE1_1_EN     =      0x32
+PASSTHRU_DBC  =      0x33
+PASSTHRU1_CFG =      0x34
+PASSTHRU2_CFG =      0x35
+PASSTHRU3_CFG =      0x36
+PWBTIN_STS     =     0x37
+RI_STS         =     0x38
+SMI_SEC_CONT   =     0x39
+SMI_MIN_CONT   =     0x3A
+SMI_SEC_CNTR   =     0x3B
+SMI_MIN_CNTR   =     0x3C
+SMI_CNTL       =     0x3D
+SMI_STS        =     0x3E
+
+GPREG40       = 0x40
+GPREG41       = 0x41
+GPREG42       = 0x42
+GPREG43       = 0x43
+GPREG44       = 0x44
+GPREG45       = 0x45
+GPREG46       = 0x46
+GPREG47       = 0x47
+GPREG48       = 0x48
+GPREG49       = 0x49
+GPREG4a       = 0x4a
+GPREG4b       = 0x4b
+GPREG4c       = 0x4c
+GPREG4d       = 0x4d
+GPREG4e       = 0x4e
+GPREG4f       = 0x4f
+GPREG50       = 0x50
+GPREG51       = 0x51
+GPREG52       = 0x52
+GPREG53       = 0x53
+GPREG54       = 0x54
+GPREG55       = 0x55
+GPREG56       = 0x56
+GPREG57       = 0x57
+GPREG58       = 0x58
+GPREG59       = 0x59
+GPREG5a       = 0x5a
+GPREG5b       = 0x5b
+GPREG5c       = 0x5c
+GPREG5d       = 0x5d
+GPREG5e       = 0x5e
+GPREG5f       = 0x5f
+
+
+IDCR		=	0X60
+IDSR		=	0X61
+
+
+#	WKSTS0 register
+
+
+SOFTIEV		=	1<<6
+MOUSEEV		=	1<<3
+KBDEV		=	1<<2
+RI2EV		=	1<<1
+RI1EV		=	1<<0
+
+
+
+#	WKSTS1 Register Bit Definitions
+
+GPIE0		=	1<<0
+GPIE1		=	1<<1
+GPIE2		=	1<<2
+GPIE3		=	1<<3
+GPIE4		=	1<<4
+GPIE5		=	1<<5
+GPIE6		=	1<<6
+GPIE7		=	1<<7
+
+
+
+#  WaKEUPCFG0 FIELD DEFINITIONS
+
+PWRGDINTEN	=	1<<0
+
+SOFTOFFONCTL	=	1<<1
+SOFTONONCTL	=	1<<2
+ONCTLEN		=	1<<3
+ONCTLGPOEN	=	1<<4
+ONCTLOEN	=	1<<5
+ONCTLGPO	=	1<<6
+
+#	SWCTL Register
+
+
+
+SLPTYPINTEN	=	1<<6
+SLPSTINTEN	=	1<<5
+
+MOUSEEVENT	=	1<<3
+KBDEVENT	=	1<<2
+SLPS5   	=	1<<1
+SLPS3   	=	1<<0
+
+#  SWCSTAT0 FIELD DEFINITIONS
+
+PWRUPFAILSTS	=	1<<0
+
+PWRBTNOVRDSTS	=	1<<1
+PWRGDINTSTS	=	1<<2
+PWDGDSTS	=	1<<3
+ONCTLSTS	=	1<<4
+WKUPPWRFAIL	=	1<<5
+LASTONCTL	=	1<<6
+
+@@#	SWCTL Register
+
+SLPTYPINTSTS	=	1<<3
+SLPSTINTSTS	=	1<<4
+SLPS5   	=	1<<1
+SLPS3   	=	1<<0
+
+
+
+
+
+@@@ S2CTL REGISTER FIELD DEFINITIONS
+
+DISKBDWKUP	=	0<<0
+KBDSPLKEWSQ	=	1<<0
+KBDPASSWD1	=	0X8 
+KBDPASSWD2	=	0X9 
+KBDPASSWD3	=	0XA 
+KBDPASSWD4	=	0XB 
+KBDPASSWD5	=	0xC 
+KBDPASSWD6	=	0XD 
+KBDPASSWD7	=	0XE 
+KBDPASSWD8	=	0XF 
+DISMSEWKUP	=	0<<4
+WKUPMSEBUTTON	=	1<<4
+WKUPLEFTBUTTON	=	2<<4
+WKUPLEFTDBLCLK	=	3<<4
+WKUPRTBUTTON	=	4<<4
+WKUPRTDBLCLK	=	5<<4
+WKUPANYBUTTON	=	6<<4
+WKUPANYDBLCLK	=	7<<4
+DISPARCHK	=	1<<7
+
+@@@ Flags
+
+SWCINTCOUNT     =       SWCWorkBase 
+VDDIRQINTFLAG     =       SWCWorkBase + 0x4
+PTHRU1INTFLAG     =       SWCWorkBase + 0x8
+PTHRU2INTFLAG     =       SWCWorkBase + 0xc
+PTHRU3INTFLAG     =       SWCWorkBase + 0x10
+PWBTININTFLAG     =       SWCWorkBase + 0x14
+RI1FALLINGINTFLAG     =       SWCWorkBase + 0x18
+RI1RISINGINTFLAG     =       SWCWorkBase + 0x1C
+RI2FALLINGINTFLAG     =       SWCWorkBase + 0x20
+RI2RISINGINTFLAG     =       SWCWorkBase + 0x24
+SLPSINTFLAG   =       SWCWorkBase +0x28
+SLPSVAL         =     SWCWorkBase+0x2c
+PM1BIRQINTFLAG = SWCWorkBase+0x30

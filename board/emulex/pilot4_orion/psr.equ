@@ -1,0 +1,80 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+PSRBASE	=	PSR
+
+UID0    =       PSR+0x00
+UID1    =       PSR+0x01
+UID2    =       PSR+0x02
+UID3    =       PSR+0x03
+UID4    =       PSR+0x04
+UID5    =       PSR+0x05
+UID6    =       PSR+0x06
+RND0    =       PSR+0x08
+RND1    =       PSR+0x09
+RND2    =       PSR+0x0a
+RND3    =       PSR+0x0b
+TBUS    =       PSR+0x47
+LPCCR0  =       PSR+0x10
+LPCCR1  =       PSR+0x11
+LPCSR   =       PSR+0x12
+
+CHIPID  =       PSR+0x20
+SIOCFG1 =       PSR+0x21
+SIOCFG2 =       PSR+0x22
+SIOCFG3 =       PSR+0x23
+SIOCFG4 =       PSR+0x24
+SIOCFG5 =       PSR+0x25
+SIOCFG6 =       PSR+0x26
+SIOCFG7 =       PSR+0x27
+SIOCFG8 =       PSR+0x28
+
+SP1DLL  =       PSR+0x30
+SP1DLH  =       PSR+0x31
+SP2DLL  =       PSR+0x32
+SP2DLH  =       PSR+0x33
+
+PCDR    =       PSR+0x40
+PCAR_LO =       PSR+0x41
+PCAR    =       PSR+0x41
+PCSR    =       PSR+0x42
+PCMR    =       PSR+0x43
+PCCR    =       PSR+0x44
+PCCT    =       PSR+0x45
+PCAR_HI =       PSR+0x46
+
+RXOFF		=	0x20
+PSRRSTINTFLAG	=	PSRWorkBase
+CAPINTFLAG	=	PSRWorkBase+0x30
+COMPVAL		=	PSRWorkBase+0x34
+CMPINTFLAG   	= 	PSRWorkBase+0x38
+USHADINTFLAG   	= 	PSRWorkBase+0x3C
+FULLINTFLAG   	= 	PSRWorkBase+0x40
+
+
+LPCRSTIRQ 	= 	1<<1
+LPCRSTINTEN	=	1<<2
+CAPMATCHINT	=	1<<1
+CAPFIFONEMPTY	=	1<<2
+PCFNEMPTY	=	1<<0
+CMPVALDETINTSTS	=	1<<1
+USHADOWINTEN	=	1<<3
+USHADOWINTSTS	=	1<<4
+FULLDETINTSTS	=	1<<5

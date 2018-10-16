@@ -25,6 +25,18 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ * 
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ * 
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ ******************************************************************************/
+
+
 /*
  * To match the U-Boot user interface on ARM platforms to the U-Boot
  * standard (as on PPC platforms), some messages with debug character
@@ -271,10 +283,13 @@ void board_init_f(ulong bootflag)
 	init_fnc_t **init_fnc_ptr;
 	gd_t *id;
 	ulong addr, addr_sp;
+	char display_char = '0';
 #ifdef CONFIG_PRAM
 	ulong reg;
 #endif
-
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('A');
+#endif
 	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_F, "board_init_f");
 
 	/* Pointer is writable since we allocated a register for it */
@@ -297,11 +312,17 @@ void board_init_f(ulong bootflag)
 						(uintptr_t)gd->fdt_blob);
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
+#ifdef CONFIG_P4_ZYNQ_FPGA
+		display_ss_char(display_char);
+#endif
+		display_char++;
 		if ((*init_fnc_ptr)() != 0) {
 			hang ();
 		}
 	}
-
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('b');
+#endif
 #ifdef CONFIG_OF_CONTROL
 	/* For now, put this check after the console is ready */
 	if (fdtdec_prepare_fdt()) {
@@ -311,6 +332,7 @@ void board_init_f(ulong bootflag)
 #endif
 
 	debug("monitor len: %08lX\n", gd->mon_len);
+
 	/*
 	 * Ram is setup, size stored in gd !!
 	 */
@@ -443,7 +465,9 @@ void board_init_f(ulong bootflag)
 	gd->reloc_off = addr - _TEXT_BASE;
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
 	memcpy(id, (void *)gd, sizeof(gd_t));
-
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('C');
+#endif
 	relocate_code(addr_sp, id, addr);
 
 	/* NOTREACHED - relocate_code() does not return */
@@ -471,6 +495,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	ulong flash_size;
 #endif
 
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('d');
+#endif
 	gd = id;
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
@@ -508,7 +535,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* The Malloc area is immediately below the monitor copy in DRAM */
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
-
 #ifdef CONFIG_ARCH_EARLY_INIT_R
 	arch_early_init_r();
 #endif
@@ -577,6 +603,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	api_init();
 #endif
 
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('E');
+#endif
 	console_init_r();	/* fully init console as a device */
 
 #if defined(CONFIG_ARCH_MISC_INIT)
@@ -588,10 +617,16 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	misc_init_r();
 #endif
 
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('F');
+#endif
 	 /* set up exceptions */
 	interrupt_init();
 	/* enable exceptions */
 	enable_interrupts();
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('H');
+#endif
 
 	/* Perform network card initialisation if necessary */
 #if defined(CONFIG_DRIVER_SMC91111) || defined (CONFIG_DRIVER_LAN91C96)
@@ -649,6 +684,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif
 
+#ifdef CONFIG_P4_ZYNQ_FPGA
+	display_ss_char('L');
+#endif
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {
 		main_loop();

@@ -1,0 +1,107 @@
+/*******************************************************************************
+ *
+ *
+ * Copyright (C) 2004-2014 Emulex. All rights reserved.
+ * EMULEX is a trademark of Emulex.
+ * www.emulex.com
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of version 2 of the GNU General Public License as published by the
+ * Free Software Foundation.
+ * This program is distributed in the hope that it will be useful. ALL EXPRESS
+ * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
+ * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+ * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
+ * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
+ * details, a copy of which can be found in the file COPYING included
+ * with this package.
+ *
+ ********************************************************************************/
+
+SPI_ADDR 			=  (0x00)
+SPI_RWDATA 			=  (0x30)
+SPI_CMD0 			=  (0x08) @holds opcode
+SPI_CMD1 			=  (0x09) @cmd len,dir,no of bytes
+SPI_CMD2 			=  (0x0a) @custom opcode
+SPI_CMD3 			=  (0x0b) @control reg
+SPI_TREC 			=  (0x0c)
+SPI_TCS 			=  (0x0d)
+SPI_TCSL 			=  (0x0e)
+SPI_TCSH 			=  (0x0f)
+SPI_CTRL 			=  (0x10)
+SPI_CLKDIV 			=  (0x14)
+SPI_STS 			=  (0x18)
+SPI_MISC 			=  (0x1c)
+SPI_INTEN                       =  (0x20)
+
+@spi cmd 1 reg bit defines
+cmdwrite 			=  (1<<4)
+cmdread 			=  (0<<4)
+cmdlen_0 			=  (0<<0)
+cmdlen_1 			=  (1<<0)
+cmdlen_2 			=  (2<<0)
+cmdlen_3 			=  (3<<0)
+cmdlen_4 			=  (4<<0)
+cmdlen_5 			=  (5<<0)
+cmdlen_6 			=  (6<<0)
+
+data_bytes_0 			=  (0<<5)
+data_bytes_1 			=  (1<<5)
+data_bytes_2 			=  (2<<5)
+data_bytes_3 			=  (3<<5)
+data_bytes_4 			=  (4<<5)
+data_bytes_5 			=  (5<<5)
+data_bytes_6 			=  (6<<5)
+data_bytes_7 			=  (7<<5)
+data_bytes_8 			=  (8<<5) 
+  
+@spi cmd3 reg defines
+spi_cs_high 			=  (1<<0)
+spi_cs_low 			=  (0<<0)
+wfifo_en 			=  (1<<1)
+fread_en 			=  (1<<2)
+regrw_en 			=  (1<<7)
+
+@spi control reg
+spi_en 			        =  (1<<0)
+clkphase_hi 			=  (1<<1) 
+clkpol_hi 			=  (1<<2)
+
+@spi status register
+spi_busy 			=  (1<<0)
+spi_int_busy 			=  (1<<2) 
+wfifo_en_sts 			=  (1<<3)
+wr_fifo_full 			=  (1<<4)
+rd_fifo_empty 			=  (1<<5)
+wr_fifo_empty 			=  (1<<5)
+spi_cmd_phase_done_sts          =  (1<<6)
+spi_notbusy_sts                 =  (1<<7)
+
+
+@spi opcodes
+wren 			        =  (0x6) @write enable
+wrdi 			        =  (0x4) @write disable
+rdsr 			        =  (0x5) @read status register
+wrsr 			        =  (0x1) @write status register
+spi_read_cmd 			=  (0x3) @read data
+fast_read 			=  (0xb) @read data at higher speed
+pprog 			        =  (0x2) @page pgrogramme(write data)
+serase 			        =  (0xd8) @sector erase
+berase 			        =  (0xc7) @bulk or chip erase
+deeopdwn 			=  (0xb9) @deep power down
+relfrmpdwn 			=  (0xab) @release from power down
+getid 			        =  (0x9f) @get device id
+
+@spi status from flash
+write_in_progress 		=  (1<<0) @write in progress
+write_en_latchL 		=  (1<<1) @write en latch
+
+@ spi misc register
+fast_read_en 			=  (1<<3)
+
+@ SPI Interrrupt enable register
+spi_ff_full_int_en              = (1<<4)
+spi_ff_empty_int_en             = (1<<5)
+spi_cmd_phase_done_int_en       = (1<<6)
+spi_not_busy_int_en             = (1<<7)
+

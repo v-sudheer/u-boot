@@ -95,6 +95,8 @@ extern struct serial_device uart_zynq_serial0_device;
 extern struct serial_device uart_zynq_serial1_device;
 #endif
 
+extern struct serial_device pilot_serial_device;
+
 extern void serial_register(struct serial_device *);
 extern void serial_initialize(void);
 extern void serial_stdio_init(void);

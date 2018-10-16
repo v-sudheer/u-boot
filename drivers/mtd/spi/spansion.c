@@ -25,11 +25,28 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <common.h>
 #include <malloc.h>
 #include <spi_flash.h>
 
 #include "spi_flash_internal.h"
+
+/* S25FLxx-specific commands */
+#define CMD_S25FLXX_SE		0xd8	/* Sector Erase */
+#define CMD_S25FLXX_BE		0xc7	/* Bulk Erase */
+#define CMD_S25FLXX_DP		0xb9	/* Deep Power-down */
+#define CMD_S25FLXX_RES		0xab	/* Release from DP, and Read Signature */
 
 struct spansion_spi_flash_params {
 	u16 idcode1;
@@ -37,6 +54,7 @@ struct spansion_spi_flash_params {
 	u16 pages_per_sector;
 	u16 nr_sectors;
 	const char *name;
+	u32 flags;
 };
 
 static const struct spansion_spi_flash_params spansion_spi_flash_table[] = {
@@ -97,12 +115,21 @@ static const struct spansion_spi_flash_params spansion_spi_flash_table[] = {
 		.name = "S25FL129P_64K",
 	},
 	{
-		.idcode1 = 0x2019,
+		.idcode1 = 0x0219,
 		.idcode2 = 0x4d01,
 		.pages_per_sector = 256,
 		.nr_sectors = 512,
 		.name = "S25FL256S",
 	},
+	{
+		.idcode1 = 0x0220,
+		.idcode2 = 0x4d00,
+		.pages_per_sector = 256,
+		.nr_sectors = 256,
+		.name = "Spansion512",
+		.flags = (SPI_FBYTE_SUPP | SPI_FBYTE_SPANSION)
+	},
+
 };
 
 struct spi_flash *spi_flash_probe_spansion(struct spi_slave *spi, u8 *idcode)
@@ -140,8 +167,17 @@ struct spi_flash *spi_flash_probe_spansion(struct spi_slave *spi, u8 *idcode)
 	flash->write = spi_flash_cmd_write_multi;
 	flash->erase = spi_flash_cmd_erase;
 	flash->read = spi_flash_cmd_read_fast;
-	flash->page_size = 256;
-	flash->sector_size = 256 * params->pages_per_sector;
+	flash->spi->flags = params->flags;
+	if (params->idcode1 == 0x0220)
+	{
+		flash->page_size = 512;
+		flash->sector_size = 256*1024;
+	}
+	else
+	{
+		flash->page_size = 256;
+		flash->sector_size = 64*1024;
+	}
 	flash->size = flash->sector_size * params->nr_sectors;
 
 	return flash;

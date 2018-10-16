@@ -21,6 +21,17 @@
 # MA 02111-1307 USA
 #
 
+###############################################################################
+#
+# Copyright (c) 2010-2015, Emulex Corporation.
+#
+# Modifications made by Emulex Corporation under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+###############################################################################
+
 include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libspi_flash.o
@@ -30,15 +41,20 @@ COBJS-$(CONFIG_SPL_SPI_LOAD)	+= spi_spl_load.o
 endif
 
 COBJS-$(CONFIG_SPI_FLASH)	+= spi_flash.o
+ifndef CONFIG_SFDP
 COBJS-$(CONFIG_SPI_FLASH_ATMEL)	+= atmel.o
-COBJS-$(CONFIG_SPI_FLASH_EON)	+= eon.o
-COBJS-$(CONFIG_SPI_FLASH_MACRONIX)	+= macronix.o
 COBJS-$(CONFIG_SPI_FLASH_SPANSION)	+= spansion.o
 COBJS-$(CONFIG_SPI_FLASH_SST)	+= sst.o
 COBJS-$(CONFIG_SPI_FLASH_STMICRO)	+= stmicro.o
 COBJS-$(CONFIG_SPI_FLASH_WINBOND)	+= winbond.o
 COBJS-$(CONFIG_SPI_FRAM_RAMTRON)	+= ramtron.o
 COBJS-$(CONFIG_SPI_M95XXX) += eeprom_m95xxx.o
+COBJS-$(CONFIG_SPI_MICRON) += micron.o
+COBJS-$(CONFIG_SPI_MACRONIX)	+= macronix.o
+COBJS-$(CONFIG_SPI_EON)	+= p4_eon.o
+else
+COBJS-$(CONFIG_SFDP)	+= spi_sfdp.o
+endif
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

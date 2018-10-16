@@ -46,78 +46,72 @@
 
 #include "spi_flash_internal.h"
 
-struct macronix_spi_flash_params {
+struct micron_spi_flash_params {
 	u16 idcode;
 	u16 nr_blocks;
 	const char *name;
 	u32 flags;
 };
 
-static const struct macronix_spi_flash_params macronix_spi_flash_table[] = {
+#warning Revisit 4BPP/4BREADS later
+static const struct micron_spi_flash_params micron_spi_flash_table[] = {
 	{
-		.idcode = 0x2013,
-		.nr_blocks = 8,
-		.name = "MX25L4005",
-	},
-	{
-		.idcode = 0x2014,
-		.nr_blocks = 16,
-		.name = "MX25L8005",
-	},
-	{
-		.idcode = 0x2015,
-		.nr_blocks = 32,
-		.name = "MX25L1605D",
-	},
-	{
-		.idcode = 0x2016,
-		.nr_blocks = 64,
-		.name = "MX25L3205D",
-	},
-	{
-		.idcode = 0x2017,
-		.nr_blocks = 128,
-		.name = "MX25L6405D",
-	},
-	{
-		.idcode = 0x2018,
-		.nr_blocks = 256,
-		.name = "MX25L12805D",
-	},
-	{
-		.idcode = 0x2618,
-		.nr_blocks = 256,
-		.name = "MX25L12855E",
-	},
-	{
-		.idcode = 0x2019,
+		.idcode = 0xba19,
 		.nr_blocks = 512,
-		.name = "MX25L25635E",
-		.flags = SPI_FBYTE_SUPP,
+		.name = "N25Q256A13EXX40X",
+		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP | SPI_FLG_STS_RD),
+		.flags = (SPI_FBYTE_SUPP | SPI_FLG_STS_RD),
 	},
 	{
-		.idcode = 0x201a,
+		.idcode = 0xba20,
 		.nr_blocks = 1024,
-		.name = "MX66L51235F",
-		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP),
-		.flags = SPI_FBYTE_SUPP,
+		.name = "N25Q512A13GXX40X",
+		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP | SPI_FLG_STS_RD),
+		.flags = (SPI_FBYTE_SUPP | SPI_FLG_STS_RD),
+	},
+	{
+		.idcode = 0xba21,
+		.nr_blocks = 2048,
+		.name = "N25Q00AA13GXX40X",
+		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP | SPI_FLG_STS_RD),
+		.flags = (SPI_FBYTE_SUPP | SPI_FLG_STS_RD),
+	},
+	{
+		.idcode = 0xbb18,
+		.nr_blocks = 256,
+		.name = "MCRN128_1.8",
+		.flags = (SPI_FLG_STS_RD),
+	},
+	{
+		.idcode = 0xbb19,
+		.nr_blocks = 512,
+		.name = "MCRN256_1.8",
+		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP | SPI_FLG_STS_RD),
+		.flags = (SPI_FBYTE_SUPP | SPI_FLG_STS_RD),
+	},
+	{
+		.idcode = 0xbb20,
+		.nr_blocks = 1024,
+		.name = "MCRN512_1.8",
+		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP | SPI_FLG_STS_RD),
+		.flags = (SPI_FBYTE_SUPP | SPI_FLG_STS_RD),
 	},
 };
 
-struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
+struct spi_flash *spi_flash_probe_micron(struct spi_slave *spi, u8 *idcode)
 {
-	const struct macronix_spi_flash_params *params;
+	const struct micron_spi_flash_params *params;
 	struct spi_flash *flash;
 	unsigned int i;
 	u16 id = idcode[2] | idcode[1] << 8;
 
-	for (i = 0; i < ARRAY_SIZE(macronix_spi_flash_table); i++) {
-		params = &macronix_spi_flash_table[i];
+	for (i = 0; i < ARRAY_SIZE(micron_spi_flash_table); i++) {
+		params = &micron_spi_flash_table[i];
 		if (params->idcode == id)
 			break;
 	}
 
-	if (i == ARRAY_SIZE(macronix_spi_flash_table)) {
+	if (i == ARRAY_SIZE(micron_spi_flash_table)) {
 		debug("SF: Unsupported Macronix ID %04x\n", id);
 		return NULL;
 	}
@@ -138,6 +132,9 @@ struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
 	flash->page_size = 256;
 	flash->sector_size = 256 * 16 * 16;
 	flash->size = flash->sector_size * params->nr_blocks;
+
+	/* Clear BP# bits for read-only flash */
+	//spi_flash_cmd_write_status(flash, 0);
 
 	return flash;
 }

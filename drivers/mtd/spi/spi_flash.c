@@ -7,6 +7,14 @@
  * Licensed under the GPL-2 or later.
  */
 
+/*
+ * Copyright (c) 2010-2015, Emulex Corporation.
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ */
+
 #include <common.h>
 #include <malloc.h>
 #include <spi.h>
@@ -15,13 +23,24 @@
 
 #include "spi_flash_internal.h"
 
-static void spi_flash_addr(u32 addr, u8 *cmd)
+
+#ifndef CONFIG_SFDP
+static void spi_flash_addr(struct spi_flash *flash,
+	unsigned long page_addr, unsigned long byte_addr, u8 *cmd)
 {
 	/* cmd[0] is actual command */
-	cmd[1] = addr >> 16;
-	cmd[2] = addr >> 8;
-	cmd[3] = addr >> 0;
+        if (flash->spi->flags & SPI_FBYTE_SUPP) {
+		cmd[1] = page_addr >> 16;
+		cmd[2] = page_addr >> 8;
+		cmd[3] = page_addr;
+		cmd[4] = byte_addr;
+	} else {
+		cmd[1] = page_addr >> 8;
+		cmd[2] = page_addr;
+		cmd[3] = byte_addr;
+	}
 }
+#endif
 
 static int spi_flash_read_write(struct spi_slave *spi,
 				const u8 *cmd, size_t cmd_len,
@@ -53,6 +72,7 @@ int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len)
 	return spi_flash_cmd_read(spi, &cmd, 1, response, len);
 }
 
+
 int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
 		size_t cmd_len, void *data, size_t data_len)
 {
@@ -65,16 +85,21 @@ int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
 	return spi_flash_read_write(spi, cmd, cmd_len, data, NULL, data_len);
 }
 
+#ifndef CONFIG_SFDP
 int spi_flash_cmd_write_multi(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf)
 {
 	unsigned long page_addr, byte_addr, page_size;
 	size_t chunk_len, actual;
 	int ret;
-	u8 cmd[4];
+	u8 cmd[5];
+	u8 cmdlen = 4;
+	int page_addr_incr = 0;
 
+	memset(cmd, 0, sizeof(cmd));
 	page_size = flash->page_size;
-	page_addr = offset / page_size;
+	page_addr_incr = page_size/0x100;
+	page_addr = (offset / page_size) * page_addr_incr;
 	byte_addr = offset % page_size;
 
 	ret = spi_claim_bus(flash->spi);
@@ -84,15 +109,25 @@ int spi_flash_cmd_write_multi(struct spi_flash *flash, u32 offset,
 	}
 
 	cmd[0] = CMD_PAGE_PROGRAM;
+	if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP) {
+
+		if ((flash->spi->flags & SPI_4BWRIT_SUPP) == SPI_4BWRIT_SUPP)
+			cmd[0] = CMD_4B_PP;
+		else {
+			spi_flash_cmd_write_enable(flash);
+			spi_flash_cmd_enable_4baddr(flash);
+		}
+		cmdlen = 5;
+	}
+
 	for (actual = 0; actual < len; actual += chunk_len) {
 		chunk_len = min(len - actual, page_size - byte_addr);
 
-		cmd[1] = page_addr >> 8;
-		cmd[2] = page_addr;
-		cmd[3] = byte_addr;
+		spi_flash_addr(flash, page_addr, byte_addr, cmd);
 
-		debug("PP: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x } chunk_len = %zu\n",
-		      buf + actual, cmd[0], cmd[1], cmd[2], cmd[3], chunk_len);
+		debug("PP: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x0x%02x } \
+				chunk_len = %zu\n", buf + actual, cmd[0], cmd[1],
+				cmd[2], cmd[3], cmd[4], chunk_len);
 
 		ret = spi_flash_cmd_write_enable(flash);
 		if (ret < 0) {
@@ -100,23 +135,36 @@ int spi_flash_cmd_write_multi(struct spi_flash *flash, u32 offset,
 			break;
 		}
 
-		ret = spi_flash_cmd_write(flash->spi, cmd, 4,
-					  buf + actual, chunk_len);
+		ret = spi_flash_cmd_write(flash->spi, cmd, cmdlen,
+				buf + actual, chunk_len);
 		if (ret < 0) {
 			debug("SF: write failed\n");
 			break;
+		}
+
+		if ((flash->spi->flags & SPI_FLG_STS_RD ) == SPI_FLG_STS_RD) {
+			ret = spi_flash_cmd_wait_flg_sts_reg(flash, SPI_FLASH_PROG_TIMEOUT);
+			if (ret)
+				break;
 		}
 
 		ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 		if (ret)
 			break;
 
-		page_addr++;
+		page_addr += page_addr_incr;
 		byte_addr = 0;
 	}
 
+	if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP) {
+		if ((flash->spi->flags & SPI_4BWRIT_SUPP) != SPI_4BWRIT_SUPP) {
+			spi_flash_cmd_write_enable(flash);
+			spi_flash_cmd_disable_4baddr(flash);
+		}
+	}
+
 	debug("SF: program %s %zu bytes @ %#x\n",
-	      ret ? "failure" : "success", len, offset);
+			ret ? "failure" : "success", len, offset);
 
 	spi_release_bus(flash->spi);
 	return ret;
@@ -138,17 +186,51 @@ int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
 int spi_flash_cmd_read_fast(struct spi_flash *flash, u32 offset,
 		size_t len, void *data)
 {
-	u8 cmd[5];
+    unsigned long page_addr;
+    unsigned long page_size;
+    unsigned long byte_addr;
+    u8 cmd[5];
+    u8 cmdlen = 5;
+    int ret;
+    int page_addr_incr = 0;
 
-	cmd[0] = CMD_READ_ARRAY_FAST;
-	spi_flash_addr(offset, cmd);
-	cmd[4] = 0x00;
+    memset(cmd, 0, sizeof(cmd));
+    page_size = flash->page_size;
+    page_addr_incr = page_size/0x100;
+    page_addr = (offset / page_size) * page_addr_incr;
+    byte_addr = offset % page_size;
 
-	return spi_flash_read_common(flash, cmd, sizeof(cmd), data, len);
+    cmd[0] = CMD_READ_ARRAY_FAST;
+    if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP)
+    {
+        if ((flash->spi->flags & SPI_4BREAD_SUPP) == SPI_4BREAD_SUPP)
+            cmd[0] = CMD_4B_FASTREAD;
+        else
+        {
+            spi_flash_cmd_write_enable(flash);
+            spi_flash_cmd_enable_4baddr(flash);
+        }
+        cmdlen = 6;
+    }
+
+    spi_flash_addr(flash, page_addr, byte_addr, cmd);
+
+    ret = spi_flash_read_common(flash, cmd, cmdlen, data, len);
+
+    if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP)
+    {
+        if ((flash->spi->flags & SPI_4BREAD_SUPP) != SPI_4BREAD_SUPP)
+        {
+            spi_flash_cmd_write_enable(flash);
+            spi_flash_cmd_disable_4baddr(flash);
+        }
+    }
+
+    return ret;
 }
 
 int spi_flash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
-			   u8 cmd, u8 poll_bit)
+			   u8 cmd, u8 poll_bit, u8 bit_val)
 {
 	struct spi_slave *spi = flash->spi;
 	unsigned long timebase;
@@ -169,14 +251,14 @@ int spi_flash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
 		if (ret)
 			return -1;
 
-		if ((status & poll_bit) == 0)
+		if ((status & poll_bit) == bit_val)
 			break;
 
 	} while (get_timer(timebase) < timeout);
 
 	spi_xfer(spi, 0, NULL, NULL, SPI_XFER_END);
 
-	if ((status & poll_bit) == 0)
+	if ((status & poll_bit) == bit_val)
 		return 0;
 
 	/* Timed out */
@@ -184,17 +266,28 @@ int spi_flash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
 	return -1;
 }
 
+int spi_flash_cmd_wait_flg_sts_reg(struct spi_flash *flash, unsigned long timeout)
+{
+	return spi_flash_cmd_poll_bit(flash, timeout,
+		CMD_FLG_STS_REG, FLAG_STATUS, FLAG_STATUS);
+}
+
 int spi_flash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout)
 {
 	return spi_flash_cmd_poll_bit(flash, timeout,
-		CMD_READ_STATUS, STATUS_WIP);
+		CMD_READ_STATUS, STATUS_WIP, 0);
 }
 
 int spi_flash_cmd_erase(struct spi_flash *flash, u32 offset, size_t len)
 {
 	u32 start, end, erase_size;
 	int ret;
-	u8 cmd[4];
+	unsigned long page_addr;
+	u8 cmd[5];
+        u8 cmdlen = 4;
+        int page_addr_incr = 0;
+
+        memset(cmd, 0, sizeof(cmd));
 
 	erase_size = flash->sector_size;
 	if (offset % erase_size || len % erase_size) {
@@ -215,25 +308,44 @@ int spi_flash_cmd_erase(struct spi_flash *flash, u32 offset, size_t len)
 	start = offset;
 	end = start + len;
 
+        if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP) {
+            spi_flash_cmd_write_enable(flash);
+            spi_flash_cmd_enable_4baddr(flash);
+            cmdlen = 5;
+        }
+
+	page_addr_incr = flash->page_size/0x100;
 	while (offset < end) {
-		spi_flash_addr(offset, cmd);
+		page_addr = (offset / flash->page_size) * page_addr_incr;
+		spi_flash_addr(flash, page_addr, 0, cmd);
 		offset += erase_size;
 
-		debug("SF: erase %2x %2x %2x %2x (%x)\n", cmd[0], cmd[1],
-		      cmd[2], cmd[3], offset);
+		debug("SF: erase %2x %2x %2x %2x %2x (%x)\n", cmd[0], cmd[1],
+			cmd[2], cmd[3], cmd[4], offset);
 
 		ret = spi_flash_cmd_write_enable(flash);
 		if (ret)
 			goto out;
 
-		ret = spi_flash_cmd_write(flash->spi, cmd, sizeof(cmd), NULL, 0);
+		ret = spi_flash_cmd_write(flash->spi, cmd, cmdlen, NULL, 0);
 		if (ret)
 			goto out;
+
+                if ((flash->spi->flags & SPI_FLG_STS_RD ) == SPI_FLG_STS_RD) {
+		    ret = spi_flash_cmd_wait_flg_sts_reg(flash, SPI_FLASH_PAGE_ERASE_TIMEOUT);
+		    if (ret)
+			goto out;
+                }
 
 		ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PAGE_ERASE_TIMEOUT);
 		if (ret)
 			goto out;
 	}
+
+        if ((flash->spi->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP) {
+            spi_flash_cmd_write_enable(flash);
+            spi_flash_cmd_disable_4baddr(flash);
+        }
 
 	debug("SF: Successfully erased %zu bytes @ %#x\n", len, start);
 
@@ -268,6 +380,7 @@ int spi_flash_cmd_write_status(struct spi_flash *flash, u8 sr)
 
 	return 0;
 }
+#endif
 
 /*
  * The following table holds all device probe functions
@@ -302,11 +415,14 @@ static const struct {
 #ifdef CONFIG_SPI_FLASH_ATMEL
 	{ 0, 0x1f, spi_flash_probe_atmel, },
 #endif
-#ifdef CONFIG_SPI_FLASH_EON
+#ifdef CONFIG_SPI_EON
 	{ 0, 0x1c, spi_flash_probe_eon, },
 #endif
-#ifdef CONFIG_SPI_FLASH_MACRONIX
+#ifdef CONFIG_SPI_MACRONIX
 	{ 0, 0xc2, spi_flash_probe_macronix, },
+#endif
+#ifdef CONFIG_SPI_MICRON
+	{ 0, 0x20, spi_flash_probe_micron, },
 #endif
 #ifdef CONFIG_SPI_FLASH_SPANSION
 	{ 0, 0x01, spi_flash_probe_spansion, },
@@ -340,7 +456,10 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 {
 	struct spi_slave *spi;
 	struct spi_flash *flash = NULL;
-	int ret, i, shift;
+	int ret, shift;
+#ifndef CONFIG_SFDP
+    int i;
+#endif
 	u8 idcode[IDCODE_LEN], *idp;
 
 	spi = spi_setup_slave(bus, cs, max_hz, spi_mode);
@@ -371,6 +490,9 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 	     ++shift, ++idp)
 		continue;
 
+#ifdef CONFIG_SFDP
+	flash = spi_flash_probe_sfdp (spi, idp);
+#else
 	/* search the table for matches in shift and id */
 	for (i = 0; i < ARRAY_SIZE(flashes); ++i)
 		if (flashes[i].shift == shift && flashes[i].idcode == *idp) {
@@ -379,13 +501,15 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 			if (flash)
 				break;
 		}
+#endif
 
 	if (!flash) {
-		printf("SF: Unsupported manufacturer %02x\n", *idp);
+		printf("SF: Unsupported manufacturer: 0x%02x\n", *idp);
 		goto err_manufacturer_probe;
 	}
 
-	printf("SF: Detected %s with page size ", flash->name);
+	printf ("SF: Detected device (%02x-%02x-%02x-%02x-%02x) with page size ",
+			idcode[0], idcode[1], idcode[2], idcode[3], idcode[4]);
 	print_size(flash->sector_size, ", total ");
 	print_size(flash->size, "\n");
 

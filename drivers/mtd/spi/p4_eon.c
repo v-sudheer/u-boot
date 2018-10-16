@@ -39,85 +39,47 @@
  * any later version.
  *
  *****************************************************************************/
-
 #include <common.h>
 #include <malloc.h>
 #include <spi_flash.h>
 
 #include "spi_flash_internal.h"
 
-struct macronix_spi_flash_params {
+struct eon_spi_flash_params {
 	u16 idcode;
 	u16 nr_blocks;
 	const char *name;
 	u32 flags;
 };
 
-static const struct macronix_spi_flash_params macronix_spi_flash_table[] = {
+static const struct eon_spi_flash_params eon_spi_flash_table[] = {
 	{
-		.idcode = 0x2013,
-		.nr_blocks = 8,
-		.name = "MX25L4005",
-	},
-	{
-		.idcode = 0x2014,
-		.nr_blocks = 16,
-		.name = "MX25L8005",
-	},
-	{
-		.idcode = 0x2015,
-		.nr_blocks = 32,
-		.name = "MX25L1605D",
-	},
-	{
-		.idcode = 0x2016,
-		.nr_blocks = 64,
-		.name = "MX25L3205D",
-	},
-	{
-		.idcode = 0x2017,
-		.nr_blocks = 128,
-		.name = "MX25L6405D",
-	},
-	{
-		.idcode = 0x2018,
+		.idcode = 0x7018,
 		.nr_blocks = 256,
-		.name = "MX25L12805D",
+		.name = "EN25HQ128",
 	},
 	{
-		.idcode = 0x2618,
-		.nr_blocks = 256,
-		.name = "MX25L12855E",
-	},
-	{
-		.idcode = 0x2019,
+		.idcode = 0x7019,
 		.nr_blocks = 512,
-		.name = "MX25L25635E",
-		.flags = SPI_FBYTE_SUPP,
-	},
-	{
-		.idcode = 0x201a,
-		.nr_blocks = 1024,
-		.name = "MX66L51235F",
-		//.flags = (SPI_4BREAD_SUPP | SPI_4BWRIT_SUPP),
+		.name = "EN25HQ256",
 		.flags = SPI_FBYTE_SUPP,
 	},
 };
 
-struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
+struct spi_flash *spi_flash_probe_eon(struct spi_slave *spi, u8 *idcode)
 {
-	const struct macronix_spi_flash_params *params;
+	const struct eon_spi_flash_params *params;
 	struct spi_flash *flash;
 	unsigned int i;
 	u16 id = idcode[2] | idcode[1] << 8;
 
-	for (i = 0; i < ARRAY_SIZE(macronix_spi_flash_table); i++) {
-		params = &macronix_spi_flash_table[i];
+	for (i = 0; i < ARRAY_SIZE(eon_spi_flash_table); i++) {
+		params = &eon_spi_flash_table[i];
 		if (params->idcode == id)
 			break;
 	}
 
-	if (i == ARRAY_SIZE(macronix_spi_flash_table)) {
+	if (i == ARRAY_SIZE(eon_spi_flash_table)) {
 		debug("SF: Unsupported Macronix ID %04x\n", id);
 		return NULL;
 	}
@@ -138,6 +100,9 @@ struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
 	flash->page_size = 256;
 	flash->sector_size = 256 * 16 * 16;
 	flash->size = flash->sector_size * params->nr_blocks;
+
+	/* Clear BP# bits for read-only flash */
+	//spi_flash_cmd_write_status(flash, 0);
 
 	return flash;
 }

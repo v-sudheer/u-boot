@@ -4,6 +4,17 @@
  * Licensed under the GPL-2 or later.
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <common.h>
 #include <malloc.h>
 #include <spi_flash.h>
@@ -14,6 +25,7 @@ struct winbond_spi_flash_params {
 	uint16_t	id;
 	uint16_t	nr_blocks;
 	const char	*name;
+	u32 flags;
 };
 
 static const struct winbond_spi_flash_params winbond_spi_flash_table[] = {
@@ -63,9 +75,20 @@ static const struct winbond_spi_flash_params winbond_spi_flash_table[] = {
 		.name			= "W25Q128",
 	},
 	{
+		.id			= 0x4019,
+		.nr_blocks		= 512,
+		.name			= "W25Q256",
+		.flags = (SPI_FBYTE_SUPP)
+	},
+	{
 		.id			= 0x5014,
 		.nr_blocks		= 128,
 		.name			= "W25Q80",
+	},
+	{
+		.id			= 0x6017,
+		.nr_blocks		= 128,
+		.name			= "W25Q64DW",
 	},
 };
 
@@ -99,9 +122,10 @@ struct spi_flash *spi_flash_probe_winbond(struct spi_slave *spi, u8 *idcode)
 	flash->write = spi_flash_cmd_write_multi;
 	flash->erase = spi_flash_cmd_erase;
 	flash->read = spi_flash_cmd_read_fast;
+	flash->spi->flags = params->flags;
 	flash->page_size = 256;
-	flash->sector_size = 4096;
-	flash->size = 4096 * 16 * params->nr_blocks;
+	flash->sector_size = 64*1024;
+	flash->size = flash->sector_size * params->nr_blocks;
 
 	return flash;
 }

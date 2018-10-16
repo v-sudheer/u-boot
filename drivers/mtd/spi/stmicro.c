@@ -27,6 +27,17 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <common.h>
 #include <malloc.h>
 #include <spi_flash.h>
@@ -40,6 +51,7 @@ struct stmicro_spi_flash_params {
 	u16 id;
 	u16 pages_per_sector;
 	u16 nr_sectors;
+        u16 flags;
 	const char *name;
 };
 
@@ -153,6 +165,7 @@ struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 	}
 
 	flash->spi = spi;
+	flash->spi->flags = params->flags;
 	flash->name = params->name;
 
 	flash->write = spi_flash_cmd_write_multi;

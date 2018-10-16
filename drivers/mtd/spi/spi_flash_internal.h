@@ -4,32 +4,53 @@
  * Copyright (C) 2008 Atmel Corporation
  */
 
+/*
+ * Copyright (c) 2010-2015, Emulex Corporation.
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ */
+
 /* Common parameters -- kind of high, but they should only occur when there
  * is a problem (and well your system already is broken), so err on the side
  * of caution in case we're dealing with slower SPI buses and/or processors.
  */
-#define SPI_FLASH_PROG_TIMEOUT		(2 * CONFIG_SYS_HZ)
+#define SPI_FLASH_PROG_TIMEOUT			(2 * CONFIG_SYS_HZ)
 #define SPI_FLASH_PAGE_ERASE_TIMEOUT	(5 * CONFIG_SYS_HZ)
 #define SPI_FLASH_SECTOR_ERASE_TIMEOUT	(10 * CONFIG_SYS_HZ)
 
-/* Common commands */
-#define CMD_READ_ID			0x9f
+// Common commands
+#define CMD_READ_ID				0x9f
+#define CMD_RDSFDP				0x5a		// Read SFDP
 
-#define CMD_READ_ARRAY_SLOW		0x03
-#define CMD_READ_ARRAY_FAST		0x0b
+#define CMD_READ_ARRAY_SLOW		0x03		// Read Data Bytes
+#define CMD_READ_ARRAY_FAST		0x0b		// Read Data Bytes at Higher Speed
 
-#define CMD_WRITE_STATUS		0x01
-#define CMD_PAGE_PROGRAM		0x02
-#define CMD_WRITE_DISABLE		0x04
-#define CMD_READ_STATUS			0x05
-#define CMD_WRITE_ENABLE		0x06
+#define CMD_WRITE_STATUS		0x01		// Write Status Register
+#define CMD_PAGE_PROGRAM		0x02		// Page Program
+#define CMD_WRITE_DISABLE		0x04		// Write Disable
+#define CMD_READ_STATUS			0x05		// Read Status Register
+#define CMD_WRITE_ENABLE		0x06		// Write Enable
 #define CMD_ERASE_4K			0x20
 #define CMD_ERASE_32K			0x52
-#define CMD_ERASE_64K			0xd8
+#define CMD_ERASE_64K			0xd8		// Block Erase
 #define CMD_ERASE_CHIP			0xc7
+#define CMD_4B_PP               0x12		// Page Program 4 byte only
+#define CMD_4B_BE               0xdc		// Block Erase 4 byte only
+#define CMD_EN4BADDR            0xb7		// Enter 4-byte mode
+#define CMD_DIS4BADDR           0xe9		// Exit 4-byte mode
+#define CMD_4B_FASTREAD         0x0c		// Read Data Bytes at Higher Speed
+#define CMD_4B_READ             0x13		// Read Data Bytes 4 byte only
+#define CMD_FLG_STS_REG         0x70		// Read Flag status register
+#define CMD_BRWR                0x17		// Write to bank enable reg for spansion
 
-/* Common status */
-#define STATUS_WIP			0x01
+#define CMD_READ_4B_QUAD		0x6C
+#define CMD_READ_4B_DUAL		0x3C
+
+// Common status
+#define STATUS_WIP				(1 << 0)	// Write-in-Progress
+#define FLAG_STATUS				(1 << 7)	// Write/Erase cycle complete
 
 /* Send a single-byte command to the device and read the response */
 int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len);
@@ -59,6 +80,33 @@ int spi_flash_cmd_write_multi(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf);
 
 /*
+ * Enable 4B addressing on the SPI flash.
+ */
+static inline int spi_flash_cmd_enable_4baddr(struct spi_flash *flash)
+{
+	u8 spansion_4b_enable_cmd = CMD_BRWR;
+	int spansion_4b_enable = 0x80;
+
+	if ((flash->spi->flags & SPI_FBYTE_SPANSION) == SPI_FBYTE_SPANSION)
+		return spi_flash_cmd_write(flash->spi, &spansion_4b_enable_cmd, 1, &spansion_4b_enable, 1);
+
+	return spi_flash_cmd(flash->spi, CMD_EN4BADDR, NULL, 0);
+}
+
+/*
+ * Disable 4B addressing on the SPI flash
+ */
+static inline int spi_flash_cmd_disable_4baddr(struct spi_flash *flash)
+{
+	u8 spansion_4b_enable_cmd = CMD_BRWR;
+	int spansion_4b_enable = 0x0;
+
+	if ((flash->spi->flags & SPI_FBYTE_SPANSION) == SPI_FBYTE_SPANSION)
+		return spi_flash_cmd_write(flash->spi, &spansion_4b_enable_cmd, 1, &spansion_4b_enable, 1);
+
+	return spi_flash_cmd(flash->spi, CMD_DIS4BADDR, NULL, 0);
+}
+/*
  * Enable writing on the SPI flash.
  */
 static inline int spi_flash_cmd_write_enable(struct spi_flash *flash)
@@ -86,13 +134,14 @@ int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
 
 /* Send a command to the device and wait for some bit to clear itself. */
 int spi_flash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
-			   u8 cmd, u8 poll_bit);
+			   u8 cmd, u8 poll_bit, u8 bit_val);
 
 /*
  * Send the read status command to the device and wait for the wip
  * (write-in-progress) bit to clear itself.
  */
 int spi_flash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout);
+int spi_flash_cmd_wait_flg_sts_reg(struct spi_flash *flash, unsigned long timeout);
 
 /* Erase sectors. */
 int spi_flash_cmd_erase(struct spi_flash *flash, u32 offset, size_t len);
@@ -102,7 +151,13 @@ struct spi_flash *spi_flash_probe_spansion(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_eon(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode);
+struct spi_flash *spi_flash_probe_micron(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_sst(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_flash_probe_winbond(struct spi_slave *spi, u8 *idcode);
 struct spi_flash *spi_fram_probe_ramtron(struct spi_slave *spi, u8 *idcode);
+
+// SFDP probe function
+#ifdef CONFIG_SFDP
+struct spi_flash *spi_flash_probe_sfdp(struct spi_slave *spi, u8 *idcode);
+#endif

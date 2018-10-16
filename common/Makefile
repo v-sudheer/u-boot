@@ -21,6 +21,17 @@
 # MA 02111-1307 USA
 #
 
+###############################################################################
+#
+# Copyright (c) 2010-2014, Emulex Corporation.
+#
+# Modifications made by Emulex Corporation under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+###############################################################################
+
 include $(TOPDIR)/config.mk
 
 LIB	= $(obj)libcommon.o
@@ -35,6 +46,9 @@ COBJS-y += s_record.o
 COBJS-$(CONFIG_SERIAL_MULTI) += serial.o
 COBJS-y += xyzModem.o
 COBJS-y += cmd_disk.o
+COBJS-$(CONFIG_PILOT4_DDR_TEST) += pilot4_tests/ddr_options.o
+COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiord.o
+COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiowr.o
 
 # core command
 COBJS-y += cmd_boot.o
@@ -42,6 +56,13 @@ COBJS-$(CONFIG_CMD_BOOTM) += cmd_bootm.o
 COBJS-y += cmd_help.o
 COBJS-y += cmd_nvedit.o
 COBJS-y += cmd_version.o
+#COBJS-y += cmd_bus_test.o
+
+COBJS-$(CONFIG_P4_ZYNQ_FPGA) += 4byteaddressing.o
+COBJS-$(CONFIG_P4_ZYNQ_FPGA) += cmd_spi_flash.o
+
+COBJS-y += cmd_wdt.o
+COBJS-$(CONFIG_SFDP) += cmd_sfdp.o
 
 # environment
 COBJS-y += env_common.o
@@ -146,6 +167,7 @@ COBJS-$(CONFIG_CMD_PORTIO) += cmd_portio.o
 COBJS-$(CONFIG_CMD_PXE) += cmd_pxe.o
 COBJS-$(CONFIG_CMD_REGINFO) += cmd_reginfo.o
 COBJS-$(CONFIG_CMD_REISER) += cmd_reiser.o
+COBJS-$(CONFIG_CMD_ROMFS) += cmd_romfs.o
 COBJS-$(CONFIG_CMD_SATA) += cmd_sata.o
 COBJS-$(CONFIG_CMD_SF) += cmd_sf.o
 COBJS-$(CONFIG_CMD_SCSI) += cmd_scsi.o

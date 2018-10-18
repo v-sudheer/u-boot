@@ -28,6 +28,9 @@ endchoice
 config FPGA_ASPEED
 	bool "FPGA"
 
+config PALLADIUM
+	bool "Palladium sim"
+
 config AST_CVIC
 	bool "AST CVIC"
 

@@ -25,7 +25,9 @@ obj-y   = ast-g6.o
 
 ifeq ($(CONFIG_ARM1176),y)
 obj-y   += platform_arm1176.o
-else
+else ifeq ($(CONFIG_PALLADIUM),y)
+obj-y   += platform2600_sim.o
+else 
 obj-y   += platform.o
 endif
 

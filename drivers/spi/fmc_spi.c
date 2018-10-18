@@ -516,7 +516,7 @@ void spi_flash_copy_mmap(void *data, void *offset, size_t len)
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) = (ulong) (~FMC_DMA_ENABLE);
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_FLASH_BASE) = (ulong) (offset);
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_DRAM_BASE) = (ulong) (data);
-	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_LENGTH) = (ulong) (len);
+	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_LENGTH) = (ulong) (len << 2);
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) = (ulong) (FMC_DMA_ENABLE);
 
 	/* wait poll */

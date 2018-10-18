@@ -107,6 +107,46 @@ int misc_init_r (void)
 
 }
 
+#ifdef CONFIG_ASPEED_ESPI
+
+#define ASPEED_ESPI_CTRL			0x00		/* Engine Control */
+
+#define ASPEED_ESPI_IER				0x0C		/* Interrupt Enable */
+
+#define ASPEED_ESPI_SYS_IER			0x94		/* Interrupt enable of System Event from Master */
+
+#define ASPEED_ESPI_SYS_INT_T0		0x110
+#define ASPEED_ESPI_SYS_INT_T1		0x114
+#define ASPEED_ESPI_SYS_INT_T2		0x118
+
+#define ASPEED_ESPI_SYS1_IER			0x100		/* Interrupt enable of System Event from Master */
+
+#define ASPEED_ESPI_SYS_INT_T0		0x110
+
+#define ASPEED_ESPI_SYS1_INT_T0		0x120
+
+#define ESPI_HOST_RST_WARN		(0x1 << 8)
+#define ESPI_OOB_RST_WARN		(0x1 << 6)
+
+int board_early_init_r(void)
+{
+	//a1 espi intiial
+	writel(readl(0x1E6EE000 + ASPEED_ESPI_CTRL) | 0xff, 0x1E6EE000 + ASPEED_ESPI_CTRL);
+
+	//TODO for function interrpt type
+	writel(0, 0x1E6EE000 + ASPEED_ESPI_SYS_INT_T0);
+	writel(0, 0x1E6EE000 + ASPEED_ESPI_SYS_INT_T1);
+	writel(ESPI_HOST_RST_WARN | ESPI_OOB_RST_WARN, 0x1E6EE000 + ASPEED_ESPI_SYS_INT_T2);
+
+	writel(0xffffffff, 0x1E6EE000 + ASPEED_ESPI_IER);
+	writel(0xffffffff, 0x1E6EE000 + ASPEED_ESPI_SYS_IER);
+
+	//A1
+	writel(0x1, 0x1E6EE000 + ASPEED_ESPI_SYS1_IER);
+	writel(0x1, 0x1E6EE000 + ASPEED_ESPI_SYS1_INT_T0);
+}
+#endif
+
 #if defined(CONFIG_ARCH_AST3200)
 int power_init_board(void)
 {

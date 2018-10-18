@@ -23,6 +23,8 @@ int misc_init_r (void)
 #ifdef CONFIG_AST_WATCHDOG
 	wdt_start(CONFIG_AST_WATCHDOG_TIMEOUT);
 #endif
+
+#ifndef CONFIG_PALLADIUM
 	int update = 0, i;
 	uchar ethaddr[6];
 
@@ -42,7 +44,7 @@ int misc_init_r (void)
 	if (update) {
 		saveenv();	
 	}
-
+#endif
 	//TODO unlock .13 scu
 	writel(0x1688a8a8, 0x1e6e2010);
 	return 0;

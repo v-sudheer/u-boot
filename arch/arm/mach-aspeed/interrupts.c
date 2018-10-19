@@ -15,9 +15,7 @@
 
 void do_irq (struct pt_regs *pt_regs)
 {
-//0x1E6C0000
-//	struct s3c24x0_interrupt *irq = s3c24x0_get_base_interrupt();
-//	u_int32_t intpnd = readl(&irq->INTPND);
+//	u32 isr0 = readl(0x1E6C0080);
 	puts("do_irq\n");
 }
 

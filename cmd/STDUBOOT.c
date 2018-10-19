@@ -224,6 +224,7 @@ int atoi( char s[] )
 
 // -----------------------------------------------------------------------------
 /* rand:return pseudo-random integer on 0...32767 */
+#if 0
 int rand(void)
 {
     static unsigned long int next = 1;
@@ -232,5 +233,5 @@ int rand(void)
 
     return (unsigned int) ( next / 65536 ) % 32768;
 }
-
+#endif
 #endif // End SLT_UBOOT

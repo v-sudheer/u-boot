@@ -178,7 +178,7 @@ void NCSI_Struct_Initialize_SLT (MAC_ENGINE *eng) {
 		eng->ncsi_req.DA[ i ] = 0xFF;
 		eng->ncsi_req.SA[ i ] = eng->inf.SA[ i ];
 	}
-	eng->ncsi_req.EtherType       = SWAP_2B_BEDN( 0x88F8 ); // EtherType = 0x88F8 (DMTF NC-SI) page 50, table 8, NC-SI spec. version 1.0.0
+	eng->ncsi_req.EtherType       = SWAP_2B_BEDN( 0x88F8 ); // EtherType = 0x88F8 (DMTF DSP0222 NC-SI spec), ethernet frame header format, table 8
 
 	eng->ncsi_req.MC_ID           = 0;
 	eng->ncsi_req.Header_Revision = 0x01;

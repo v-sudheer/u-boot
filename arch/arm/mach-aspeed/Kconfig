@@ -31,6 +31,9 @@ config FPGA_ASPEED
 config PALLADIUM
 	bool "Palladium sim"
 
+config ASPEED_ESPI
+	bool "ESPI"
+
 config AST_CVIC
 	bool "AST CVIC"
 

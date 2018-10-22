@@ -736,9 +736,148 @@ static int initr_kbd(void)
 	return 0;
 }
 #endif
+#define ASPEED_ESPI_ISR				0x08		/* Interrupt Status */
+
+#define ESPI_ISR_HW_RESET				(0x1 << 31)
+
+#define ESPI_ISR_VIRTW_SYS1				(0x1 << 22)
+#define ESPI_ISR_FLASH_TX_ERR			(0x1 << 21)
+#define ESPI_ISR_OOB_TX_ERR				(0x1 << 20)
+#define ESPI_ISR_FLASH_TX_ABORT			(0x1 << 19)
+#define ESPI_ISR_OOB_TX_ABORT			(0x1 << 18)
+#define ESPI_ISR_PCNP_TX_ABORT			(0x1 << 17)
+#define ESPI_ISR_PCP_TX_ABORT			(0x1 << 16)
+#define ESPI_ISR_FLASH_RX_ABORT			(0x1 << 15)
+#define ESPI_ISR_OOB_RX_ABORT			(0x1 << 14)
+#define ESPI_ISR_PCNP_RX_ABORT			(0x1 << 13)
+#define ESPI_ISR_PCP_RX_ABORT			(0x1 << 12)
+#define ESPI_ISR_PCNP_TX_ERR			(0x1 << 11)
+#define ESPI_ISR_PCP_TX_ERR				(0x1 << 10)
+#define ESPI_ISR_VIRTW_GPIO				(0x1 << 9)
+#define ESPI_ISR_VIRTW_SYS				(0x1 << 8)
+#define ESPI_ISR_FLASH_TX_COMP			(0x1 << 7)
+#define ESPI_ISR_FLASH_RX_COMP			(0x1 << 6)
+#define ESPI_ISR_OOB_TX_COMP			(0x1 << 5)
+#define ESPI_ISR_OOB_RX_COMP			(0x1 << 4)
+#define ESPI_ISR_PCNP_TX_COMP			(0x1 << 3)
+
+#define ASPEED_ESPI_SYS_EVENT		0x98		/* System Event from and to Master */
+#define ESPI_HOST_REST_ACK		(0x1 << 27)
+
+#define ESPI_REST_CPU_INIT		(0x1 << 26)
+
+#define ESPI_BOOT_STS			(0x1 << 23)
+#define ESPI_NFATEL_ERR			(0x1 << 22)
+#define ESPI_FATEL_ERR			(0x1 << 21)
+#define ESPI_BOOT_DWN			(0x1 << 20)
+#define ESPI_OOB_REST_ACK		(0x1 << 16)
+
+#define ESPI_HOST_NMI_OUT		(0x1 << 10)
+#define ESPI_HOST_SMI_OUT		(0x1 << 9)
+
+#define ESPI_HOST_RST_WARN		(0x1 << 8)
+
+#define ESPI_OOB_RST_WARN		(0x1 << 6)
+
+
+#define ASPEED_ESPI_SYS_EVENT_ISR		0x11C
+
+
+static void
+aspeed_sys_event(void)
+{
+	u32 sts = readl(0x1E6EE000 + ASPEED_ESPI_SYS_EVENT_ISR);
+	u32 sys_event = readl(0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+	printf("sts %x, sys_event %x\n", sts, sys_event);
+
+	if (sts & ESPI_HOST_RST_WARN) {
+		if (sys_event & ESPI_HOST_RST_WARN)
+			writel(sys_event | ESPI_HOST_REST_ACK, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+		else
+			writel(sys_event & ~ESPI_HOST_REST_ACK, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+		writel(ESPI_HOST_RST_WARN, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT_ISR);
+	}
+
+	if (sts & ESPI_OOB_RST_WARN) {
+		if (sys_event & ESPI_OOB_RST_WARN)
+			writel(sys_event | ESPI_OOB_REST_ACK, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+		else
+			writel(sys_event & ~ESPI_OOB_REST_ACK, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+		writel(ESPI_OOB_RST_WARN, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT_ISR);
+	}
+
+	if (sts & ~(ESPI_OOB_RST_WARN | ESPI_HOST_RST_WARN)) {
+		printf("new sts %x \n", sts);
+		writel(sts, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT_ISR);
+	}
+
+}
+
+#define ASPEED_ESPI_SYS1_INT_STS		0x12C
+
+#define ESPI_SYS_SUS_ACK		(0x1 << 20)
+
+#define ESPI_SYS_SUS_WARN		(0x1)
+
+
+#define ASPEED_ESPI_SYS1_EVENT			0x104		/* Interrupt enable of System Event from Master */
+
+#define ESPI_SYS_SUS_ACK		(0x1 << 20)
+
+#define ESPI_SYS_SUS_WARN		(0x1)
+
+static void
+aspeed_sys1_event(void)
+{
+	u32 sts = readl(0x1E6EE000 + ASPEED_ESPI_SYS1_INT_STS);
+	if (sts & ESPI_SYS_SUS_WARN) {
+		writel(readl(0x1E6EE000 + ASPEED_ESPI_SYS1_EVENT) | ESPI_SYS_SUS_ACK, 0x1E6EE000 + ASPEED_ESPI_SYS1_EVENT);
+		//TODO  polling bit 20 is 1
+		writel(ESPI_SYS_SUS_WARN, 0x1E6EE000 + ASPEED_ESPI_SYS1_INT_STS);
+	}
+
+	if (sts & ~(ESPI_SYS_SUS_WARN)) {
+		printf("new sys1 sts %x \n", sts);
+		writel(sts, 0x1E6EE000 + ASPEED_ESPI_SYS1_INT_STS);
+	}
+}
+
 
 static int run_main_loop(void)
 {
+#ifdef CONFIG_ASPEED_ESPI
+	u32 sts = readl(0x1E6EE000 + ASPEED_ESPI_ISR);
+	printf("sts : %x\n", sts);
+
+	if (sts & ESPI_ISR_HW_RESET) {
+		printf("ESPI_ISR_HW_RESET \n");
+		writel(readl(0x1E6EE000 + ASPEED_ESPI_SYS_EVENT) | ESPI_BOOT_STS | ESPI_BOOT_DWN, 0x1E6EE000 + ASPEED_ESPI_SYS_EVENT);
+		//6:flash ready ,4: oob ready , 0: perp ready
+		writel(ESPI_ISR_HW_RESET, 0x1E6EE000 + ASPEED_ESPI_ISR);
+	}	
+
+	sts = readl(0x1E6EE000 + ASPEED_ESPI_ISR);
+	printf("sts : %x\n", sts);
+
+	if (sts & ESPI_ISR_VIRTW_SYS) {
+		printf("ESPI_ISR_VIRTW_SYS \n");
+		aspeed_sys_event();
+		writel(ESPI_ISR_VIRTW_SYS, 0x1E6EE000 + ASPEED_ESPI_ISR);
+	}
+
+	sts = readl(0x1E6EE000 + ASPEED_ESPI_ISR);
+	printf("sts : %x\n", sts);
+
+	//AST2500 A1
+	if (sts & ESPI_ISR_VIRTW_SYS1) {
+		printf("ESPI_ISR_VIRTW_SYS1 \n");
+		aspeed_sys1_event();
+		writel(ESPI_ISR_VIRTW_SYS1, 0x1E6EE000 + ASPEED_ESPI_ISR);
+	}
+	
+	printf("run_main_loop \n");
+#endif 
+
 #ifdef CONFIG_SANDBOX
 	sandbox_main_loop_init();
 #endif

@@ -98,4 +98,11 @@
 
 /* FIT load address for RAM boot */
 #define CONFIG_SPL_LOAD_FIT_ADDRESS	0x10000000
+
+#if 0
+#define CONFIG_USE_IRQ
+#define CONFIG_STACKSIZE_IRQ	(4 * 1024)
+#define CONFIG_STACKSIZE_FIQ	(4 * 1024)
+#endif 
+
 #endif	/* __CONFIG_H */

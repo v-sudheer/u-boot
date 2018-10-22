@@ -49,9 +49,15 @@ void phy_write (MAC_ENGINE *eng, int adr, ULONG data) {
         int        timeout = 0;
 
         if ( eng->inf.NewMDIO ) {
+#ifdef CONFIG_MACH_ASPEED_G6
+                Write_Reg_PHY_DD( eng, 0x60, data | MAC_PHYWr_AST2600 | ( eng->phy.Adr << 21 ) | ( ( adr & 0x1f ) << 16 ) );
+				
+				while ( Read_Reg_PHY_DD( eng, 0x60 ) & MAC_PHYBusy_AST2600 ) {
+#else
                 Write_Reg_PHY_DD( eng, 0x60, ( data << 16 ) | MAC_PHYWr_New | ( eng->phy.Adr << 5 ) | ( adr & 0x1f ) );
 
                 while ( Read_Reg_PHY_DD( eng, 0x60 ) & MAC_PHYBusy_New ) {
+#endif				
                         if ( ++timeout > TIME_OUT_PHY_RW ) {
                                 if ( !eng->run.TM_Burst )
                                         PRINTF( FP_LOG, "[PHY-Write] Time out: %08lx\n", Read_Reg_PHY_DD( eng, 0x60 ) );
@@ -99,9 +105,15 @@ ULONG phy_read (MAC_ENGINE *eng, int adr) {
         int        timeout = 0;
 
         if ( eng->inf.NewMDIO ) {
+#ifdef CONFIG_MACH_ASPEED_G6
+				Write_Reg_PHY_DD( eng, 0x60, MAC_PHYRd_AST2600 | (eng->phy.Adr << 21) | (( adr & 0x1f ) << 16) );
+
+				while ( Read_Reg_PHY_DD( eng, 0x60 ) & MAC_PHYBusy_AST2600 ) {
+#else
                 Write_Reg_PHY_DD( eng, 0x60, MAC_PHYRd_New | (eng->phy.Adr << 5) | ( adr & 0x1f ) );
 
                 while ( Read_Reg_PHY_DD( eng, 0x60 ) & MAC_PHYBusy_New ) {
+#endif
                         if ( ++timeout > TIME_OUT_PHY_RW ) {
                                 if ( !eng->run.TM_Burst )
                                         PRINTF( FP_LOG, "[PHY-Read] Time out: %08lx\n", Read_Reg_PHY_DD( eng, 0x60 ) );
@@ -995,7 +1007,7 @@ void phy_realtek1 (MAC_ENGINE *eng) {//RTL8211D
                                         phy_write( eng,  0, 0xff21 );
                                         phy_write( eng, 31, 0x0000 );
                                 }
-                                else {//Harmonic: “00” pattern
+                                else {//Harmonic: ï¿½00ï¿½ pattern
                                         phy_write( eng, 31, 0x0006 );
                                         phy_write( eng,  2, 0x05ee );
                                         phy_write( eng,  0, 0x0021 );
@@ -1250,11 +1262,11 @@ Write_Reg_GPIO_DD( 0x24, GPIO_24h_Value );
                                 if ( eng->arg.GIEEE_sel == 0 ) {//Diff. Voltage/TP-IDL/Jitter
                                         phy_write( eng,  0, 0x5a21 );
                                 }
-                                else if ( eng->arg.GIEEE_sel == 1 ) {//Harmonic: “FF” pattern
+                                else if ( eng->arg.GIEEE_sel == 1 ) {//Harmonic: ï¿½FFï¿½ pattern
                                         phy_write( eng,  2, 0x05ee );
                                         phy_write( eng,  0, 0xff21 );
                                 }
-                                else {//Harmonic: “00” pattern
+                                else {//Harmonic: ï¿½00ï¿½ pattern
                                         phy_write( eng,  2, 0x05ee );
                                         phy_write( eng,  0, 0x0021 );
                                 }
@@ -1487,13 +1499,13 @@ void phy_realtek3 (MAC_ENGINE *eng) {//RTL8211C
 //                                      phy_write( eng,  0, 0x5a21 );
 //                                      phy_write( eng, 31, 0x0000 );
 //                              }
-//                              else if ( eng->arg.GIEEE_sel == 1 ) {//“FF” pattern
+//                              else if ( eng->arg.GIEEE_sel == 1 ) {//ï¿½FFï¿½ pattern
 //                                      phy_write( eng, 31, 0x0006 );
 //                                      phy_write( eng,  2, 0x05ee );
 //                                      phy_write( eng,  0, 0xff21 );
 //                                      phy_write( eng, 31, 0x0000 );
 //                              }
-//                              else {//“00” pattern
+//                              else {//ï¿½00ï¿½ pattern
 //                                      phy_write( eng, 31, 0x0006 );
 //                                      phy_write( eng,  2, 0x05ee );
 //                                      phy_write( eng,  0, 0x0021 );
@@ -2254,7 +2266,9 @@ BOOLEAN find_phyadr (MAC_ENGINE *eng) {
                 eng->inf.NewMDIO = ( Read_Reg_PHY_DD( eng, 0x40 ) & 0x80000000 ) ? 1 : 0;
         } else
                 eng->inf.NewMDIO = 0;
-
+#ifdef CONFIG_MACH_ASPEED_G6
+		eng->inf.NewMDIO = 1;
+#endif
         PHY_ADR_org = eng->phy.Adr;
         // Check current PHY address by user setting
         PHY_val = phy_read( eng, PHY_REG_ID_1 );
@@ -2405,7 +2419,9 @@ void phy_sel (MAC_ENGINE *eng, PHY_ENGINE *phyeng) {
                 else if ( phy_chk( eng, 0x0022, 0x1512, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "KSZ8041"           ); phyeng->fp_set = phy_micrel   ;                                      }//KSZ8041             100/10M  RMII(RMIICK input mode)
                 else if ( phy_chk( eng, 0x004d, 0xd072, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "AR8035"            ); phyeng->fp_set = phy_atheros  ; phyeng->fp_clr = recov_phy_atheros  ;}//AR8035           1G/100/10M  RGMII
                 else if ( phy_chk( eng, 0x0007, 0xc0c4, PHYID3_Mask ) ) { sprintf( eng->phy.PHYName, "LAN8700"           ); phyeng->fp_set = phy_smsc     ;                                      }//LAN8700             100/10M  MII, RMII
+                else if ( phy_chk( eng, 0x000f, 0xc4b1, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "VSC8211"           ); phyeng->fp_set = phy_vitesse  ; phyeng->fp_clr = recov_phy_vitesse  ;}//VSC8211          1G/100/10M  RGMII
                 else if ( phy_chk( eng, 0x0007, 0x0421, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "VSC8601"           ); phyeng->fp_set = phy_vitesse  ; phyeng->fp_clr = recov_phy_vitesse  ;}//VSC8601          1G/100/10M  RGMII
+                else if ( phy_chk( eng, 0x0007, 0x0431, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "VSC8641"           ); phyeng->fp_set = phy_vitesse  ; phyeng->fp_clr = recov_phy_vitesse  ;}//VSC8641          1G/100/10M  RGMII
 #if defined(PHY_SPECIAL)                    
                 else if ( phy_chk( eng, 0x0143, 0xbd70, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "[S]BCM5387/BCM5389"); phyeng->fp_set = 0            ; phyeng->fp_clr = 0                  ;}//BCM5389          1G/100/10M  RGMII(IMP Port)
                 else if ( phy_chk( eng, 0x0000, 0x0000, 0xfff0      ) ) { sprintf( eng->phy.PHYName, "[S]BCM5396"        ); phyeng->fp_set = 0            ; phyeng->fp_clr = 0                  ;}//BCM5396          1G/100/10M  RGMII(IMP Port)

@@ -130,13 +130,39 @@ ULONG Read_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr) {
 #ifdef MAC_DEBUG_REGRW_PHY
 	printf("[RegRd-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
 #endif
+#ifdef CONFIG_MACH_ASPEED_G6
+	if (addr == 0x60) {
+		if (eng->env.MAC_RMII)
+			return ( SWAP_4B_LEDN_REG( ReadSOC_DD( 0x1e650008 ) ) );
+		else
+			return ( SWAP_4B_LEDN_REG( ReadSOC_DD( 0x1e650000 ) ) );
+	} else {
+		if (eng->env.MAC_RMII)
+			return ( SWAP_4B_LEDN_REG( ReadSOC_DD( 0x1e65000c ) ) );
+		else
+			return ( SWAP_4B_LEDN_REG( ReadSOC_DD( 0x1e650004 ) ) );
+	}
+#else
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( eng->phy.PHY_BASE + addr ) ) );
+#endif
 }
-ULONG Read_Reg_SCU_DD (ULONG addr) {
+
+ULONG Read_Reg_SCU_DD_AST2600 (ULONG addr) {
 #ifdef MAC_DEBUG_REGRW_SCU
 	printf("[RegRd-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
 #endif
 	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
+	return ( 0 );
+}
+ULONG Read_Reg_SCU_DD (ULONG addr) {
+#ifdef CONFIG_MACH_ASPEED_G6
+	return ( 0 );
+#else
+#ifdef MAC_DEBUG_REGRW_SCU
+	printf("[RegRd-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
+#endif
+	return ( SWAP_4B_LEDN_REG( ReadSOC_DD( SCU_BASE + addr ) ) );
+#endif
 }
 ULONG Read_Reg_WDT_DD (ULONG addr) {
 #ifdef MAC_DEBUG_REGRW_WDT
@@ -210,13 +236,36 @@ void Write_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr, ULONG data) {
 #ifdef MAC_DEBUG_REGRW_PHY
 	printf("[RegWr-PHY] %08lx = %08lx\n", eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( data ));
 #endif
+#ifdef CONFIG_MACH_ASPEED_G6
+	if (addr == 0x60) {
+		if (eng->env.MAC_RMII)
+			WriteSOC_DD( 0x1e650008, SWAP_4B_LEDN_REG( data ) );
+		else
+			WriteSOC_DD( 0x1e650000, SWAP_4B_LEDN_REG( data ) );
+	} else {
+		if (eng->env.MAC_RMII)
+			WriteSOC_DD( 0x1e65000c, SWAP_4B_LEDN_REG( data ) );
+		else
+			WriteSOC_DD( 0x1e650004, SWAP_4B_LEDN_REG( data ) );
+	}
+#else
 	WriteSOC_DD( eng->phy.PHY_BASE + addr, SWAP_4B_LEDN_REG( data ) );
+#endif
 }
-void Write_Reg_SCU_DD (ULONG addr, ULONG data) {
+void Write_Reg_SCU_DD_AST2600 (ULONG addr, ULONG data) {
 #ifdef MAC_DEBUG_REGRW_SCU
 	printf("[RegWr-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( data ));
 #endif
 	WriteSOC_DD( SCU_BASE + addr, SWAP_4B_LEDN_REG( data ) );
+}
+void Write_Reg_SCU_DD (ULONG addr, ULONG data) {
+#ifdef CONFIG_MACH_ASPEED_G6
+#else
+#ifdef MAC_DEBUG_REGRW_SCU
+	printf("[RegWr-SCU] %08lx = %08lx\n", SCU_BASE + addr, SWAP_4B_LEDN_REG( data ));
+#endif
+	WriteSOC_DD( SCU_BASE + addr, SWAP_4B_LEDN_REG( data ) );
+#endif
 }
 void Write_Reg_WDT_DD (ULONG addr, ULONG data) {
 #ifdef MAC_DEBUG_REGRW_WDT
@@ -698,6 +747,44 @@ void read_scu (MAC_ENGINE *eng) {
 
 		eng->reg.SCU_oldvld = 1;
 	} // End if ( !eng->reg.SCU_oldvld )
+
+
+#ifdef CONFIG_MACH_ASPEED_G6
+	eng->reg.SCU_048 = 0x00082208;
+	eng->reg.SCU_0b8 = 0x00082208;
+	eng->reg.SCU_0bc = 0x00082208;
+	eng->reg.SCU_07c = 0x04000000;//ASTChipName
+
+	eng->reg.SCU_FPGASel = Read_Reg_SCU_DD_AST2600( 0x10c ) & 0x0fffffff;
+	eng->reg.SCU_070     = Read_Reg_SCU_DD_AST2600( 0x500 ) & 0x000000c0;
+	eng->reg.SCU_510     = Read_Reg_SCU_DD_AST2600( 0x510 ) & 0x00000003;
+
+	Write_Reg_SCU_DD_AST2600( 0x000 , 0x1688a8a8 );
+	Write_Reg_SCU_DD_AST2600( 0x010 , 0x1688a8a8 );
+//(clock enable) --------------------
+	Write_Reg_SCU_DD_AST2600( 0x084 , 0x00300000 );
+	Write_Reg_SCU_DD_AST2600( 0x094 , 0x00300000 );
+//(Reset) --------------------
+	Write_Reg_SCU_DD_AST2600( 0x040 , 0x00001800 );
+//	Write_Reg_SCU_DD_AST2600( 0x050 , 0x00001800 );//Old
+	Write_Reg_SCU_DD_AST2600( 0x050 , 0x00300000 );//New
+//PMI --------------------
+//	Write_Reg_SCU_DD_AST2600( 0x054 , 0x00002000 );//Old
+	Write_Reg_SCU_DD_AST2600( 0x054 , 0x00000008 );//New
+//(RGMII) --------------------
+/*	Write_Reg_SCU_DD_AST2600( 0x500 , 0x000000c0 );
+	Write_Reg_SCU_DD_AST2600( 0x510 , 0x00000003 );
+/**/
+//(RMII) --------------------
+/*
+	Write_Reg_SCU_DD_AST2600( 0x504 , 0x000000c0 );
+	Write_Reg_SCU_DD_AST2600( 0x514 , 0x00000003 );
+*/
+//(Reset) --------------------
+	Write_Reg_SCU_DD_AST2600( 0x044 , 0x00001800 );
+//	Write_Reg_SCU_DD_AST2600( 0x054 , 0x00001800 );//Old
+	Write_Reg_SCU_DD_AST2600( 0x054 , 0x00300000 );//New
+#endif
 } // End read_scu(MAC_ENGINE *eng)
 
 //------------------------------------------------------------

@@ -68,3 +68,13 @@ int print_cpuinfo(void)
 	return 0;
 }
 #endif
+
+#if defined(CONFIG_MACH_ASPEED_G6)
+int arch_cpu_init(void)
+{
+	//unlock 13 scu
+	writel(0x1688a8a8, 0x1e6e2010);
+
+	return 0;
+}
+#endif

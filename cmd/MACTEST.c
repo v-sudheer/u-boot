@@ -309,6 +309,9 @@ PASS_CHIP_ID:
 			eng->env.MAC34_vld = 1;
 		else
 			eng->env.MAC34_vld = 0;
+#ifdef CONFIG_MACH_ASPEED_G6
+		eng->env.MAC34_vld = 1;
+#endif
 
 //------------------------------------------------------------
 // Get Argument Input
@@ -437,7 +440,14 @@ Error_GRun_Mode:
 				PrintMode ( eng );
 				return(1);
 		} // End switch ( eng->arg.GRun_Mode )
-
+#ifdef CONFIG_MACH_ASPEED_G6
+switch ( eng->run.MAC_idx ) {
+	case 0: Write_Reg_SCU_DD_AST2600( 0x10c , 0x00000000 | eng->reg.SCU_FPGASel ); break;
+	case 1: Write_Reg_SCU_DD_AST2600( 0x10c , 0x50000000 | eng->reg.SCU_FPGASel ); break;
+	case 2: Write_Reg_SCU_DD_AST2600( 0x10c , 0xa0000000 | eng->reg.SCU_FPGASel ); break;
+	case 3: Write_Reg_SCU_DD_AST2600( 0x10c , 0xf0000000 | eng->reg.SCU_FPGASel ); break;
+} // End switch ( eng->arg.GRun_Mode )
+#endif
 		//------------------------------
 		// [Arg]check GSpeed
 		// [Run]setup Speed_1G
@@ -608,6 +618,7 @@ Error_GTestMode_NCSI:
 				case  8 :     eng->run.TM_RxDataEn = 0; eng->run.TM_DefaultPHY = 1; break;
 				case  9 :     eng->run.TM_TxDataEn = 0; eng->run.TM_DefaultPHY = 1; break;
 				case 10 :     eng->run.TM_WaitStart = 1; break;
+				case 11 :     break;
 				default:
 Error_GTestMode:
 					printf("Error test_mode!!!\n");
@@ -726,10 +737,15 @@ Error_GTestMode:
 			eng->env.MAC_Mode   = ( eng->reg.SCU_070 >> 6 ) & 0x3;
 			eng->env.MAC1_1Gvld = ( eng->env.MAC_Mode & 0x1 ) ? 1 : 0;//1:RGMII, 0:RMII
 			eng->env.MAC2_1Gvld = ( eng->env.MAC_Mode & 0x2 ) ? 1 : 0;//1:RGMII, 0:RMII
-
 			eng->env.MAC1_RMII  = !eng->env.MAC1_1Gvld;
 			eng->env.MAC2_RMII  = !eng->env.MAC2_1Gvld;
 			eng->env.MAC2_vld   = 1;
+#ifdef CONFIG_MACH_ASPEED_G6
+			eng->env.MAC3_1Gvld = ( eng->reg.SCU_510 & 0x1 ) ? 1 : 0;//1:RGMII, 0:RMII
+			eng->env.MAC4_1Gvld = ( eng->reg.SCU_510 & 0x2 ) ? 1 : 0;//1:RGMII, 0:RMII
+			eng->env.MAC3_RMII  = !eng->env.MAC3_1Gvld;
+			eng->env.MAC4_RMII  = !eng->env.MAC4_1Gvld;
+#endif
 		}
 		else {
 			eng->env.MAC_Mode   = ( eng->reg.SCU_070 >> 6 ) & 0x7;
@@ -798,7 +814,7 @@ Error_GTestMode:
 			}
 		}
 		else {
-			if ( eng->run.MAC_idx == 2 )
+			if ( eng->run.MAC_idx == 2 ) {
 				if ( eng->arg.GEn_PHYAdrInv ) {
 					eng->phy.PHY_BASE    = MAC_BASE4;
 					eng->run.MAC_idx_PHY = 3;
@@ -806,15 +822,35 @@ Error_GTestMode:
 					eng->phy.PHY_BASE    = MAC_BASE3;
 					eng->run.MAC_idx_PHY = 2;
 				}
-			else
-				if ( eng->arg.GEn_PHYAdrInv ) {
-					eng->phy.PHY_BASE    = MAC_BASE3;
-					eng->run.MAC_idx_PHY = 2;
-				} else {
-					eng->phy.PHY_BASE    = MAC_BASE4;
-					eng->run.MAC_idx_PHY = 3;
-				}
+#ifdef CONFIG_MACH_ASPEED_G6
+				eng->env.MAC_1Gvld = eng->env.MAC3_1Gvld;
+				eng->env.MAC_RMII  = eng->env.MAC3_RMII;
 
+				if ( eng->run.Speed_1G & !eng->env.MAC3_1Gvld ) {
+					printf("\nMAC3 don't support 1Gbps !!!\n");
+					return( Finish_Check( eng, Err_Flag_MACMode ) );
+				}
+#endif
+			} else {
+				if ( eng->arg.GEn_PHYAdrInv ) {
+					eng->phy.PHY_BASE    = MAC_BASE3;
+					eng->run.MAC_idx_PHY = 2;
+				} else {
+					eng->phy.PHY_BASE    = MAC_BASE4;
+					eng->run.MAC_idx_PHY = 3;
+				}
+#ifdef CONFIG_MACH_ASPEED_G6
+				eng->env.MAC_1Gvld = eng->env.MAC4_1Gvld;
+				eng->env.MAC_RMII  = eng->env.MAC4_RMII;
+
+				if ( eng->run.Speed_1G & !eng->env.MAC4_1Gvld ) {
+					printf("\nMAC4 don't support 1Gbps !!!\n");
+					return( Finish_Check( eng, Err_Flag_MACMode ) );
+				}
+#endif
+			}
+#ifdef CONFIG_MACH_ASPEED_G6
+#else
 			eng->env.MAC_1Gvld = 0;
 			eng->env.MAC_RMII  = 1;
 
@@ -822,6 +858,7 @@ Error_GTestMode:
 				printf("\nMAC3/MAC4 don't support 1Gbps !!!\n");
 				return( Finish_Check( eng, Err_Flag_MACMode ) );
 			}
+#endif			
 		} // End if ( eng->run.MAC_idx == 0 )
 
 		if ( !eng->env.MAC_1Gvld )
@@ -835,6 +872,8 @@ Error_GTestMode:
 		//------------------------------
 		// [Env]setup MHCLK_Ratio
 		//------------------------------
+#ifdef CONFIG_MACH_ASPEED_G6
+#else
 #ifdef AST1010_CHIP
 		// Check bit 13:12
 		// The STA of the AST1010 is MHCLK 100 MHz
@@ -873,6 +912,7 @@ Error_GTestMode:
 				}
 			}
 		} // End if ( eng->env.AST2300 )
+#endif
 #endif
 
 //------------------------------------------------------------
@@ -1336,7 +1376,17 @@ LOOP_INFINI:;
 							if ( eng->ModeSwitch == MODE_NSCI )
 								eng->io.Dly_result = phy_ncsi( eng );
 							else
-								eng->io.Dly_result = TestingLoop( eng, eng->run.LOOP_CheckNum );
+							{
+								if ((eng->arg.GTestMode == 11) && !(
+								((eng->io.Dly_out == eng->io.Dly_out_str) && (eng->io.Dly_in == eng->io.Dly_in_str)) ||
+								((eng->io.Dly_out == eng->io.Dly_out_str) && (eng->io.Dly_in == eng->io.Dly_in_end)) ||
+								((eng->io.Dly_out == eng->io.Dly_out_end) && (eng->io.Dly_in == eng->io.Dly_in_str)) ||
+								((eng->io.Dly_out == eng->io.Dly_out_end) && (eng->io.Dly_in == eng->io.Dly_in_end)) ||
+								((eng->io.Dly_out == eng->io.Dly_out_reg) && (eng->io.Dly_in == eng->io.Dly_in_reg))))
+									eng->io.Dly_result = 0;
+								else
+									eng->io.Dly_result = TestingLoop( eng, eng->run.LOOP_CheckNum );
+							}
 							eng->io.dlymap[ eng->io.Dly_in ][ eng->io.Dly_out ] = eng->io.Dly_result;
 
 							// Display to Log file and monitor

@@ -139,11 +139,20 @@ int do_phyread (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 		multi_pin_2_mdcmdio_init( eng );
 		MAC_040 = Read_Reg_MAC_DD( eng, 0x40 );
+#ifdef CONFIG_MACH_ASPEED_G6
+		eng->inf.NewMDIO = 1;
+#else
 		eng->inf.NewMDIO = (MAC_040 & 0x80000000) ? 1 : 0;
+#endif
 
 		if ( eng->inf.NewMDIO ) {
+#ifdef CONFIG_MACH_ASPEED_G6
+			Write_Reg_MAC_DD( eng, 0x60, MAC_PHYRd_AST2600 | (PHYaddr << 21) | (( PHYreg & 0x1f ) << 16) );
+			while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_AST2600 ) {
+#else
 			Write_Reg_MAC_DD( eng, 0x60, MAC_PHYRd_New | (PHYaddr << 5) | ( PHYreg & 0x1f ) );
 			while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_New ) {
+#endif
 				if ( ++timeout > TIME_OUT_PHY_RW ) {
 					ret = -1;
 					break;
@@ -230,12 +239,22 @@ int do_phywrite (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 		multi_pin_2_mdcmdio_init( eng );
 		MAC_040 = Read_Reg_MAC_DD( eng, 0x40 );
+#ifdef CONFIG_MACH_ASPEED_G6
+		eng->inf.NewMDIO = 1;
+#else		
 		eng->inf.NewMDIO = (MAC_040 & 0x80000000) ? 1 : 0;
+#endif		
 
 		if ( eng->inf.NewMDIO ) {
+#ifdef CONFIG_MACH_ASPEED_G6
+			Write_Reg_MAC_DD( eng, 0x60, reg_data | MAC_PHYWr_AST2600 | (PHYaddr<<21) | ((PHYreg & 0x1f)<<16) );
+			
+			while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_AST2600 ) {
+#else
 			Write_Reg_MAC_DD( eng, 0x60, ( reg_data << 16 ) | MAC_PHYWr_New | (PHYaddr<<5) | (PHYreg & 0x1f) );
 
 			while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_New ) {
+#endif			
 				if ( ++timeout > TIME_OUT_PHY_RW ) {
 					ret = -1;
 					break;
@@ -311,13 +330,22 @@ int do_phydump (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 		multi_pin_2_mdcmdio_init( eng );
 		MAC_040 = Read_Reg_MAC_DD( eng, 0x40 );
+#ifdef CONFIG_MACH_ASPEED_G6
+		eng->inf.NewMDIO = 1;
+#else		
 		eng->inf.NewMDIO = (MAC_040 & 0x80000000) ? 1 : 0;
+#endif		
 
 		if ( eng->inf.NewMDIO ) {
 			for ( PHYreg = 0; PHYreg < 32; PHYreg++ ) {
+#ifdef CONFIG_MACH_ASPEED_G6
+				Write_Reg_MAC_DD( eng, 0x60, MAC_PHYRd_AST2600 | (PHYaddr << 21) | (( PHYreg & 0x1f ) << 16) );
 				
+				while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_AST2600 ) {
+#else				
 				Write_Reg_MAC_DD( eng, 0x60, MAC_PHYRd_New | (PHYaddr << 5) | ( PHYreg & 0x1f ) );
 				while ( Read_Reg_MAC_DD( eng, 0x60 ) & MAC_PHYBusy_New ) {
+#endif				
 					if ( ++timeout > TIME_OUT_PHY_RW ) {
 						ret = -1;
 						break;

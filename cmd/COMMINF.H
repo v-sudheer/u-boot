@@ -189,6 +189,11 @@
 #define MAC_PHYRd_New                            0x00009800
 #define MAC_PHYBusy_New                          0x00008000
 
+#define MAC_PHYWr_AST2600                         0x94000000
+#define MAC_PHYRd_AST2600                         0x98000000
+#define MAC_PHYBusy_AST2600                       0x80000000
+#define MAC_PHYIDLE_AST2600                       0x00010000
+
 //#define MAC_030_def                              0x00001010
 //#define MAC_034_def                              0x00000000
 //#define MAC_038_def                              0x00d22f00 //default 0x22f00
@@ -347,7 +352,7 @@
 #define NCSI_Flag_Deselect_Package                    ( 1 << 10 )   // Time out when Deselect Package
 #define NCSI_Flag_Set_Link                            ( 1 << 11 )   // Time out when Set Link
 #define NCSI_Flag_Get_Controller_Packet_Statistics    ( 1 << 12 )   // Time out when Get Controller Packet Statistics
-
+#define NCSI_Flag_Reset_Channel                       ( 1 << 13 )   // Time out when Reset Channel
 
 //---------------------------------------------------------
 // SCU information
@@ -635,6 +640,10 @@ typedef struct {
 	unsigned long        ManufacturerID                           ;//__attribute__ ((aligned (4)));
 } NCSI_Capability;
 typedef struct {
+#ifdef CONFIG_MACH_ASPEED_G6
+	ULONG                SCU_FPGASel                   ;//__attribute__ ((aligned (4)));
+	ULONG                SCU_510                       ;//__attribute__ ((aligned (4)));
+#endif
 	ULONG                MAC_000                       ;//__attribute__ ((aligned (4)));
 	ULONG                MAC_008                       ;//__attribute__ ((aligned (4)));
 	ULONG                MAC_00c                       ;//__attribute__ ((aligned (4)));
@@ -694,8 +703,16 @@ typedef struct {
 	CHAR                 MAC_Mode                      ;//__attribute__ ((aligned (4)));
 	CHAR                 MAC1_1Gvld                    ;//__attribute__ ((aligned (4)));
 	CHAR                 MAC2_1Gvld                    ;//__attribute__ ((aligned (4)));
+#ifdef CONFIG_MACH_ASPEED_G6
+	CHAR                 MAC3_1Gvld                    ;//__attribute__ ((aligned (4)));
+	CHAR                 MAC4_1Gvld                    ;//__attribute__ ((aligned (4)));
+#endif
 	CHAR                 MAC1_RMII                     ;//__attribute__ ((aligned (4)));
 	CHAR                 MAC2_RMII                     ;//__attribute__ ((aligned (4)));
+#ifdef CONFIG_MACH_ASPEED_G6
+	CHAR                 MAC3_RMII                     ;//__attribute__ ((aligned (4)));
+	CHAR                 MAC4_RMII                     ;//__attribute__ ((aligned (4)));
+#endif
 	CHAR                 MAC_atlast_1Gvld              ;//__attribute__ ((aligned (4)));
 	CHAR                 MAC2_vld                      ;//__attribute__ ((aligned (4)));
 	CHAR                 MAC34_vld                     ;//__attribute__ ((aligned (4)));
@@ -1015,6 +1032,7 @@ GLOBAL ULONG   Read_Mem_Dat_DD (ULONG addr);
 GLOBAL ULONG   Read_Mem_Des_DD (ULONG addr);
 GLOBAL ULONG   Read_Reg_MAC_DD (MAC_ENGINE *eng, ULONG addr);
 GLOBAL ULONG   Read_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr);
+GLOBAL ULONG   Read_Reg_SCU_DD_AST2600 (ULONG addr);
 GLOBAL ULONG   Read_Reg_SCU_DD (ULONG addr);
 GLOBAL ULONG   Read_Reg_WDT_DD (ULONG addr);
 GLOBAL ULONG   Read_Reg_SDR_DD (ULONG addr);
@@ -1027,6 +1045,7 @@ GLOBAL void    Write_Mem_Dat_DD (ULONG addr, ULONG data);
 GLOBAL void    Write_Mem_Des_DD (ULONG addr, ULONG data);
 GLOBAL void    Write_Reg_MAC_DD (MAC_ENGINE *eng, ULONG addr, ULONG data);
 GLOBAL void    Write_Reg_PHY_DD (MAC_ENGINE *eng, ULONG addr, ULONG data);
+GLOBAL void    Write_Reg_SCU_DD_AST2600 (ULONG addr, ULONG data);
 GLOBAL void    Write_Reg_SCU_DD (ULONG addr, ULONG data);
 GLOBAL void    Write_Reg_WDT_DD (ULONG addr, ULONG data);
 GLOBAL void    Write_Reg_TIMER_DD (ULONG addr, ULONG data);

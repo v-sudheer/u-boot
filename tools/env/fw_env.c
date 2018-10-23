@@ -42,6 +42,8 @@
 # define  __user	/* nothing */
 # include <mtd/mtd-user.h>
 #endif
+#define uint8_t unsigned char
+#define uint32_t unsigned long
 
 #include "fw_env.h"
 

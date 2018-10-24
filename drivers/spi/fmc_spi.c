@@ -417,6 +417,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		SPIDBUG("\n ----------Xfer END -------\n");
 		writel(readl(ast_spi->ctrl_regs) | SPI_CE_INACTIVE, ast_spi->ctrl_regs);
 		writel(readl(ast_spi->ctrl_regs) & ~(SPI_CMD_USER_MODE), ast_spi->ctrl_regs);
+		writel(readl(ast_spi->ctrl_regs) & ~SPI_CE_INACTIVE, ast_spi->ctrl_regs);
 		if(flash->name) {
 			fmc_spi_read_config(ast_spi);
 		}
@@ -499,11 +500,11 @@ void spi_release_bus(struct spi_slave *slave)
 
 /* TODO: control from sf layer to here through dm-spi */
 void spi_flash_copy_mmap(void *data, void *offset, size_t len)
-{	
+{
 	ulong tmp;
 
 	SPIBUG("spi_flash_copy_mmap , data %x , offset %x, len %x[hex], ctrl reg %x\n", (u32)data, (u32)offset, len, readl(AST_FMC_BASE + 0x10));
-	
+
 	if(len < 4) printf("TODO Fix \n");
 	if(len > 0x2000000) printf("TODO add dma bigger\n");
 	/* 4-bytes align 0 : 4 byte */
@@ -511,7 +512,7 @@ void spi_flash_copy_mmap(void *data, void *offset, size_t len)
 		len = len/4;
 	else
 		len = len/4 - 1;
-	
+
       /* force end of burst read */
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_CTRL) = (ulong) (~FMC_DMA_ENABLE);
 	*(ulong *) (AST_FMC_BASE + AST_SPI_DMA_FLASH_BASE) = (ulong) (offset);

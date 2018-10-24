@@ -46,9 +46,9 @@ COBJS-y += s_record.o
 COBJS-$(CONFIG_SERIAL_MULTI) += serial.o
 COBJS-y += xyzModem.o
 COBJS-y += cmd_disk.o
-COBJS-$(CONFIG_PILOT4_DDR_TEST) += pilot4_tests/ddr_options.o
-COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiord.o
-COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiowr.o
+#COBJS-$(CONFIG_PILOT4_DDR_TEST) += pilot4_tests/ddr_options.o
+#COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiord.o
+#COBJS-$(CONFIG_PILOT4_TESTS) += pilot4_tests/cmd_mdiowr.o
 
 # core command
 COBJS-y += cmd_boot.o

@@ -24,6 +24,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307	 USA
  *
  */
+/*
+ * Copyright (c) 2010-2015, Emulex Corporation.
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ */
 
 #include <common.h>
 #include <command.h>
@@ -308,9 +315,6 @@ static void boot_prep_linux(bootm_headers_t *images)
 			images->rd_end);
 #endif
 		setup_end_tag(gd->bd);
-#else /* all tags */
-		printf("FDT and ATAGS support not compiled in - hanging\n");
-		hang();
 #endif /* all tags */
 	}
 }

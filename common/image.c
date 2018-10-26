@@ -23,6 +23,17 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #ifndef USE_HOSTCC
 #include <common.h>
 #include <watchdog.h>
@@ -164,6 +175,11 @@ uint32_t crc32(uint32_t, const unsigned char *, uint);
 uint32_t crc32_wd(uint32_t, const unsigned char *, uint, uint);
 #if defined(CONFIG_TIMESTAMP) || defined(CONFIG_CMD_DATE) || defined(USE_HOSTCC)
 static void genimg_print_time(time_t timestamp);
+#endif
+
+#ifdef CONFIG_HAS_SPI
+extern int get_bank_from_address(ulong addr, ulong * offset);
+extern int read_buff(flash_info_t *info, uchar *dest, ulong addr, ulong cnt);
 #endif
 
 /*****************************************************************************/
@@ -693,6 +709,56 @@ ulong genimg_get_image(ulong img_addr)
 {
 	ulong ram_addr = img_addr;
 
+#ifdef CONFIG_HAS_SPI
+	ulong h_size, d_size;
+	ulong tmp_addr;
+	if(get_bank_from_address(img_addr, &tmp_addr) >= 0){
+		ram_addr = CONFIG_SYS_LOAD_ADDR;
+		h_size = image_get_header_size ();
+#if defined(CONFIG_FIT)
+		if (sizeof(struct fdt_header) > h_size)
+			h_size = sizeof(struct fdt_header);
+#endif
+
+		/* read in header */
+		debug ("   Reading image header from dataflash address "
+				"%08lx to RAM address %08lx\n", img_addr, ram_addr);
+		read_buff(flash_info, (uchar *)ram_addr, img_addr, h_size);
+
+		/* get data size */
+		switch (genimg_get_format ((void *)ram_addr)) {
+			case IMAGE_FORMAT_LEGACY:
+				d_size = image_get_data_size ((const image_header_t *)ram_addr);
+				debug ("   Legacy format image found at 0x%08lx, size 0x%08lx\n",
+						ram_addr, d_size);
+				tmp_addr = image_get_load ((const image_header_t *)ram_addr);
+				if( image_check_type((const image_header_t *)ram_addr, IH_TYPE_KERNEL)){
+					tmp_addr &=0xffff0000;
+				}
+				memcpy((void*)tmp_addr, (void*)ram_addr, h_size);
+				ram_addr = tmp_addr;
+				break;
+#if defined(CONFIG_FIT)
+			case IMAGE_FORMAT_FIT:
+				d_size = fit_get_size ((const void *)ram_addr) - h_size;
+				debug ("   FIT/FDT format image found at 0x%08lx, size 0x%08lx\n",
+						ram_addr, d_size);
+				break;
+#endif
+			default:
+				printf ("   No valid image found at 0x%08lx\n", img_addr);
+				return ram_addr;
+		}
+
+		/* read in image data */
+		debug ("   Reading image remaining data from dataflash address "
+				"%08lx to RAM address %08lx\n", img_addr + h_size,
+				ram_addr + h_size);
+		read_buff (flash_info, (uchar *)(ram_addr + h_size), img_addr + h_size, d_size);
+
+	}
+#endif //CONFIG_HAS_SPI
+
 #ifdef CONFIG_HAS_DATAFLASH
 	ulong h_size, d_size;
 
@@ -1009,6 +1075,12 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 				rd_data = rd_len = rd_load = 0;
 				return 1;
 			}
+		}
+
+		printf("Moving Ramdisk\n");
+		if (rd_data) {
+			memmove ((void *)rd_load, (uchar *)rd_data, rd_len);
+			rd_data = rd_load;
 		}
 	} else if (images->legacy_hdr_valid &&
 			image_check_type(&images->legacy_hdr_os_copy,

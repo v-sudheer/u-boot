@@ -6,6 +6,17 @@
  *                Luca Ceresoli <luca.ceresoli@comelit.it>
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <common.h>
 #include <command.h>
 #include <net.h>
@@ -18,7 +29,7 @@
 /* Well known TFTP port # */
 #define WELL_KNOWN_PORT	69
 /* Millisecs to timeout for lost pkt */
-#define TIMEOUT		5000UL
+#define TIMEOUT		1000UL
 #ifndef	CONFIG_NET_RETRY_COUNT
 /* # of timeouts before giving up */
 # define TIMEOUT_COUNT	10
@@ -176,9 +187,13 @@ store_block(int block, uchar *src, unsigned len)
 	if (rc) { /* Flash is destination for this packet */
 		rc = flash_write((char *)src, (ulong)(load_addr+offset), len);
 		if (rc) {
-			flash_perror(rc);
-			net_set_state(NETLOOP_FAIL);
-			return;
+			if(rc == ERR_INVAL){
+				(void)memcpy((void *)(load_addr + offset), src, len);
+			} else {
+				flash_perror(rc);
+				net_set_state(NETLOOP_FAIL);
+				return;
+			}
 		}
 	} else
 #endif /* CONFIG_SYS_DIRECT_FLASH_TFTP */

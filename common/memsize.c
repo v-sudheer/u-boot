@@ -21,6 +21,17 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <config.h>
 #ifdef __PPC__
 /*
@@ -40,13 +51,21 @@
 long get_ram_size(long *base, long maxsize)
 {
 	volatile long *addr;
-	long           save[32];
-	long           cnt;
-	long           val;
-	long           size;
-	int            i = 0;
+	volatile long save[32];
+	volatile long cnt;
+	volatile long val;
+	volatile long size;
+	volatile int i = 0;
+	volatile int j = 0;
 
-	for (cnt = (maxsize / sizeof (long)) >> 1; cnt > 0; cnt >>= 1) {
+/*
+ * Ashok: Counting down has a bug with DRAM size other than power of 2.
+ * ex: only 256,128, 64 MB will work. 240,248 etc will not work.
+ * Fixed this issue.
+ */
+
+//	for (cnt = (maxsize / sizeof (long)) >> 1; cnt > 0; cnt >>= 1) {
+	for (cnt = 1; cnt < maxsize / sizeof (long); cnt <<= 1) {
 		addr = base + cnt;	/* pointer arith! */
 		sync ();
 		save[i++] = *addr;
@@ -69,7 +88,8 @@ long get_ram_size(long *base, long maxsize)
 		for (cnt = 1; cnt < maxsize / sizeof(long); cnt <<= 1) {
 			addr  = base + cnt;
 			sync ();
-			*addr = save[--i];
+//			*addr = save[--i];
+			*addr = save[j++];
 		}
 		return (0);
 	}
@@ -77,14 +97,16 @@ long get_ram_size(long *base, long maxsize)
 	for (cnt = 1; cnt < maxsize / sizeof (long); cnt <<= 1) {
 		addr = base + cnt;	/* pointer arith! */
 		val = *addr;
-		*addr = save[--i];
+//		*addr = save[--i];
+		*addr = save[j++];
 		if (val != ~cnt) {
 			size = cnt * sizeof (long);
 			/* Restore the original data before leaving the function.
 			 */
 			for (cnt <<= 1; cnt < maxsize / sizeof (long); cnt <<= 1) {
 				addr  = base + cnt;
-				*addr = save[--i];
+//				*addr = save[--i];
+				*addr = save[j++];
 			}
 			return (size);
 		}

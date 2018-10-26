@@ -22,6 +22,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+/*
+ * Copyright (c) 2010-2015, Emulex Corporation.
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ */
 
 #include <config.h>
 #include <common.h>
@@ -393,9 +400,13 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 		return 0;
 	}
 
+#if 0
+	/*We dont need this in pilot since we support AUTOCMD12*/
+
 	/* SPI multiblock writes terminate using a special
 	 * token, not a STOP_TRANSMISSION request.
 	 */
+
 	if (!mmc_host_is_spi(mmc) && blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
@@ -405,6 +416,7 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 			return 0;
 		}
 	}
+#endif
 
 	/* Waiting for the ready status */
 	if (mmc_send_status(mmc, timeout))
@@ -461,7 +473,8 @@ int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start, lbaint_t blkcnt)
 
 	if (mmc_send_cmd(mmc, &cmd, &data))
 		return 0;
-
+#if 0
+	/*We dont need this in pilot since we support AUTOCMD12*/
 	if (blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
@@ -471,7 +484,7 @@ int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start, lbaint_t blkcnt)
 			return 0;
 		}
 	}
-
+#endif
 	return blkcnt;
 }
 
@@ -691,6 +704,7 @@ int mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value)
 	cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
 				 (index << 16) |
 				 (value << 8);
+//				 (value << 8) | set;
 
 	ret = mmc_send_cmd(mmc, &cmd, NULL);
 
@@ -729,21 +743,23 @@ int mmc_change_freq(struct mmc *mmc)
 	if (err)
 		return err;
 
-	/* Now check to see that it worked */
-	err = mmc_send_ext_csd(mmc, ext_csd);
-
-	if (err)
-		return err;
-
-	/* No high-speed support */
-	if (!ext_csd[EXT_CSD_HS_TIMING])
-		return 0;
-
-	/* High Speed is set, there are two types: 52MHz and 26MHz */
 	if (cardtype & MMC_HS_52MHZ)
 		mmc->card_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
 	else
 		mmc->card_caps |= MMC_MODE_HS;
+
+	/* Restrict card's capabilities by what the host can do */
+	mmc->card_caps &= mmc->host_caps;
+
+	if (mmc->card_caps & MMC_MODE_HS)
+	{
+		if (mmc->card_caps & MMC_MODE_HS_52MHz)
+			mmc->tran_speed = 50000000;
+		else
+			mmc->tran_speed = 25000000;
+	}
+
+	mmc_set_clock(mmc, mmc->tran_speed);
 
 	return 0;
 }
@@ -1177,9 +1193,12 @@ int mmc_startup(struct mmc *mmc)
 			mmc->tran_speed = 50000000;
 		else
 			mmc->tran_speed = 25000000;
+
+		mmc_set_clock(mmc, mmc->tran_speed);
 	} else {
 		width = ((mmc->host_caps & MMC_MODE_MASK_WIDTH_BITS) >>
 			 MMC_MODE_WIDTH_BITS_SHIFT);
+		width--;
 		for (; width >= 0; width--) {
 			/* Set the card to use 4 bit*/
 			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
@@ -1194,7 +1213,13 @@ int mmc_startup(struct mmc *mmc)
 			} else
 				mmc_set_bus_width(mmc, 4 * width);
 
-			err = mmc_send_ext_csd(mmc, test_csd);
+			timeout=4;
+			do
+			{
+				err = mmc_send_ext_csd(mmc, test_csd);
+				timeout--;
+			} while (err && timeout);
+
 			if (!err && ext_csd[EXT_CSD_PARTITIONING_SUPPORT] \
 				    == test_csd[EXT_CSD_PARTITIONING_SUPPORT]
 				 && ext_csd[EXT_CSD_ERASE_GROUP_DEF] \
@@ -1210,16 +1235,7 @@ int mmc_startup(struct mmc *mmc)
 				break;
 			}
 		}
-
-		if (mmc->card_caps & MMC_MODE_HS) {
-			if (mmc->card_caps & MMC_MODE_HS_52MHz)
-				mmc->tran_speed = 52000000;
-			else
-				mmc->tran_speed = 26000000;
-		}
 	}
-
-	mmc_set_clock(mmc, mmc->tran_speed);
 
 	/* fill in device description */
 	mmc->block_dev.lun = 0;

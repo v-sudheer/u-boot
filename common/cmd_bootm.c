@@ -627,7 +627,6 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 * overwrite all exception vector code, so we cannot easily
 	 * recover from any failures any more...
 	 */
-	iflag = disable_interrupts();
 
 #ifdef CONFIG_NETCONSOLE
 	/* Stop the ethernet stack if NetConsole could have left it up */
@@ -705,7 +704,9 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	arch_preboot_os();
 
+	iflag = disable_interrupts();
 	boot_fn(0, argc, argv, &images);
+	enable_interrupts();
 
 	bootstage_error(BOOTSTAGE_ID_BOOT_OS_RETURNED);
 #ifdef DEBUG

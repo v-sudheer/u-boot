@@ -21,6 +21,18 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
+
 /*
  * MDIO Commands
  */
@@ -184,7 +196,7 @@ int extract_phy_range(char *const argv[], int argc, struct mii_dev **bus,
 }
 
 /* ---------------------------------------------------------------- */
-static int do_mdio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_smdio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char op[2];
 	int addrlo, addrhi, reglo, reghi, devadlo, devadhi;
@@ -271,7 +283,7 @@ static int do_mdio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 /***************************************************/
 
 U_BOOT_CMD(
-	mdio,	6,	1,	do_mdio,
+	smdio,	6,	1,	do_smdio,
 	"MDIO utility commands",
 	"list			- List MDIO buses\n"
 	"mdio read <phydev> [<devad>.]<reg> - "

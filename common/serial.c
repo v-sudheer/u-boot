@@ -21,6 +21,17 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 #include <common.h>
 #include <serial.h>
 #include <stdio_dev.h>
@@ -129,6 +140,9 @@ void serial_initialize(void)
 # ifdef CONFIG_ZYNQ_SERIAL_BASEADDR1
 	serial_register(&uart_zynq_serial1_device);
 # endif
+#endif
+#if defined (CONFIG_PILOT4_SERIAL)
+	serial_register(&pilot_serial_device);
 #endif
 	serial_assign(default_serial_console()->name);
 }

@@ -21,6 +21,18 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
+
 /*
  * Memory Functions
  *
@@ -33,6 +45,13 @@
 #include <dataflash.h>
 #endif
 #include <watchdog.h>
+
+#ifdef CONFIG_HAS_SPI
+extern flash_info_t    flash_info[CONFIG_SYS_MAX_FLASH_BANKS];
+extern int read_buff(flash_info_t *info, uchar *dest, ulong addr, ulong cnt);
+extern int get_bank_from_address(ulong addr, ulong * offset);
+extern int flash_read(char *dest, ulong addr, ulong cnt);
+#endif
 
 static int mod_mem(cmd_tbl_t *, int, int, int, char * const []);
 
@@ -54,6 +73,9 @@ static	ulong	base_address = 0;
 int do_mem_md ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong	addr, length;
+#if defined(CONFIG_HAS_SPI)
+        ulong   nbytes, linebytes;
+#endif
 #if defined(CONFIG_HAS_DATAFLASH)
 	ulong	nbytes, linebytes;
 #endif
@@ -89,7 +111,31 @@ int do_mem_md ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			length = simple_strtoul(argv[2], NULL, 16);
 	}
 
-#if defined(CONFIG_HAS_DATAFLASH)
+#if defined(CONFIG_HAS_SPI)
+	/* Print the lines.
+	 *
+	 * We buffer all read data, so we can make sure data is read only
+	 * once, and all accesses are with the specified bus width.
+	 */
+	nbytes = length * size;
+	do {
+		char	linebuf[DISP_LINE_LEN];
+		void* p;
+		linebytes = (nbytes>DISP_LINE_LEN)?DISP_LINE_LEN:nbytes;
+
+		rc =  read_buff(flash_info, (uchar*)linebuf, addr, (linebytes/size)*size);
+		p =  (rc >= 0 ) ? linebuf : (void*)addr;
+		print_buffer(addr, p, size, linebytes/size, DISP_LINE_LEN/size);
+
+		nbytes -= linebytes;
+		addr += linebytes;
+		if (ctrlc()) {
+			rc = 1;
+			break;
+		}
+	} while (nbytes > 0);
+
+#elif defined(CONFIG_HAS_DATAFLASH)
 	/* Print the lines.
 	 *
 	 * We buffer all read data, so we can make sure data is read only
@@ -370,6 +416,29 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 #endif
 
+#ifdef CONFIG_HAS_SPI
+       ulong ofst;
+       /* Check if we are copying from SPI to RAM */
+       if ((get_bank_from_address(addr, &ofst) >= 0) && (get_bank_from_address(dest, &ofst) < 0)
+#ifndef CONFIG_SYS_NO_FLASH
+           && (addr2info(dest) == NULL)
+#endif
+       ){
+                int rc;
+                puts ("Copy from Flash... ");
+                rc = flash_read((char *)dest, addr, count * size);
+                if (rc != 0) {
+                    puts("Reading SPI device failed \n");
+                    return (1);
+                }
+                puts ("done\n");
+                return 0;
+       }
+       if ((get_bank_from_address(addr, &ofst) >= 0) && (get_bank_from_address(dest, &ofst) >= 0)){
+           puts ("Unsupported combination of source/destination.\n\r");
+           return 1;
+       }
+#endif
 #ifdef CONFIG_HAS_DATAFLASH
 	/* Check if we are copying from RAM or Flash to DataFlash */
 	if (addr_dataflash(dest) && !addr_dataflash(addr)){
@@ -415,6 +484,49 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 #endif
+
+	while (count-- > 0) {
+		if (size == 4)
+			*((ulong  *)dest) = *((ulong  *)addr);
+		else if (size == 2)
+			*((ushort *)dest) = *((ushort *)addr);
+		else
+			*((u_char *)dest) = *((u_char *)addr);
+		addr += size;
+		dest += size;
+
+		/* reset watchdog from time to time */
+		if ((count % (64 << 10)) == 0)
+			WATCHDOG_RESET();
+	}
+	return 0;
+}
+
+int do_mem_dcp ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	ulong	addr, dest, count;
+	int	size;
+
+	if (argc != 4)
+		return CMD_RET_USAGE;
+
+	/* Check for size specification.
+	 */
+	if ((size = cmd_get_data_size(argv[0], 4)) < 0)
+		return 1;
+
+	addr = simple_strtoul(argv[1], NULL, 16);
+	addr += base_address;
+
+	dest = simple_strtoul(argv[2], NULL, 16);
+	dest += base_address;
+
+	count = simple_strtoul(argv[3], NULL, 16);
+
+	if (count == 0) {
+		puts ("Zero length ???\n");
+		return 1;
+	}
 
 	while (count-- > 0) {
 		if (size == 4)
@@ -1168,6 +1280,12 @@ U_BOOT_CMD(
 U_BOOT_CMD(
 	cp,	4,	1,	do_mem_cp,
 	"memory copy",
+	"[.b, .w, .l] source target count"
+);
+
+U_BOOT_CMD(
+	dcp,	4,	1,	do_mem_dcp,
+	"direct memory copy",
 	"[.b, .w, .l] source target count"
 );
 

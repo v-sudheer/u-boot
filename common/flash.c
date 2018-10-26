@@ -21,6 +21,17 @@
  * MA 02111-1307 USA
  */
 
+/******************************************************************************
+ *
+ * Copyright (c) 2010-2014, Emulex Corporation.
+ *
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ *****************************************************************************/
+
 /* #define DEBUG */
 
 #include <common.h>
@@ -30,6 +41,7 @@
 #include <mtd/cfi_flash.h>
 
 extern flash_info_t  flash_info[]; /* info for FLASH chips */
+extern int read_buff(flash_info_t *info, uchar *dest, ulong addr, ulong cnt);
 
 /*-----------------------------------------------------------------------
  * Functions
@@ -188,6 +200,55 @@ flash_write (char *src, ulong addr, ulong cnt)
 	return (ERR_OK);
 #endif /* CONFIG_SPD823TS */
 }
+
+/*-----------------------------------------------------------------------
+ * Read from flash
+ * Returns:
+ * ERR_OK          0 - OK
+ * ERR_TIMOUT      1 - read timeout
+ * ERR_INVAL       8 - target address not in Flash memory
+ * ERR_ALIGN       16 - target address not aligned on boundary
+ *			(only some targets require alignment)
+ */
+int
+flash_read(char *dest, ulong addr, ulong cnt)
+{
+#ifdef CONFIG_SPD823TS
+	return (ERR_TIMOUT);	/* any other error codes are possible as well */
+#else
+	int i;
+	ulong         end        = addr + cnt - 1;
+	flash_info_t *info_first = addr2info (addr);
+	flash_info_t *info_last  = addr2info (end );
+	flash_info_t *info;
+
+	if (cnt == 0) {
+		return (ERR_OK);
+	}
+
+	if (!info_first || !info_last) {
+		return (ERR_INVAL);
+	}
+
+	/* finally read data from flash */
+	for (info = info_first; info <= info_last && cnt>0; ++info) {
+		ulong len;
+
+		len = info->start[0] + info->size - addr;
+		if (len > cnt)
+			len = cnt;
+		if ((i = read_buff(info, (uchar *)dest, addr, len)) != 0) {
+			return (i);
+		}
+		cnt  -= len;
+		addr += len;
+		dest += len;
+	}
+	return (ERR_OK);
+#endif /* CONFIG_SPD823TS */
+}
+
+
 
 /*-----------------------------------------------------------------------
  */

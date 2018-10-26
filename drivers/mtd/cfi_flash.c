@@ -30,6 +30,13 @@
  * MA 02111-1307 USA
  *
  */
+/*
+ * Copyright (c) 2010-2015, Emulex Corporation.
+ * Modifications made by Emulex Corporation under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ */
 
 /* The DEBUG define must be before common to enable debugging */
 /* #define DEBUG	*/
@@ -2164,7 +2171,14 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 		}
 
 		info->sector_count = sect_cnt;
-		info->buffer_size = 1 << le16_to_cpu(qry.max_buf_write_size);
+		/* info->buffer_size =
+			1 << le16_to_cpu(qry.max_buf_write_size); */
+		/*
+		 * Xilinx hack for now due to numonyx bug with 8 bit mode
+		 * The CFI data for the buffer size is wrong in the part.
+		 * It may be feasible to fix this better.
+		 */
+		info->buffer_size = 256;
 		tmp = 1 << qry.block_erase_timeout_typ;
 		info->erase_blk_tout = tmp *
 			(1 << qry.block_erase_timeout_max);

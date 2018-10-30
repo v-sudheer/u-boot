@@ -188,6 +188,7 @@
 	"devicetree_size=0x4000\0"	\
 	"ramdisk_size=0x500000\0"	\
 	"fdt_high=0x81900000\0"	\
+	"initrd_high=0xFFFFFFFF\0"	\
 	"linux4.4_bootcmd=bootm 100000 500000 4FC000\0"	\
 	"sdboot=echo Copying Linux from SD0 to RAM...;" \
 		"mmc dev 0;" \

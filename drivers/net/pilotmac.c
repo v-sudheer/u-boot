@@ -1290,7 +1290,7 @@ int ast_eth_initialize(bd_t *bis, int base_addr)
 					unique_id = unique_id >> 8;
 					memcpy((unsigned char *)&(bi_enet1addr[3]), &unique_id, 3);
 					eth_setenv_enetaddr("eth1addr", bi_enet1addr);
-//					saveenv();
+					saveenv();
 				}
 				memcpy(dev->enetaddr,bi_enet1addr,6);
 				//memcpy(dev->enetaddr,bis->bi_enet1addr,6);
@@ -1310,7 +1310,7 @@ int ast_eth_initialize(bd_t *bis, int base_addr)
 				memcpy((unsigned char *)&(bi_enetaddr[3]), &unique_id, 3);
 				eth_setenv_enetaddr("ethaddr", bi_enetaddr);
 #ifndef CONFIG_HAS_ETH1
-//				saveenv();
+				saveenv();
 #endif
 			  }
 			  //memcpy(dev->enetaddr,bis->bi_enetaddr,6);

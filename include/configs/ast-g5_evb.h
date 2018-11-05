@@ -41,7 +41,11 @@
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
+#ifdef CONFIG_SLT_ASPEED
+#define CONFIG_BOOTCOMMAND	"mactest 0 0 24 10 0 0 0;mactest 1 0 24 10 0 0 0;bootm 20080000 20300000"
+#else
 #define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
+#endif
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1

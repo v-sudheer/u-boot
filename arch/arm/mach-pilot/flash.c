@@ -18,7 +18,3 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 {
 	return (0);
 }
-
-void reset_cpu(ulong addr)
-{
-}

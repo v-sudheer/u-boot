@@ -662,6 +662,15 @@ config ARCH_ZYNQ
 	select DM_SPI_FLASH
 	select SPL_SEPARATE_BSS if SPL
 
+config ARCH_PILOT
+	bool "Aspeed Pilot Platform"
+	select CPU_V7
+	select OF_CONTROL
+	select DM
+	select DM_ETH
+	select DM_SPI
+	select DM_SPI_FLASH
+
 config ARCH_ZYNQMP
 	bool "Support Xilinx ZynqMP Platform"
 	select ARM64
@@ -906,6 +915,8 @@ source "arch/arm/mach-tegra/Kconfig"
 source "arch/arm/mach-uniphier/Kconfig"
 
 source "arch/arm/mach-zynq/Kconfig"
+
+source "arch/arm/mach-pilot/Kconfig"
 
 source "arch/arm/cpu/armv7/Kconfig"
 

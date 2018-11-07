@@ -91,6 +91,7 @@ dtb-$(CONFIG_ARCH_ZYNQ) += zynq-zc702.dtb \
 	zynq-zc770-xm011.dtb \
 	zynq-zc770-xm012.dtb \
 	zynq-zc770-xm013.dtb
+dtb-$(CONFIG_ARCH_PILOT) += pilot.dtb 
 dtb-$(CONFIG_ARCH_ZYNQMP) += \
 	zynqmp-ep108.dtb			\
 	zynqmp-zcu102.dtb			\

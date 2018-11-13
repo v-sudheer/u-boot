@@ -21,7 +21,7 @@
 #define CONFIG_SYS_HZ_CLOCK	(24000000)
 #endif
 
-#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"
+#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\

@@ -990,19 +990,6 @@ ast_scu_sys_rest_info(void)
 {
 	u32 rest = ast_scu_read(AST_SCU_SYS_CTRL);
 
-#ifdef CONFIG_ARCH_AST1010
-	if(rest & SCU_SYS_WDT_FULL_FLAG) {
-		SCUMSG("RST : External \n");
-		ast_scu_write(SCU_SYS_WDT_FULL_FLAG, AST_SCU_SYS_CTRL);
-	} else if (rest & SCU_SYS_WDT_SOC_RESET) {
-		SCUMSG("RST : Watchdog - SOC\n");
-		ast_scu_write(SCU_SYS_WDT_SOC_RESET, AST_SCU_SYS_CTRL);
-	} else if (rest & SCU_SYS_PWR_RESET_FLAG) {
-		SCUMSG("RST : Power On \n");
-		ast_scu_write(SCU_SYS_PWR_RESET_FLAG, AST_SCU_SYS_CTRL);
-	} else {
-	}
-#else
 	if(rest & SCU_SYS_EXT_RESET_FLAG) {
 		SCUMSG("RST : External \n");
 		ast_scu_write(ast_scu_read(AST_SCU_SYS_CTRL) & ~SCU_SYS_EXT_RESET_FLAG, AST_SCU_SYS_CTRL);
@@ -1031,7 +1018,7 @@ ast_scu_sys_rest_info(void)
 		SCUMSG("RST : Power On \n");
 		ast_scu_write(ast_scu_read(AST_SCU_SYS_CTRL) & ~SCU_SYS_PWR_RESET_FLAG, AST_SCU_SYS_CTRL);
 	}
-#endif
+
 }	
 
 extern void

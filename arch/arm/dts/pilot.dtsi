@@ -13,7 +13,7 @@
 /include/ "skeleton.dtsi"
 
 / {
-	compatible = "pilot4,ASIC";
+	compatible = "aspeed,pilot";
 
 	cpus {
 		#address-cells = <1>;
@@ -36,10 +36,6 @@
 	memory {
 		device_type = "memory";
 		reg = <0x81000000 0X1e000000>;
-	};
-
-   	aliases {
-		serial0 = &uart0;
 	};
 
 	chosen {
@@ -359,5 +355,23 @@
 			interrupts = <0 63 4>;
 			status = "disabled";
 		};
+		bootspi: spi@40200000 {
+			compatible = "aspeed,pilot-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			spi-max-frequency = <50000000>;
+			reg = <0x40200000 0x80000>;
+			num-cs = <3>;
+		};
+
+		bmcspi: spi@40280000{
+			compatible = "aspeed,pilot-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40280000 0x80000>;
+			num-cs = <3>;
+			status = "disabled";
+		};
+
 	};
 };

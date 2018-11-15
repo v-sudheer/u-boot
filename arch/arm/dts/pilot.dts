@@ -15,7 +15,7 @@
 /include/ "pilot.dtsi"
 
 / {
-	compatible = "pilot4,ASIC";
+	compatible = "aspeed,pilot";
 
 	memory {
 		device_type = "memory";
@@ -24,8 +24,24 @@
 
 	aliases {
 		serial0 = &uart0;
+		spi0= &bootspi;
 	};
 
+};
+
+&bootspi {
+	bus-num = <0>;
+	status = "okay";
+	spi-flash@0{
+		compatible = "spi-flash";
+		reg = <0>;
+		spi-max-frequency = <50000000>; /* input clock */
+	};
+	spi-flash@1{
+		compatible = "spi-flash";
+		reg = <1>;
+		spi-max-frequency = <50000000>; /* input clock */
+	};
 };
 
 &watchdog1 {

@@ -78,7 +78,8 @@ ccflags-y +="-DDDROPVERSION=0xFFFFFFFF"
 ifneq ($(DOVERSION), )
 ccflags-y +="-DDDROPVERSION=$(DOVERSION)"
 endif
-obj-y   += timer.o flash.o
+obj-y   += timer.o
+obj-y   += flash.o
 obj-y   += lowlevel_init.o
 obj-y	+= ddr_options.o seccode.o sw_reset_modules.o
 obj-y	+= MP_GIC.o 

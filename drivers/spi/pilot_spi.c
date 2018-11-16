@@ -201,7 +201,7 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
 
     /* Switch back to non-register mode and disable Write Fifo mode */
     spiregs->CmdCtrl &= 0x73;
-#if 1
+#if 0
     spiregs->BMisc |= (0x3 << 30); //Undo Override
 #endif
 
@@ -367,8 +367,8 @@ static int pilot_spi_release_bus(struct udevice *dev)
 		dev_get_parent_platdata(dev);
 	debug("SHIVAH: %s\n", __func__);
 
-	//priv->regs->BMisc |= (0x3 << 30); //Undo Override
-	//waitforspiready(priv->regs);
+	priv->regs->BMisc |= (0x3 << 30); //Undo Override
+	waitforspiready(priv->regs);
 	//Retain the SYSMISCCLKCTL register
 	*((volatile unsigned int *) 0x40100120) = 0x22111222;
 	return 0;

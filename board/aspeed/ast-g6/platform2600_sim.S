@@ -13,10 +13,12 @@
  *
  ******************************************************************************
  * ASPEED Technology Inc.
- * AST26x0 DDR3/DDR4 SDRAM controller initialization sequence for FPGA
+ * AST25x0 DDR3/DDR4 SDRAM controller initialization sequence
+ *
+ * Gary Hsu, <gary_hsu@aspeedtech.com>
  *
  * Version     : 0
- * Release date: 2018.06.26
+ * Release date: 2018.04.20
  *
  * Priority of fix item:
  * [P1] = critical
@@ -27,33 +29,41 @@
  * V0 |2018.03.28 : 1.[P1] Initial release for simulation
  *
  * Optional define variable
- * 1. ECC Function enable
+ * 1. DRAM Speed                  //
+ *    ASTMMC_DRAM_800             // (DDR3 FPGA only)
+ *    ASTMMC_DRAM_1066            // (DDR3 FPGA only)
+ *    ASTMMC_DRAM_1333            //
+ *    ASTMMC_DRAM_1600            // (default)
+ *    ASTMMC_DRAM_1866            //
+ * 2. ECC Function enable
  *    ASTMMC_DRAM_ECC             // define to enable ECC function
  *    ASTMMC_DRAM_ECC_SIZE        // define the ECC protected memory size
- * 2. UART5 message output        //
+ * 3. UART5 message output        //
  *    ASTMMC_UART_BASE            // select UART port base
  *    ASTMMC_UART_38400           // set the UART baud rate to 38400, default is 115200
  *    ASTMMC_UART_TO_UART1        // route UART5 to UART port1
- * 3. DRAM Type
+ * 4. DRAM Type
  *    ASTMMC_DDR4_8GX8            // DDR4 (16Gb) 8Gbit X8 stacked part
- * 4. Firmware 2nd boot flash
+ * 5. Firmware 2nd boot flash
  *    ASTMMC_FIRMWARE_2ND_BOOT    (Removed)
+ * 6. Enable DRAM extended temperature range mode
+ *    ASTMMC_DRAM_EXT_TEMP
  ******************************************************************************
  */
 
 #include <config.h>
 #include <version.h>
-#ifdef CONFIG_CPU_ARM1176
-#define ASTMMC_CPU_ARM11
-#define ASTMMC_DDR_DDR3
-#endif
+
+#define ASTMMC_DDR_DDR4
+//#define ASTMMC_DRAM_800
+
 /******************************************************************************
  Calibration Macro Start
  Usable registers:
   r0, r1, r2, r3, r5, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
 #define ASTMMC_INIT_VER      0x00                // 8bit verison number
-#define ASTMMC_INIT_DATE     0x20180626          // Release date
+#define ASTMMC_INIT_DATE     0x20180328          // Release date
 
 /* PATTERN_TABLE,
    init_delay_timer,
@@ -80,26 +90,86 @@
 #define ASTMMC_REG_MCR2C     0x1C
 #define ASTMMC_REG_RFC       0x20
 
-TIME_TABLE_DDR3:
-    .word   0x02070306       // MCR10
-    .word   0x05021133       // MCR14
-    .word   0x06010200       // MCR18
+TIME_TABLE_DDR3_800:
+    .word   0x02080206       // MCR10
+    .word   0x07010145       // MCR14
+    .word   0x0A010200       // MCR18
     .word   0x00000020       // MCR1C
-    .word   0x00401320       // MCR20
+    .word   0x00401510       // MCR20
     .word   0x00000200       // MCR24
     .word   0x00000000       // MCR28
     .word   0x00000000       // MCR2C
-    .word   0x17263434       // MCRFC
-TIME_TABLE_DDR4:
+    .word   0x4545331F       // MCRFC
+TIME_TABLE_DDR3_1066:
+    .word   0x02090306       // MCR10
+    .word   0x0913015C       // MCR14
+    .word   0x0E020301       // MCR18
+    .word   0x00008020       // MCR1C
+    .word   0x00401930       // MCR20
+    .word   0x00000208       // MCR24
+    .word   0x00000000       // MCR28
+    .word   0x00000000       // MCR2C
+    .word   0x5D5D452A       // MCRFC
+TIME_TABLE_DDR3_1333:
+    .word   0x030B0307       // MCR10
+    .word   0x0B250174       // MCR14
+    .word   0x0F030302       // MCR18
+    .word   0x00000020       // MCR1C
+    .word   0x00401B50       // MCR20
+    .word   0x00000210       // MCR24
+    .word   0x00000000       // MCR28
+    .word   0x00000000       // MCR2C
+    .word   0x74745635       // MCRFC
+TIME_TABLE_DDR3_1600:
+    .word   0x030C0408       // MCR10
+    .word   0x0D37128B       // MCR14
+    .word   0x10040303       // MCR18
+    .word   0x00008020       // MCR1C
+    .word   0x00401D70       // MCR20
+    .word   0x00000218       // MCR24
+    .word   0x00000000       // MCR28
+    .word   0x00000000       // MCR2C
+    .word   0x8B8B673F       // MCRFC
+TIME_TABLE_DDR3_1866:
+    .word   0x040E0409       // MCR10
+    .word   0x0F4912A2       // MCR14
+    .word   0x11050304       // MCR18
+    .word   0x00000020       // MCR1C
+    .word   0x00421F14       // MCR20
+    .word   0x00000220       // MCR24
+    .word   0x00000000       // MCR28
+    .word   0x00000000       // MCR2C
+    .word   0xA3A3794A       // MCRFC
+TIME_TABLE_DDR4_1333:
     .word   0x030C0207       // MCR10
-    .word   0x04451133       // MCR14
-    .word   0x0E010200       // MCR18
-    .word   0x00000140       // MCR1C
-    .word   0x03010100       // MCR20
+    .word   0x0C450174       // MCR14
+    .word   0x0C040303       // MCR18
+    .word   0x00001240       // MCR1C
+    .word   0x01010100       // MCR20
     .word   0x00000000       // MCR24
     .word   0x04000000       // MCR28
-    .word   0x00000000       // MCR2C
-    .word   0x17263434       // MCRFC
+    .word   0x00000400       // MCR2C
+    .word   0x74745635       // MCRFC
+TIME_TABLE_DDR4_1600:
+    .word   0x030D0307       // MCR10
+    .word   0x0D46118B       // MCR14
+    .word   0x0E050303       // MCR18
+    .word   0x00001240       // MCR1C
+    .word   0x01010304       // MCR20
+    .word   0x00000000       // MCR24
+    .word   0x04000000       // MCR28
+    .word   0x00000400       // MCR2C
+    .word   0x8B8B673F       // MCRFC
+TIME_TABLE_DDR4_1866:
+    .word   0x040E0308       // MCR10
+    .word   0x0F5812A2       // MCR14
+    .word   0x0E060304       // MCR18
+    .word   0x00009240       // MCR1C
+    .word   0x01010514       // MCR20
+    .word   0x00000008       // MCR24
+    .word   0x04000000       // MCR28
+    .word   0x00000400       // MCR2C
+    .word   0xA3A3794A       // MCRFC
 
 PATTERN_TABLE:
     .word   0xff00ff00
@@ -224,13 +294,13 @@ init_dram:
     ldr   r1, =0x1688a8a8
     str   r1, [r0]
 
-/*  ldr   r0, =0x1e6e2040
+    ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x80
     str   r1, [r0]
-*/
+
 /******************************************************************************
- Disable WDT for SPI Address mode detection function
+ Disable WDT3 for SPI Address mode detection function
  ******************************************************************************/
     ldr   r0, =0x1e620060
     mov   r1, #0
@@ -244,57 +314,14 @@ init_dram:
     mov   r1, #0
     str   r1, [r0]
 
-#ifdef ASTMMC_CPU_ARM11
-    /* Enable AXI_P */
-/*  ldr   r0, =0x00000016
-    mrc   p15, 0, r1, c15, c2, 4
-    mcr   p15, 0, r0, c15, c2, 4
-*/
-init_arm11:
-    /* Start of ES40004A PLL init */
-    /* Step 1. Program PLL_config and keep power down */
-    ldr   r0, =0x33000000
-    ldr   r1, =0x01000000
-    str   r1, [r0]
-    ldr   r1, =0x0102001A                        @ 324 MHz
-    str   r1, [r0]
-
-    /* Step 2. Wait 1us for PLL initialization */
-    ldr   r2, =0x00000100
-delay_ES40004A_pll_init:
-    subs  r2, r2, #1
-    bne   delay_ES40004A_pll_init
-
-    /* Step 3. Program PLL_config to exit Power down */
-    ldr   r1, =0x0002001A
-    str   r1, [r0]
-
-    /* Step 4. Check pll_ld = 1?. Read PLL_config, check bit 27. */
-    ldr   r2, =0x08000000                        @ bit[27] PLL lock detection
-check_pll_ld:
-    ldr   r1, [r0]
-    tst   r1, r2
-    beq   check_pll_ld
-
-    /* Step 5. Program aclk_div */
-    ldr   r0, =0x33000004
-    ldr   r1, =0x00000007                        @ CPU/AXI = 8/1
-    str   r1, [r0]
-
-    /* Step 6. Program set_pll */
-    ldr   r1, =0x00010007
-    str   r1, [r0]
-    /* End of ES40004A PLL init */
-#endif
-
     /* Check Scratch Register Bit 6 */
-/*  ldr   r0, =0x1e6e2040
+    ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     bic   r1, r1, #0xFFFFFFBF
     mov   r2, r1, lsr #6
     cmp   r2, #0x01
     beq   platform_exit
-*/
+
 ddr_init_start:
 
 /* Debug - UART console message */
@@ -472,7 +499,17 @@ ddr3_init:
     str   r1, [r0]
 /* Debug - UART console message */
 
-    adrl  r5, TIME_TABLE_DDR3                    // Init DRAM parameter table
+#if   defined (ASTMMC_DRAM_800)                  // Init DRAM parameter table
+    adrl  r5, TIME_TABLE_DDR3_800
+#elif defined (ASTMMC_DRAM_1066)
+    adrl  r5, TIME_TABLE_DDR3_1066
+#elif defined (ASTMMC_DRAM_1333)
+    adrl  r5, TIME_TABLE_DDR3_1333
+#elif defined (ASTMMC_DRAM_1866)
+    adrl  r5, TIME_TABLE_DDR3_1866
+#else
+    adrl  r5, TIME_TABLE_DDR3_1600
+#endif
 
     ldr   r0, =0x1e6e0004
     ldr   r1, =0x00000006                        // 8Gb
@@ -563,7 +600,13 @@ ddr4_init:
     str   r1, [r0]
 /* Debug - UART console message */
 
-    adrl  r5, TIME_TABLE_DDR4                    // Init DRAM parameter table
+#if   defined (ASTMMC_DRAM_1333)
+    adrl  r5, TIME_TABLE_DDR4_1333               // Init DRAM parameter table
+#elif defined (ASTMMC_DRAM_1866)
+    adrl  r5, TIME_TABLE_DDR4_1866
+#else
+    adrl  r5, TIME_TABLE_DDR4_1600
+#endif
 
     ldr   r0, =0x1e6e0004
 #ifdef ASTMMC_DDR4_8GX8
@@ -663,6 +706,7 @@ Calibration_End:
      8Gb : 0x80000000 ~ 0xBFFFFFFF
      16Gb: 0x80000000 ~ 0xFFFFFFFF
     *******************************/
+#ifndef ASTMMC_DDR4_8GX8
     ldr   r0, =0x1e6e0004
     ldr   r6, [r0]
     bic   r6, r6, #0x00000003                    // record MCR04
@@ -716,6 +760,7 @@ check_dram_size_end:
     and   r7, r7, #0xFF
     orr   r1, r1, r7
     str   r1, [r0]
+#endif
 
     /* Version Number */
     ldr   r0, =0x1e6e0004
@@ -757,7 +802,7 @@ check_dram_size_end:
     ********************************************/
 ddr_test_start:
     ldr   r0, =0x1e6e0074
-    ldr   r1, =0x0000FFFF                        // test size = 64KB
+    ldr   r1, =0x000003FF                        // test size = 16MB
     str   r1, [r0]
     ldr   r0, =0x1e6e007c
     ldr   r1, =0xFF00FF00
@@ -859,11 +904,11 @@ wait_print_1:
 
 set_scratch:
     /*Set Scratch register Bit 6 after ddr initial finished */
-/*  ldr   r0, =0x1e6e2040
+    ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x41
     str   r1, [r0]
-*/
+
 #ifdef ASTMMC_DRAM_ECC
     ldr   r0, =0x1e6e0004
     ldr   r2, =0x00000280

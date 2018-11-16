@@ -86,7 +86,12 @@ int MMCTest(void)
 {
 	unsigned int pattern;
 
+#if 1
+	pattern = rand();
+#else
 	pattern = readl( 0x1E6E2078 );
+#endif
+	
 	printf("Pattern = %08X : ",pattern);
 
 #ifdef CONFIG_ARCH_AST1220

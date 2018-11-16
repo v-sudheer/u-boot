@@ -13,8 +13,8 @@
 #include <fdtdec.h>
 
 #include <i2c.h>
-#include <asm/arch/ast-scu.h>
 #include <asm/arch/clk_aspeed.h>
+#include <asm/arch/pinctrl_aspeed.h>
 #include <asm/arch/aspeed-reset.h>
 
 #include <asm/io.h>
@@ -626,6 +626,7 @@ unsigned int i2c_get_base(int bus_no) {
 void i2c_init(int speed, int slaveaddr)
 {
 	int i=0;
+	char i2c_name[32];
 	struct ast_i2c_bus *i2c_bus;
 
 	//SCU I2C Reset 
@@ -645,16 +646,17 @@ void i2c_init(int speed, int slaveaddr)
 		i2c_bus->state = 0;
 
 		//I2C Multi-Pin
-		ast_scu_multi_func_i2c(i);
+		sprintf(i2c_name, "I2C%d", i+1);
+		aspeed_pinctrl_group_set(i2c_name);
 
-		//I2CG Reset 		
+		//I2CG Reset
 		ast_i2c_write(i2c_bus, 0, I2C_FUN_CTRL_REG);
 
 		//Enable Master Mode
 		ast_i2c_write(i2c_bus, AST_I2CD_MASTER_EN, I2C_FUN_CTRL_REG);
 
 		//SLAVE mode enable 
-#if 0	
+#if 0
 		if(slaveaddr) {
 			ast_i2c_write(i2c_bus, slaveaddr, I2C_DEV_ADDR_REG);	
 			ast_i2c_write(i2c_bus, ast_i2c_read(i2c_bus,I2C_FUN_CTRL_REG) | AST_I2CD_SLAVE_EN, I2C_FUN_CTRL_REG);

@@ -22,9 +22,8 @@ int print_cpuinfo(void)
 
 	ast_scu_sys_rest_info();
 
-#ifdef CONFIG_MACH_ASPEED_G5
-	ast_scu_security_info();
-#endif
+	aspeed_security_info();
+
 	printf("PLL :   %4s MHz\n", strmhz(buf, aspeed_get_clk_in_rate()));
 	printf("CPU :   %4s MHz\n", strmhz(buf, aspeed_get_hpll_clk_rate()));
 	printf("MPLL :	%4s MHz, ECC: %s, ",
@@ -65,6 +64,16 @@ int print_cpuinfo(void)
 			printf(",");
 	}
 	puts("\n");
+
+	return 0;
+}
+#endif
+
+#if defined(CONFIG_MACH_ASPEED_G6)
+int arch_cpu_init(void)
+{
+	//unlock 13 scu
+	writel(0x1688a8a8, 0x1e6e2010);
 
 	return 0;
 }

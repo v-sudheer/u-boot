@@ -25,8 +25,17 @@ config MACH_ASPEED_G6
 
 endchoice
 
+config SLT_ASPEED
+	bool "SLT"
+
 config FPGA_ASPEED
 	bool "FPGA"
+
+config PALLADIUM
+	bool "Palladium sim"
+
+config ASPEED_ESPI
+	bool "ESPI"
 
 config AST_CVIC
 	bool "AST CVIC"

@@ -767,106 +767,6 @@ ast_scu_multi_func_romcs(u8 num)
 }
 
 extern void
-ast_scu_multi_func_i2c(u8 bus_no)
-{
-#ifdef CONFIG_ARCH_AST1010
-	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL4) |
-					SCU_FUN_PIN_SCL13 |
-					SCU_FUN_PIN_SDA13 |
-					SCU_FUN_PIN_SCL14 |
-					SCU_FUN_PIN_SDA14,
-			AST_SCU_FUN_PIN_CTRL4);
-
-	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL2) |
-					SCU_FUN_PIN_SCL1 |
-					SCU_FUN_PIN_SDA1 |
-					SCU_FUN_PIN_SCL2 |
-					SCU_FUN_PIN_SDA2 |
-					SCU_FUN_PIN_SCL3 |
-					SCU_FUN_PIN_SDA3 |
-					SCU_FUN_PIN_SCL4 |
-					SCU_FUN_PIN_SDA4 |
-					SCU_FUN_PIN_SCL5 |
-					SCU_FUN_PIN_SDA5 |
-					SCU_FUN_PIN_SCL6 |
-					SCU_FUN_PIN_SDA6 |
-					SCU_FUN_PIN_SCL7 |
-					SCU_FUN_PIN_SDA7 |
-					SCU_FUN_PIN_SCL8 |
-					SCU_FUN_PIN_SDA8 |
-					SCU_FUN_PIN_SALT1 |
-					SCU_FUN_PIN_SALT2 |
-					SCU_FUN_PIN_SALT3 |
-					SCU_FUN_PIN_SALT4,
-			AST_SCU_FUN_PIN_CTRL2);
-
-	ast_scu_write(ast_scu_read(AST_SCU_FUN_PIN_CTRL1) |
-					SCU_FUN_PIN_SCL9 |
-					SCU_FUN_PIN_SDA9 |
-					SCU_FUN_PIN_SCL10 |
-					SCU_FUN_PIN_SDA10 |
-					SCU_FUN_PIN_SCL11 |
-					SCU_FUN_PIN_SDA11 |
-					SCU_FUN_PIN_SCL12 |
-					SCU_FUN_PIN_SDA12,
-			AST_SCU_FUN_PIN_CTRL1);
-#else
-	//TODO check ... //In AST2400 Due to share pin with SD , please not enable I2C 10 ~14 
-	// AST 2400 have 14 , AST 2300 9 ...
-	u32 pin_ctrl = ast_scu_read(AST_SCU_FUN_PIN_CTRL5);
-	switch(bus_no) {
-		case 0:
-			break;
-		case 1:
-			break;
-		case 2:
-			pin_ctrl |= SCU_FUC_PIN_I2C3;
-			break;
-		case 3:
-			pin_ctrl |= SCU_FUC_PIN_I2C4;			
-			break;
-		case 4:
-			pin_ctrl |= SCU_FUC_PIN_I2C5;			
-			break;
-		case 5:
-			pin_ctrl |= SCU_FUC_PIN_I2C6;			
-			break;
-		case 6:
-			pin_ctrl |= SCU_FUC_PIN_I2C7;			
-			break;
-		case 7:
-			pin_ctrl |= SCU_FUC_PIN_I2C8;			
-			break;
-		case 8:
-			pin_ctrl |= SCU_FUC_PIN_I2C9;	
-			break;
-		case 9:
-			pin_ctrl |= SCU_FUC_PIN_I2C10;
-			pin_ctrl &= ~SCU_FUC_PIN_SD1;
-			break;
-		case 10:
-			pin_ctrl |= SCU_FUC_PIN_I2C11;			
-			pin_ctrl &= ~SCU_FUC_PIN_SD1;
-			break;
-		case 11:
-			pin_ctrl |= SCU_FUC_PIN_I2C12;			
-			pin_ctrl &= ~SCU_FUC_PIN_SD1;		
-			break;
-		case 12:
-			pin_ctrl |= SCU_FUC_PIN_I2C13;			
-			pin_ctrl &= ~SCU_FUC_PIN_SD1;
-			break;
-		case 13:
-			pin_ctrl |= SCU_FUC_PIN_I2C14;	
-			break;
-	}
-
-	ast_scu_write(pin_ctrl, AST_SCU_FUN_PIN_CTRL5);
-#endif
-}	
-
-
-extern void
 ast_scu_multi_func_pwm_tacho(void)
 {
 	u32 sts = 0;
@@ -1085,42 +985,11 @@ ast_scu_multi_func_sgpio(void)
 
 
 //***********************************Information ***********************************
-
-extern void
-ast_scu_security_info(void)
-{
-	switch((ast_scu_read(AST_SCU_HW_STRAP2) >> 18) & 0x3) {
-		case 1:
-			printf("SEC : DSS Mode \n");
-			break;
-		case 2:
-			printf("SEC : UnKnow \n");
-			break;			
-		case 3:
-			printf("SEC : SPI2 Mode \n");
-			break;						
-	}
-
-}	
-
 extern void
 ast_scu_sys_rest_info(void)
 {
 	u32 rest = ast_scu_read(AST_SCU_SYS_CTRL);
 
-#ifdef CONFIG_ARCH_AST1010
-	if(rest & SCU_SYS_WDT_FULL_FLAG) {
-		SCUMSG("RST : External \n");
-		ast_scu_write(SCU_SYS_WDT_FULL_FLAG, AST_SCU_SYS_CTRL);
-	} else if (rest & SCU_SYS_WDT_SOC_RESET) {
-		SCUMSG("RST : Watchdog - SOC\n");
-		ast_scu_write(SCU_SYS_WDT_SOC_RESET, AST_SCU_SYS_CTRL);
-	} else if (rest & SCU_SYS_PWR_RESET_FLAG) {
-		SCUMSG("RST : Power On \n");
-		ast_scu_write(SCU_SYS_PWR_RESET_FLAG, AST_SCU_SYS_CTRL);
-	} else {
-	}
-#else
 	if(rest & SCU_SYS_EXT_RESET_FLAG) {
 		SCUMSG("RST : External \n");
 		ast_scu_write(ast_scu_read(AST_SCU_SYS_CTRL) & ~SCU_SYS_EXT_RESET_FLAG, AST_SCU_SYS_CTRL);
@@ -1149,7 +1018,7 @@ ast_scu_sys_rest_info(void)
 		SCUMSG("RST : Power On \n");
 		ast_scu_write(ast_scu_read(AST_SCU_SYS_CTRL) & ~SCU_SYS_PWR_RESET_FLAG, AST_SCU_SYS_CTRL);
 	}
-#endif
+
 }	
 
 extern void

@@ -21,7 +21,7 @@
 #define CONFIG_SYS_HZ_CLOCK	(24000000)
 #endif
 
-#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc"
+#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
@@ -51,7 +51,7 @@
 						"0x400000@0x400000(rootfs)," \
 						"-(pd_rootfs)"
 /* ------------------------------------------------------------------------- */
-#define CONFIG_BOOTCOMMAND	"bootm 20080000 - 20070000"
+#define CONFIG_BOOTCOMMAND	"bootm 20080000 20400000 20070000"
 #define CONFIG_ENV_OVERWRITE
 /* ------------------------------------------------------------------------- */
 #define CONFIG_GATEWAYIP		192.168.0.1
@@ -68,16 +68,17 @@
 /* SPL part */
 #define CONFIG_SPL_FRAMEWORK
 
-#define CONFIG_SPL_TEXT_BASE					0x88000000
-#define CONFIG_SPL_MAX_SIZE						0x00040000
+#define CONFIG_SPL_TEXT_BASE					0x00000000
+#define CONFIG_SPL_MAX_SIZE						0x00010000	/* AST2600 support 64kbyte root of trust */
 #define CONFIG_SPL_STACK                        0x88000000
+/*
 #define CONFIG_SYS_SPL_MALLOC_START     		0x88040000
 #define CONFIG_SYS_SPL_MALLOC_SIZE      		0x00100000
-
+*/
 #define CONFIG_SPL_RAM_DEVICE
 
 /* BSS setup */
-#define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-g5/u-boot-spl.lds"
+#define CONFIG_SPL_LDSCRIPT     "board/aspeed/ast-g6/u-boot-spl.lds"
 
 /* MMC support */
 #ifdef CONFIG_AST_SDHCI
@@ -88,7 +89,7 @@
 #define CONFIG_SPL_BSS_START_ADDR			0x90000000
 #define CONFIG_SPL_BSS_MAX_SIZE				0x00100000
 
-#define CONFIG_SPL_FS_LOAD_ARGS_NAME		"ast2500.dtb"
+#define CONFIG_SPL_FS_LOAD_ARGS_NAME		"ast2600.dtb"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME		"uImage"
 
 #define SYS_LOAD_IMAGE_ADDR					0x80800000

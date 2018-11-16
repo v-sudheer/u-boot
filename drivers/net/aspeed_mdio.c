@@ -172,13 +172,6 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 	return -1;
 }
 
-static int aspeed_mdio_reset(struct mii_dev *bus)
-{
-//	struct eth_device *dev = bus->priv;
-//	printf("aspeed_mdio_reset \n");
-	return 0;
-}
-
 extern int aspeed_mdio_init(const char *name, ulong ioaddr)
 {
 	struct mii_dev *bus = mdio_alloc();
@@ -190,7 +183,6 @@ extern int aspeed_mdio_init(const char *name, ulong ioaddr)
 	
 	bus->read = aspeed_mdio_read;
 	bus->write = aspeed_mdio_write;
-	bus->reset = aspeed_mdio_reset;
 	snprintf(bus->name, sizeof(bus->name), "%s", name);	
 
 	bus->priv = (void *) ioaddr;

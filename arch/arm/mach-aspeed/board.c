@@ -135,7 +135,7 @@ int board_mmc_init(bd_t *bis)
 
 	ast_scu_init_sdhci();
 	ast_scu_multi_func_sdhc_slot(3);
-	//multipin. Remind: AST2300FPGA only supports one port at a time
+
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		if (ast_sdhi_init(mmc_base_address[i], aspeed_get_sd_clk_rate(), 100000))
 			return 1;

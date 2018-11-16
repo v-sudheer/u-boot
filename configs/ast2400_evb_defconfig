@@ -411,6 +411,7 @@ CONFIG_BOOTP_VCI_STRING="U-Boot.arm"
 #
 # Clock
 #
+# CONFIG_CLK_ASPEED is not set
 # CONFIG_CPU is not set
 
 #
@@ -531,6 +532,7 @@ CONFIG_FTGMAC100=y
 #
 # Pin controllers
 #
+# CONFIG_PINCTRL_ASPEED is not set
 
 #
 # Power
@@ -547,6 +549,7 @@ CONFIG_FTGMAC100=y
 #
 # Reset Controller Support
 #
+# CONFIG_ASPEED_RESET is not set
 
 #
 # Real Time Clock
@@ -622,7 +625,7 @@ CONFIG_USE_PRIVATE_LIBGCC=y
 CONFIG_SYS_HZ=1000
 # CONFIG_USE_TINY_PRINTF is not set
 CONFIG_REGEX=y
-# CONFIG_LIB_RAND is not set
+CONFIG_LIB_RAND=y
 # CONFIG_CMD_DHRYSTONE is not set
 # CONFIG_RSA is not set
 

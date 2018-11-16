@@ -472,6 +472,7 @@ CONFIG_DM_SEQ_ALIAS=y
 # Clock
 #
 # CONFIG_CLK is not set
+# CONFIG_CLK_ASPEED is not set
 # CONFIG_CPU is not set
 
 #
@@ -621,6 +622,7 @@ CONFIG_FTGMAC100=y
 # Pin controllers
 #
 # CONFIG_PINCTRL is not set
+# CONFIG_PINCTRL_ASPEED is not set
 
 #
 # Power
@@ -641,6 +643,7 @@ CONFIG_FTGMAC100=y
 #
 # Reset Controller Support
 #
+# CONFIG_ASPEED_RESET is not set
 
 #
 # Real Time Clock
@@ -761,7 +764,7 @@ CONFIG_USE_PRIVATE_LIBGCC=y
 CONFIG_SYS_HZ=1000
 # CONFIG_USE_TINY_PRINTF is not set
 CONFIG_REGEX=y
-# CONFIG_LIB_RAND is not set
+CONFIG_LIB_RAND=y
 # CONFIG_CMD_DHRYSTONE is not set
 # CONFIG_RSA is not set
 # CONFIG_TPM is not set

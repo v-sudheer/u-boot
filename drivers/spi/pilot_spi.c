@@ -68,7 +68,7 @@ struct pilot_spi_priv{
 	uint cs;
 };
 /********************** Helpers************************/
-void pilot_write32(unsigned int* srcAddr, unsigned int* dstAddr)  {
+void pilot_write32(volatile unsigned int* srcAddr, volatile unsigned int* dstAddr)  {
 	asm volatile ("  PUSH {R2-R9} ");
 	asm volatile ("  LDMIA  R0!, {R2-R9} ");
 	asm volatile ("  STMIA  R1!, {R2-R9} ");
@@ -121,7 +121,6 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
     debug("BMISC after is %x\n", spiregs->BMisc);
     debug("Addr3 after is %x\n", spiregs->Addr3);
 #endif
-    spiregs->Addr3 = 0x0;
     Ctrl = (0x80|spiregs->CmdCtrl);
     Dummy = 0;
 
@@ -136,13 +135,20 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
 	spiregs->Addr2 = cmd[2];
 	spiregs->Addr3 = cmd[1];
 	cmdlen = 4;
-	debug("Address programmed is %x\n", spiregs->Addr);
+	debug ("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }else if(cmdlen > 4){
+#if 0
 	spiregs->Addr0 = cmd[4];
 	spiregs->Addr1 = cmd[3];
 	spiregs->Addr2 = cmd[2];
 	spiregs->Addr3 = cmd[1];
-	debug("Address programmed is %x\n", spiregs->Addr);
+#else
+	spiregs->Addr0 = cmd[3];
+	spiregs->Addr1 = cmd[2];
+	spiregs->Addr2 = cmd[1];
+	spiregs->Addr3 = cmd[4];
+#endif
+	debug ("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }
 
     /* Fill in Command Len and data len */
@@ -170,7 +176,7 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
         // is more than 32 bytes length. 
         while(aligned_addr--)
         {
-            pilot_write32((unsigned int*)(data), (unsigned int*)&spiregs->Data.Data8[0]);
+            pilot_write32((volatile unsigned int*)(data), (volatile unsigned int*)&spiregs->Data.Data8[0]);
             data += 32;
         }
         // 1. If there is any unaligned length that is left over from the previous
@@ -188,7 +194,7 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
         // is more than 32 bytes length. 
         while(aligned_addr--)
         {
-            pilot_write32((unsigned int*)&spiregs->Data.Data8[0], (unsigned int*)(data));
+            pilot_write32((volatile unsigned int*)&spiregs->Data.Data8[0], (volatile unsigned int*)(data));
             data += 32;
         }
         // 1. If there is any unaligned length that is left over from the previous
@@ -198,10 +204,11 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
         for (i = 0; i < unaligned_addr; i++)
             data[i] = spiregs->Data.Data8[0];
     }
+    waitforspiready(spiregs);
 
+#if 0
     /* Switch back to non-register mode and disable Write Fifo mode */
     spiregs->CmdCtrl &= 0x73;
-#if 0
     spiregs->BMisc |= (0x3 << 30); //Undo Override
 #endif
 

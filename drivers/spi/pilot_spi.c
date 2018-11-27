@@ -66,6 +66,7 @@ struct pilot_spi_priv{
 	struct pilot_spi_regs *regs;
 	uint num_cs;
 	uint cs;
+	unsigned char SPI3B4B_strap;
 };
 /********************** Helpers************************/
 void pilot_write32(volatile unsigned int* srcAddr, volatile unsigned int* dstAddr)  {
@@ -90,7 +91,7 @@ static void waitforspiready(volatile struct pilot_spi_regs* regs)
 #endif
 	}
 }
-static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs, 
+static int pilot4_boot_bmc_spi_transfer(struct pilot_spi_priv * priv, 
 		int bus, int cs, int bank,unsigned char *cmd,int cmdlen, 
 		int dir, unsigned char *data, unsigned long datalen, int fbyteaddr)
 {
@@ -99,9 +100,10 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
     unsigned char Dummy;
     unsigned char Ctrl;
     unsigned long Command;
+    struct pilot_spi_regs* regs = priv->regs;
     int i, aligned_addr = 0, unaligned_addr = 0;
     int address_offset = fbyteaddr ? 4 : 3;
-    struct pilot_spi_regs* spiregs = regs;
+    struct pilot_spi_regs* spiregs = priv->regs;
 
     // See if the address is Dword aligned. If it is aligned then the reads/writes
     // can be optimized further
@@ -126,29 +128,44 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
 
     /* Fill in Command And Address */
     Opcode = cmd[0];
-    debug("Opcode is %x\n", Opcode);
+    printf("Opcode is %x\n", Opcode);
 
     if (cmdlen == 4)
     {
-	spiregs->Addr0 = 0;
-	spiregs->Addr1 = cmd[3];
-	spiregs->Addr2 = cmd[2];
-	spiregs->Addr3 = cmd[1];
+	// This is required with 4 byte strap enabled
+	if(priv->SPI3B4B_strap == 0x40)
+	{
+		printf("4B Strap enabled\n");
+		spiregs->Addr0 = 0;
+		spiregs->Addr1 = cmd[3];
+		spiregs->Addr2 = cmd[2];
+		spiregs->Addr3 = cmd[1];
+	}else{
+		printf("3B Strap \n");
+		spiregs->Addr0 = cmd[3];
+		spiregs->Addr1 = cmd[2];
+		spiregs->Addr2 = cmd[1];
+		spiregs->Addr3 = cmd[4];
+	}
 	cmdlen = 4;
-	debug ("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
+	printf("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }else if(cmdlen > 4){
-#if 0
-	spiregs->Addr0 = cmd[4];
-	spiregs->Addr1 = cmd[3];
-	spiregs->Addr2 = cmd[2];
-	spiregs->Addr3 = cmd[1];
-#else
-	spiregs->Addr0 = cmd[3];
-	spiregs->Addr1 = cmd[2];
-	spiregs->Addr2 = cmd[1];
-	spiregs->Addr3 = cmd[4];
-#endif
-	debug ("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
+	//This is needed with 4 byte strap enabled
+	if(priv->SPI3B4B_strap == 0x40)
+	{
+		printf("4B Strap enabled\n");
+		spiregs->Addr0 = cmd[4];
+		spiregs->Addr1 = cmd[3];
+		spiregs->Addr2 = cmd[2];
+		spiregs->Addr3 = cmd[1];
+	}else{
+		printf("3B Strap \n");
+		spiregs->Addr0 = cmd[3];
+		spiregs->Addr1 = cmd[2];
+		spiregs->Addr2 = cmd[1];
+		spiregs->Addr3 = cmd[4];
+	}
+	printf("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }
 
     /* Fill in Command Len and data len */
@@ -219,13 +236,14 @@ static int pilot4_boot_bmc_spi_transfer(volatile struct pilot_spi_regs* regs,
 int cmdlent;
 int datalent;
 u8  Command[5];
-int  pilot_priv_spi_xfer(volatile struct pilot_spi_regs* regs,
+int  pilot_priv_spi_xfer(struct pilot_spi_priv * priv, 
 			int bus, int cs, int bank,unsigned int bitlen,
 		const void *dout, void *din, unsigned long flags)
 {
 	u8  *txp = (u8*)dout; /* dout can be NULL for read operation */
 	u8  *rxp = din;  /* din can be NULL for write operation */
 	u8	*cmd;
+	 struct pilot_spi_regs* regs = priv->regs;
 	int dir;
 	int fbyteaddr = 0; //((slave->flags & SPI_FBYTE_SUPP) == SPI_FBYTE_SUPP);
 
@@ -251,7 +269,8 @@ int  pilot_priv_spi_xfer(volatile struct pilot_spi_regs* regs,
 		if((flags & SPI_XFER_END) == SPI_XFER_END){
 			//pilot_spi_verify_command(Command, &datalen, cmdlen); 
 			wait_till_ready(10);
-			pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
+			//pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
+			pilot4_boot_bmc_spi_transfer(priv, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
 			wait_till_ready(10);
 			datalent = 0;
 			cmdlent = 0;
@@ -263,18 +282,21 @@ int  pilot_priv_spi_xfer(volatile struct pilot_spi_regs* regs,
 	if((rxp == NULL) && (txp != NULL)){
 		dir = 2;	
 		wait_till_ready(10);
-		pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, dir, txp, datalent, fbyteaddr);
+		//pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, dir, txp, datalent, fbyteaddr);
+		pilot4_boot_bmc_spi_transfer(priv, bus, cs, bank,Command,cmdlent, dir, txp, datalent, fbyteaddr);
 		wait_till_ready(10);
 
 	}
 	else if ((rxp != NULL) && (txp == NULL)){
 		dir = 1;
 		wait_till_ready(10);
-		pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, dir, rxp, datalent, fbyteaddr);
+		//pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, dir, rxp, datalent, fbyteaddr);
+		pilot4_boot_bmc_spi_transfer(priv, bus, cs, bank,Command,cmdlent, dir, rxp, datalent, fbyteaddr);
 		wait_till_ready(10);
 	}else{
 		wait_till_ready(10);
-		pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
+		//pilot4_boot_bmc_spi_transfer(regs, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
+		pilot4_boot_bmc_spi_transfer(priv, bus, cs, bank,Command,cmdlent, 0, NULL, 0, fbyteaddr);
 		wait_till_ready(10);
 	}
 	datalent = 0;
@@ -327,6 +349,7 @@ static int pilot_spi_child_pre_probe(struct udevice *dev)
 	      slave_plat->cs, slave_plat->max_hz, slave_plat->mode);
 	return 0;
 }
+#define PILOT_STRAP_STATUS_REG 0x4010010c
 static int pilot_spi_probe(struct udevice *bus)
 {
 	struct pilot_spi_platdata *plat = dev_get_platdata(bus);
@@ -335,6 +358,7 @@ static int pilot_spi_probe(struct udevice *bus)
 	debug("PilotSPI: %s\n", __func__);
 	priv->regs = (struct pilot_spi_regs *)plat->regs_addr;
 	priv->num_cs = plat->num_cs;
+	priv->SPI3B4B_strap = ((*(volatile unsigned int*)(PILOT_STRAP_STATUS_REG)) & 0x40);
 	dm_spi_bus->max_hz = plat->speed_hz;
 	pilot_spi_ctlr_enable(priv->regs, 0);
 	pilot_spi_ctlr_enable(priv->regs, 1);
@@ -392,7 +416,8 @@ static int pilot_spi_xfer(struct udevice *dev, unsigned int bitlen,
 	debug("SHIVAH: %s bitlen %d flags %d\n", __func__, bitlen, flags);
 	int byte = bitlen/8;
 
-	pilot_priv_spi_xfer(priv->regs, bus->seq, slave_plat->cs, 0, bitlen, dout, din, flags);
+	//pilot_priv_spi_xfer(priv->regs, bus->seq, slave_plat->cs, 0, bitlen, dout, din, flags);
+	pilot_priv_spi_xfer(priv, bus->seq, slave_plat->cs, 0, bitlen, dout, din, flags);
 	return 0;
 }
 

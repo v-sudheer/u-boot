@@ -55,6 +55,7 @@ config EXYNOS_SPI
 
 config PILOT_SPI
         bool "Aspeed Pilot SPI driver"
+	depends on ARCH_PILOT && ENABLE_PILOT_SPI
         help
           Enable the Aspeed Pilot SPI driver. This driver can be used to
           access the SPI NOR flash on Pilot4 platforms. 

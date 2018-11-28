@@ -17,10 +17,18 @@ config SYS_CONFIG_NAME
 	  Based on this option include/configs/<CONFIG_SYS_CONFIG_NAME>.h header
 	  will be used for board configuration.
 
-config ENABLE_SPI
+config ENABLE_PILOT_SPI
         bool "Configure SPI Controllers and Banks"
         depends on ARCH_PILOT
         help
           Say Y here to enable/disable SPI controllers and banks 
           for pilot4 in U-Boot.
+
+config MAX_BOOT_SPI_BANKS
+        hex "Number of SPI devices connected to BOOT SPI Controller"
+        default 0x1
+	depends on ENABLE_PILOT_SPI
+        help
+          Set the number of SPI devices connected to BOOT SPI Controller
+		Maximum value is 3
 endif

@@ -128,7 +128,7 @@ disable_GIC:
   @; void enable_irq_id(unsigned int ID)
   @; Enables the interrupt source number ID
 enable_irq_id:
-
+	MOV	R4,R1
   @; Get base address of private perpherial space
   MOV     r1, r0                  @; Back up passed in ID value
   MRC     p15, 4, r0, c15, c0, 0  @; Read periph base address
@@ -146,8 +146,23 @@ enable_irq_id:
   MOV     r3, #1                  @; Move enable value into r3
   MOV     r3, r3, LSL r1          @; Shift it left to position of ID
 
+
+  CMP     r4,#'N'
+  BEQ   Go_BACk
   ADD     r2, r2, #0x1100         @; Add the base offset of the Enable Set registers to the offset for the ID
-  STR     r3, [r0, r2]            @; Store out  (ICDISER) ref to table 1-3 a9 mpcore trm, 4.3.5 pg 71 gic arch spec                                                                
+  STR     r3, [r0, r2]            @; Store out  (ICDISER)  ref to table 1-3 a9 mpcore trm, 4.3.5 pg 71 gic arch spec
+  B       skip
+ Go_BACk:
+  ADD     r2, r2, #0x1080         @; Add the base offset of the Enable Set registers to the offset for the ID
+  LDR	  r4,[r0,r2]
+  ORR	  R3,R3,R4
+  STR     r3, [r0, r2]            @; Store out  (ICDISR)  ref to table 1-3 a9 mpcore trm, 4.3.5 pg 71 gic arch sp
+  MOV	  R0,R5
+skip:
+
+
+
+
 
   BX      lr
 
@@ -250,6 +265,19 @@ enable_gic_processor_interface:
 
   LDR     r1, [r0, #0x100]        @; Read the Processor Interface Control register   (ICCICR/ICPICR) ref to table 1-3, 3-8 a9 mpcore trm, 4.4.1 pg 99 GIC arch spec 
   ORR     r1, r1, #0x03           @; Bit 0: Enables secure interrupts, Bit 1: Enables Non-Secure interrupts
+  STR     r1, [r0, #0x100]        @; Write the Processor Interface Control register  (ICCICR/ICPICR) ref to GIC arch spec
+
+  BX      lr
+  .global enable_gic_processor_interface1
+  @; void enable_gic_processor_interface(void)
+  @; Enables the processor interface
+  @; Must been done one each CPU seperately
+enable_gic_processor_interface1:
+  MOV	  R2,R0
+  MRC     p15, 4, r0, c15, c0, 0  @; Read periph base address  reading Configuration Base address reg pg no 91 a9 trm  
+
+  LDR     r1, [r0, #0x100]        @; Read the Processor Interface Control register   (ICCICR/ICPICR) ref to table 1-3, 3-8 a9 mpcore trm, 4.4.1 pg 99 GIC arch spec 
+  ORR     r1, r1,R2               @; Bit 0: Enables secure interrupts, Bit 1: Enables Non-Secure interrupts
   STR     r1, [r0, #0x100]        @; Write the Processor Interface Control register  (ICCICR/ICPICR) ref to GIC arch spec
 
   BX      lr

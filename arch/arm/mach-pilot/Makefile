@@ -18,8 +18,8 @@ env = h
 asflags-y += -DHW_ENV
 ccflags-y += -DHW_ENV
 
-asflags-y  +=-DASIC_DUT -DHW_ENV -g  -Os -fno-common -ffixed-r8 -msoft-float  -gdwarf-2 -D__KERNEL__ -fno-builtin -ffreestanding -nostdinc -isystem -pipe  -DCONFIG_ARM -D__ARM__ -marm  -mabi=aapcs-linux -mno-thumb-interwork -march=armv7-a -Wall -Wstrict-prototypes -fno-stack-protector
-ccflags-yi +=-DASIC_DUT -DHW_ENV -g  -Os -fno-common -ffixed-r8 -msoft-float  -gdwarf-2 -D__KERNEL__ -fno-builtin -ffreestanding -nostdinc -isystem -pipe  -DCONFIG_ARM -D__ARM__ -marm  -mabi=aapcs-linux -mno-thumb-interwork -march=armv7-a -Wall -Wstrict-prototypes -fno-stack-protector
+asflags-y  +=-DASIC_DUT -DHW_ENV -g  -Os -fno-common -ffixed-r8 -msoft-float  -gdwarf-2 -D__KERNEL__ -fno-builtin -ffreestanding -nostdinc -isystem -pipe  -DCONFIG_ARM -D__ARM__ -marm  -mabi=aapcs-linux -mno-thumb-interwork -march=armv7-a -mcpu=cortex-a9 -Wall -Wstrict-prototypes -fno-stack-protector
+ccflags-yi +=-DASIC_DUT -DHW_ENV -g  -Os -fno-common -ffixed-r8 -msoft-float  -gdwarf-2 -D__KERNEL__ -fno-builtin -ffreestanding -nostdinc -isystem -pipe  -DCONFIG_ARM -D__ARM__ -marm  -mabi=aapcs-linux -mno-thumb-interwork -march=armv7-a -mcpu=cortex-a9 -Wall -Wstrict-prototypes -fno-stack-protector
 
 ifeq ($(DDR_FREQ),)
         ccflags-y +=-DDDR_1600MHZ
@@ -82,6 +82,14 @@ obj-y   += timer.o
 obj-y   += flash.o
 obj-y   += lowlevel_init.o
 obj-y	+= ddr_options.o seccode.o sw_reset_modules.o
-obj-y	+= MP_GIC.o 
+#obj-y	+= MP_GIC.o 
+
+obj-y   += startup_secure.o
+obj-y   += Remap.o
+obj-y   += monitor_core0.o
+obj-y   += monitor_core1.o
+obj-y	+= MP_SCU.o 
+obj-y	+= GIC.o 
+obj-y	+= gic.o 
 obj-(CONFIG_BOMBER_PWM_WORKAROUND)	+= bomber_pwm.o
 obj-(CONFIG_USE_SSP_RESET)	+= ssp_reset_wa.o

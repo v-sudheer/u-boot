@@ -17,6 +17,7 @@
 @ with this package.
 @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#define SECURE 1
 #if 0
 .include  "buffer.equ"
 .include  "pilot.equ"
@@ -618,6 +619,25 @@ jumpcap:
 	ldr r1, [r0]
 	and r1,r1,#0x2
 	str r1,[r0]               @ remap
+
+#if SECURE
+	LDR	R0,=0x10002200
+	LDR	R1,=0xBADBABE5
+	STR	R1,[R0]
+WAIT:
+	LDR	R1,[R0]
+	CMP	R1,#0
+	BNE	WAIT
+
+	MOV	R6,pc
+	B	start_sec
+#endif	
+
+
+
+
+
+
 	b no_sw_reset
 
 noddrinit:
@@ -628,6 +648,7 @@ noddrinit:
 no_sw_reset:
 	@;ldr r13, =0x40100240
 	ldr r13, =0x10008000
+	BL	gic_ns_init
 	ldmib    r13,{r0-r12,r15}
 
 .global secondary_cpus_init_exp
@@ -646,7 +667,20 @@ secondary_cpus_init_exp:
 
    LDR	r2, [r0]
    STR	r2, [r1]
+#if SECURE
+	LDR	R0,=0x401008B0
+	LDR	R1,[R0]
+	AND	R2,R1,#(1<<1)
+	CMP	R2,#0
+	BNE	no_secure_init
+	MOV R6,R15
+	b	start_sec
 
+no_secure_init:
+#endif
+	ldr r13, =0x10008100
+	BL	gic_ns_init
+ 
    @; Jump to the scratch pad area
    LDR r1, =CORE1_HOVER_SCRATCH
    LDR r2, =CORE1_HOVER_START

@@ -667,7 +667,6 @@ config ARCH_PILOT
 	select CPU_V7
 	select OF_CONTROL
 	select DM
-	select DM_ETH
 	select DM_SPI
 	select DM_SPI_FLASH
 

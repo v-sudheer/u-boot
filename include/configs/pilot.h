@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2018 Aspeed Technology Inc.
+ * Shivah Shankar <shivahshankar.shankarnarayanrao@aspeedtech.com>
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
 #ifndef __ASPEED_PILOT_CONFIG_H
 #define __ASPEED_PILOT_CONFIG_H
 #include <asm/arch/pilot_map.h>
@@ -15,7 +20,7 @@
 /*#define CONFIG_SYS_TEXT_BASE 0x8A000000*/
 #define CONFIG_SYS_CACHELINE_SIZE		32
 #define CONFIG_NR_DRAM_BANKS			1
-#define CONFIG_SYS_MAXARGS			32 /* max number of command args */
+#define CONFIG_SYS_MAXARGS			32
 #define CONFIG_SYS_LOAD_ADDR			0x80B00000
 #define CONFIG_PHY_ADDR0                        0x2
 #define CONFIG_PHY_ADDR1                        0x1
@@ -39,6 +44,14 @@
 #else
 #endif
 
+#define CONFIG_PILOT4_MAC0 1
+#define CONFIG_PILOT4_MAC1 1
+#define CONFIG_NET_MULTI
+#define CONFIG_HAS_ETH1
+#define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
+#define CONFIG_SYS_ENET
+#define CONFIG_COMMANDS
+
 #define CONFIG_SYS_CBSIZE			2048
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_BAUDRATE                            115200
@@ -57,6 +70,6 @@
 #define CONFIG_SYS_INIT_RAM_ADDR        0x10006000 //0xFFFF0000
 #define CONFIG_SYS_INIT_RAM_SIZE        0x4000
 #define CONFIG_SYS_INIT_SP_ADDR         (CONFIG_SYS_INIT_RAM_ADDR + \
-		                                        CONFIG_SYS_INIT_RAM_SIZE - \
-		                                        GENERATED_GBL_DATA_SIZE)
+					CONFIG_SYS_INIT_RAM_SIZE - \
+					GENERATED_GBL_DATA_SIZE)
 #endif /*__ASPEED_PILOT_CONFIG_H*/

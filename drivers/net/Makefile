@@ -1,4 +1,5 @@
-#
+# Copyright (C) 2018 Shivah Shankar <shivahshankar.shankarnarayanrao@aspeedtech.com>
+
 # (C) Copyright 2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
@@ -76,3 +77,4 @@ obj-$(CONFIG_FSL_MEMAC) += fm/memac_phy.o
 obj-$(CONFIG_VSC9953) += vsc9953.o
 obj-$(CONFIG_PIC32_ETH) += pic32_mdio.o pic32_eth.o
 obj-$(CONFIG_ASPEEDNIC) += aspeednic.o
+obj-$(CONFIG_PILOT4_MAC) += pilotmac.o pilotmii.o

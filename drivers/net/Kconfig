@@ -191,4 +191,13 @@ config ASPEEDNIC
 	  Network support for the Aspeed ast2400 and ast2500 series network
 	  devices including NC-SI support.
 
+config PILOT4_MAC
+	  bool "Pilot4 ethernet support"
+	  depends on ARCH_PILOT
+	  select PHYLIB
+	  default Y
+	  help
+	  Network support for the Aspeed pilot4 series network.
+
+
 endif # NETDEVICES

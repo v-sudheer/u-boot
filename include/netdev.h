@@ -5,10 +5,6 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-/*
- * netdev.h - definitions an prototypes for network devices
- */
-
 #ifndef _NETDEV_H_
 #define _NETDEV_H_
 
@@ -25,6 +21,7 @@ int board_eth_init(bd_t *bis);
 int cpu_eth_init(bd_t *bis);
 
 /* Driver initialization prototypes */
+int ast_eth_initialize(bd_t *bis, int base_addr);
 int at91emac_register(bd_t *bis, unsigned long iobase);
 int au1x00_enet_initialize(bd_t*);
 int ax88180_initialize(bd_t *bis);

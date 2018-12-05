@@ -7,7 +7,7 @@
 #include <common.h>
 #include <config.h>
 DECLARE_GLOBAL_DATA_PTR;
-
+extern int ast_eth_initialize(bd_t *bis, int base_addr);
 int board_init(void)
 {
 	return 0;
@@ -40,5 +40,14 @@ void reset_cpu(ulong addr)
 	printf("resetting CPI\n");
 
 	while(1) {;}
+}
+
+
+int board_eth_init(bd_t *bis)
+{
+	u32 ret = 0;
+
+	ast_eth_initialize(bis, 0x40200000);
+	return ret;
 }
 

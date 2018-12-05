@@ -19,7 +19,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PILOT_SPI_NONE  0
 #define PILOT_SPI_READ  1
 #define PILOT_SPI_WRITE  2
-
 struct pilot_spi_regs{
 	volatile union {
 		volatile struct {
@@ -46,17 +45,25 @@ struct pilot_spi_regs{
 	volatile unsigned char Tcsh;
 	volatile unsigned char SpiCtrl;
 	volatile unsigned char Rsvd2[3];
-	volatile unsigned char ClkDivL;
-	volatile unsigned char ClkDivH;
-	volatile unsigned char Rsvd3[2];
+	volatile union {
+                volatile struct {
+			volatile unsigned short ClkDiv_cs0;
+			volatile unsigned short ClkDiv_cs1;
+                };
+                volatile unsigned long ClkDiv0;
+        };
+
 	volatile unsigned long SpiStatus;
 	volatile unsigned long BMisc;
-	volatile unsigned char Rsvd5[16];//Pilot needs so much of offset as the data register is at offset 0x30
+	volatile unsigned long BInten;
+	volatile unsigned long ClkDiv1;
+	volatile unsigned char Rsvd5[8];//Pilot needs so much of offset as the data register is at offset 0x30
 	volatile union {
 		volatile unsigned char Data8[4];
 		volatile unsigned long Data32;
 	} Data;
 };
+
 struct pilot_spi_platdata {
 	uint speed_hz;
 	fdt_addr_t regs_addr;
@@ -67,6 +74,10 @@ struct pilot_spi_priv{
 	uint num_cs;
 	uint cs;
 	unsigned char SPI3B4B_strap;
+	unsigned int sysmisc_val;
+	unsigned int bclkdiv_val;
+	unsigned int sysmisc_park;
+	unsigned int bclkdiv_park;
 };
 /********************** Helpers************************/
 void pilot_write32(volatile unsigned int* srcAddr, volatile unsigned int* dstAddr)  {
@@ -128,44 +139,44 @@ static int pilot4_boot_bmc_spi_transfer(struct pilot_spi_priv * priv,
 
     /* Fill in Command And Address */
     Opcode = cmd[0];
-    printf("Opcode is %x\n", Opcode);
+    debug("Opcode is %x\n", Opcode);
 
     if (cmdlen == 4)
     {
 	// This is required with 4 byte strap enabled
 	if(priv->SPI3B4B_strap == 0x40)
 	{
-		printf("4B Strap enabled\n");
+		debug("4B Strap enabled\n");
 		spiregs->Addr0 = 0;
 		spiregs->Addr1 = cmd[3];
 		spiregs->Addr2 = cmd[2];
 		spiregs->Addr3 = cmd[1];
 	}else{
-		printf("3B Strap \n");
+		debug("3B Strap \n");
 		spiregs->Addr0 = cmd[3];
 		spiregs->Addr1 = cmd[2];
 		spiregs->Addr2 = cmd[1];
 		spiregs->Addr3 = cmd[4];
 	}
 	cmdlen = 4;
-	printf("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
+	debug("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }else if(cmdlen > 4){
 	//This is needed with 4 byte strap enabled
 	if(priv->SPI3B4B_strap == 0x40)
 	{
-		printf("4B Strap enabled\n");
+		debug("4B Strap enabled\n");
 		spiregs->Addr0 = cmd[4];
 		spiregs->Addr1 = cmd[3];
 		spiregs->Addr2 = cmd[2];
 		spiregs->Addr3 = cmd[1];
 	}else{
-		printf("3B Strap \n");
+		debug("3B Strap \n");
 		spiregs->Addr0 = cmd[3];
 		spiregs->Addr1 = cmd[2];
 		spiregs->Addr2 = cmd[1];
 		spiregs->Addr3 = cmd[4];
 	}
-	printf("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
+	debug("Address programmed is %x len is %x\n", spiregs->Addr, cmdlen);
     }
 
     /* Fill in Command Len and data len */
@@ -379,14 +390,23 @@ static int pilot_spi_claim_bus(struct udevice *dev)
 		dev_get_parent_platdata(dev);
 	struct pilot_spi_priv *priv = dev_get_priv(bus);
 	debug("SHIVAH: %s bus is %d cs is %d\n", __func__, bus->seq, slave_plat->cs);
+	*((volatile unsigned int *) 0x40100120) = priv->sysmisc_val;
+	debug("\nSYSMISC_val is %x\n",*((volatile unsigned int *) 0x40100120));
+	if(priv->cs > 1){
+		priv->regs->ClkDiv1 = priv->bclkdiv_val;
+		debug("\nCLKDIV_val is %x\n",priv->regs->ClkDiv1);
+	}else{
+		priv->regs->ClkDiv0 = priv->bclkdiv_val;
+		debug("\nCLKDIV_val is %x\n",priv->regs->ClkDiv0);
+	}
 #if 1	
+	/* Program the override CS and register access mode*/
 	debug("BMISC before is %x\n", priv->regs->BMisc);
 	priv->regs->BMisc &= ~(0x3 << 30); //Override
 	priv->regs->BMisc |= (slave_plat->cs << 30); //Override
 	waitforspiready(priv->regs);
 	debug("BMISC after is %x\n", priv->regs->BMisc);
 #endif
-	/* Program the override CS and register access mode*/
 	return 0;
 }
 
@@ -399,9 +419,15 @@ static int pilot_spi_release_bus(struct udevice *dev)
 	debug("SHIVAH: %s\n", __func__);
 
 	priv->regs->BMisc |= (0x3 << 30); //Undo Override
+	*((volatile unsigned int *) 0x40100120) = priv->sysmisc_park;
+	if(priv->cs > 1){
+		priv->regs->ClkDiv1 = priv->bclkdiv_park;
+	}else{
+		priv->regs->ClkDiv0 = priv->bclkdiv_park;
+	}
 	waitforspiready(priv->regs);
 	//Retain the SYSMISCCLKCTL register
-	*((volatile unsigned int *) 0x40100120) = 0x22111222;
+	//*((volatile unsigned int *) 0x40100120) = 0x22111222;
 	return 0;
 }
 
@@ -415,7 +441,13 @@ static int pilot_spi_xfer(struct udevice *dev, unsigned int bitlen,
 		dev_get_parent_platdata(dev);
 	debug("SHIVAH: %s bitlen %d flags %d\n", __func__, bitlen, flags);
 	int byte = bitlen/8;
-
+	unsigned int bmisc_val = *((volatile unsigned int *) priv->regs->BMisc);
+	
+	if(((bmisc_val & 0x1000000) == 0x1000000) && (priv->SPI3B4B_strap != 0x40))
+	{
+		printf(" Devices Populated is >16MB, please enable the 4Byte strap SW1.7\n");
+		return -1;
+	}
 	//pilot_priv_spi_xfer(priv->regs, bus->seq, slave_plat->cs, 0, bitlen, dout, din, flags);
 	pilot_priv_spi_xfer(priv, bus->seq, slave_plat->cs, 0, bitlen, dout, din, flags);
 	return 0;
@@ -428,6 +460,24 @@ static int pilot_spi_set_speed(struct udevice *bus, uint speed)
 	unsigned int val;
 	debug("SHIVAH: %s cs is %d\n", __func__, priv->cs);
 	debug("SHIVAH: %s and speed is %x\n", __func__, speed);
+	val = 100000000/speed;
+	priv->sysmisc_park = *((volatile unsigned int *) 0x40100120);
+	priv->sysmisc_val = priv->sysmisc_park & ~(0xF);	
+	priv->sysmisc_val |= 1;	
+	if(priv->cs == 2){
+		priv->bclkdiv_park = priv->regs->ClkDiv1;
+		priv->bclkdiv_val = priv->bclkdiv_park & ~(0xFFFF);
+		priv->bclkdiv_val |= (0xFFFF & val);
+	}else if (priv->cs == 1){
+		priv->bclkdiv_park = priv->regs->ClkDiv0;
+		priv->bclkdiv_val = priv->bclkdiv_park & ~(0xFFFF0000);
+		priv->bclkdiv_val |= (val<<16);
+	}else{
+		priv->bclkdiv_park = priv->regs->ClkDiv0;
+		priv->bclkdiv_val = priv->bclkdiv_park & ~(0xFFFF);
+		priv->bclkdiv_val |= (0xFFFF & val);
+	}
+#if 0
 	*((volatile unsigned int *) 0x40100120) = 0x22111221;
 	//TODO - Fix the clock to be programmed to correct frequency
 	if(priv->cs == 0){
@@ -454,6 +504,7 @@ static int pilot_spi_set_speed(struct udevice *bus, uint speed)
 		*((volatile unsigned int *) 0x40200014) = val | 0x2;
 	}
 #endif	
+#endif
 	return 0;
 }
 

@@ -1,23 +1,11 @@
 /*******************************************************************************
- *
+ * SPDX-License-Identifier:     GPL-2.0+
+ * Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
+ * Copyright (C) 2018 Shivah Shankar <shivahshankar.shankarnarayanrao@aspeedtech.com>
  * Copyright (C) 2004-2014 Emulex. All rights reserved.
- * EMULEX is a trademark of Emulex.
- * www.emulex.com
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of version 2 of the GNU General Public License as published by the
- * Free Software Foundation.
- * This program is distributed in the hope that it will be useful. ALL EXPRESS
- * OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED
- * WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
- * NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS
- * ARE HELD TO BE LEGALLY INVALID. See the GNU General Public License for more
- * details, a copy of which can be found in the file COPYING included
- * with this package.
  *
  ********************************************************************************/
 
-//#include <configs/pilot4_orion.h>
 
 #define NULL (void*)0
 #define readl_relaxed(c) (*(volatile unsigned int*)(c))
@@ -49,19 +37,6 @@ typedef unsigned char bool;
 #define GIC_DIST_CONFIG			0xc00
 #define GIC_DIST_SOFTINT		0xf00
 #define u32 unsigned int
-/*
- * IRQ line status.
- *
- * Bits 0-7 are the same as the IRQF_* bits in linux/interrupt.h
- *
- * IRQ_TYPE_NONE		- default, unspecified type
- * IRQ_TYPE_EDGE_RISING		- rising edge triggered
- * IRQ_TYPE_EDGE_FALLING	- falling edge triggered
- * IRQ_TYPE_EDGE_BOTH		- rising and falling edge triggered
- * IRQ_TYPE_LEVEL_HIGH		- high level triggered
- * IRQ_TYPE_LEVEL_LOW		- low level triggered
- *
- */
 enum {
     IRQ_TYPE_NONE		= 0x00000000,
     IRQ_TYPE_EDGE_RISING	= 0x00000001,
@@ -361,9 +336,9 @@ static void gic_dist_init(u32 cpu, unsigned int gic_irqs)
     for (i = 32; i < gic_irqs; i += 32)
         writel_relaxed(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
     
-        writel_relaxed(0xfffffBff, base + GIC_DIST_SECURE_SET + 0);
+        writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 0);
         writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 4);
-        writel_relaxed(0xf7ffffff, base + GIC_DIST_SECURE_SET + 8);
+        writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 8);
         writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 0xc);
 
     writel_relaxed(1, base + GIC_DIST_CTRL);
@@ -389,30 +364,10 @@ void gic_init(void)
     int gic_irqs;
     unsigned int peri_base;
     char ch;
-#if defined (DEBUG)
-    ch = 'S';
-    very_early_putc(ch);
-#endif
     gic_irqs = readl_relaxed(gic_data_dist_base() + GIC_DIST_CTR) & 0x1f;
     gic_irqs = (gic_irqs + 1) * 32;
-#if defined (DEBUG)
-    ch = 'G';
-    very_early_putc(ch);
-#endif
     gic_dist_init(0, gic_irqs);
-#if defined (DEBUG)
-    ch = 'I';
-    very_early_putc(ch);
-#endif
     gic_cpu_init();
-#if defined (DEBUG)
-    ch = 'C';
-    very_early_putc(ch);
-    ch = '\n';
-    very_early_putc(ch);
-    ch = '\r';
-    very_early_putc(ch);
-#endif
 }
 
 
@@ -439,30 +394,6 @@ static void gic_ns_cpu_init(void)
 void gic_ns_init(void)
 {
      char ch;
-#if defined (DEBUG)
-     ch = 'N';
-     very_early_putc(ch);
-#endif 
      gic_ns_dist_init(0);
      gic_ns_cpu_init();
-     
-#if defined (DEBUG)
-     if(get_cpu_id())
-     ch = '1';
-     else
-     ch = '0';
-     very_early_putc(ch);
-
-     ch = '\n';
-     very_early_putc(ch);
-     ch = '\r';
-     very_early_putc(ch);
-#endif
 }
-
-
-/*
-void smc(void){
-	__asm__ __volatile__ ("smc #0": : : "memory");
-}
-*/

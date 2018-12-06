@@ -13,6 +13,8 @@
 #define CONFIG_SYS_TIMER_COUNTS_DOWN
 #define CONFIG_SYS_TIMER_COUNTER        (CONFIG_SYS_TIMERBASE + 0x4)
 
+#define CONFIG_EXTRA_ENV_SETTINGS PILOT_ENV_SETTINGS
+
 #define CONFIG_ENV_SIZE                        0x20000
 #define CONFIG_ENV_SPI_MODE			SPI_MODE_0	
 #define CONFIG_SF_DEFAULT_MODE			SPI_MODE_0
@@ -72,4 +74,10 @@
 #define CONFIG_SYS_INIT_SP_ADDR         (CONFIG_SYS_INIT_RAM_ADDR + \
 					CONFIG_SYS_INIT_RAM_SIZE - \
 					GENERATED_GBL_DATA_SIZE)
+
+#define PILOT_ENV_SETTINGS \
+        "fdt_high=0x81900000\0"  \
+        "initrd_high=0xFFFFFFFF\0" \
+        ""
+
 #endif /*__ASPEED_PILOT_CONFIG_H*/

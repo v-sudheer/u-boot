@@ -16,6 +16,7 @@
 #define MAX_BOOTSPI_SIZE_LIMIT 0xFC00000
 #define BMISC_REG 0x1C
 #define PILOT_SPI_BMISC_REG (BOOTSPI_CTRLR_BASE + BMISC_REG)
+#define PILOT_STRAP_STATUS_REG 0x4010010c
 flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];		/* FLASH chips info */
 struct spi_flash * pilot_spiflash_priv[CONFIG_SYS_MAX_FLASH_BANKS];
 // The SPI controller at Bank 0 is mapped to 3 chip selects. The BMISC register
@@ -125,6 +126,15 @@ unsigned long flash_init (void)
 		totalsize += pilot_spiflash_priv[bank]->size;
 		if(pilot_spiflash_priv[bank]->size > 0x1000000){
 			set4baccess = 1;
+			if (((* (volatile unsigned int*)(PILOT_STRAP_STATUS_REG)) & 0x40)!=0x40){
+				temp = *(unsigned long*)(PILOT_SPI_BMISC_REG);
+				temp = temp ^ (bank << 30);
+				temp |= (0xC0000000);
+				*(unsigned long*)(PILOT_SPI_BMISC_REG) = temp ;
+				printf("Devices Populated is >16MB, please enable the 4Byte strap SW1.7\n");
+				while(1);
+			}
+
 		}else{
 			set4baccess = 0;
 		}

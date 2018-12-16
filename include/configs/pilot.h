@@ -13,6 +13,13 @@
 #define CONFIG_SYS_TIMER_COUNTS_DOWN
 #define CONFIG_SYS_TIMER_COUNTER        (CONFIG_SYS_TIMERBASE + 0x4)
 
+/* Misc CPU related */
+#define CONFIG_CMDLINE_TAG              /* enable passing of ATAGs */
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
+
+#define CONFIG_CMDLINE_EDITING          1
+
 #define CONFIG_EXTRA_ENV_SETTINGS PILOT_ENV_SETTINGS
 
 #define CONFIG_ENV_SIZE                        0x20000

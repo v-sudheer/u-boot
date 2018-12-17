@@ -1484,8 +1484,8 @@ backup:
 	gtar --force-local -zcvf `LC_ALL=C date "+$$F-%Y-%m-%d-%T.tar.gz"` $$F
 
 pub:
-	cp u-boot.bin /tftpboot/
-	@[ -f spl/u-boot-spl.bin ] && cp spl/u-boot-spl.bin /tftpboot/ || echo "no spl file"
+	cp u-boot.bin ~/tftpboot/
+	@[ -f spl/u-boot-spl.bin ] && cp spl/u-boot-spl.bin ~/tftpboot/ || echo "no spl file"
 
 help:
 	@echo  'Cleaning targets:'

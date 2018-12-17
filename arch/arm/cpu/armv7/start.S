@@ -36,11 +36,6 @@
 #endif
 
 reset:
-	/* Put secondary core to sleep */
-	mrc	p15, 0, r0, c0, c0, 5		@; Read CPU 	ID register
-	ands	r0, r0, #0x03			@; Mask off, leaving the CPU ID field
-	blne	secondary_cpu_stop
-
 	/* Allow the board to save important registers */
 	b	save_boot_params
 save_boot_params_ret:
@@ -128,10 +123,6 @@ ENTRY(switch_to_hypervisor)
 ENDPROC(switch_to_hypervisor)
 	.weak	switch_to_hypervisor
 #endif
-
-secondary_cpu_stop:
-	wfe
-	b secondary_cpu_stop
 
 /*************************************************************************
  *

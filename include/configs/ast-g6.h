@@ -21,6 +21,10 @@
 #define CONFIG_SYS_HZ_CLOCK	(24000000)
 #endif
 
+#ifdef CONFIG_PALLADIUM
+#undef CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_IS_NOWHERE
+#endif
 #define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

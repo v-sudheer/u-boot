@@ -28,7 +28,7 @@
 #define tU8	unsigned char
 #include <asm/arch/pilot_map.h>
 #include <asm/arch/ddr.h>
-#include <asm/arch/ddr_p4.h>
+//#include <asm/arch/ddr_p4.h>
 #include <asm/arch/sysctrl.h>
 #define READ_REG8(a)      (*((tPVU8)  (a)))
 #define READ_REG16(a)     (*((tPVU16) (a)))

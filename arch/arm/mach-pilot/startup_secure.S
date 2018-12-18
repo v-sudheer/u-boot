@@ -36,6 +36,13 @@ ANDS    r0, r0, #0x03             @; Mask off, leaving the CPU ID field
 
 BEQ     primaryWait
 /**************************************************/
+DO:
+	WFE
+	LDR	R0,=0x10002200
+	LDR	R1,=0xBADBABE5
+	LDR	R2,[R0]
+	CMP	R2,R1
+	BNE	DO
 
 MRS	R0,CPSR
 BIC	R0,R0,#(I_Bit|F_Bit)
@@ -163,12 +170,6 @@ BL	enable_access
 
 	ldr	r0, =0x80000000
 	mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
-DO:
-	LDR	R0,=0x10002200
-	LDR	R1,=0xBADBABE5
-	LDR	R2,[R0]
-	CMP	R2,R1
-	BNE	DO
 
 	printch 'H'
 	printch 'e'

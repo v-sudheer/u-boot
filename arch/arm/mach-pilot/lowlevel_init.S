@@ -205,6 +205,16 @@ lowlevel_init:
         ands    r0, r0, #0x03                   @; Mask off, leaving the CPU ID field
         blne    secondary_cpus_init_exp
 
+@; Here wait for core1 to enter WFE mode
+#if 1
+wait_for_wfe:
+        ldr r0, =0x40100D00 @; The bit number 27 of this register tells if core1 is in WFE
+        ldr r1, =0x04000000
+        ldr r2, [r0]
+        and r1, r1, r2
+        cmp r1, #0x0
+        beq wait_for_wfe
+#endif
 	#ldr r13, =0x40100240
 	ldr r13, =0x10008000
 	stmib    r13,{r0-r12,r14}
@@ -498,16 +508,6 @@ skip_pre_a2_init:
 	str	r2,[r0]
 
 
-@; Here wait for core1 to enter WFE mode
-#if 0
-wait_for_wfe:
-        ldr r0, =0x40100D00 @; The bit number 27 of this register tells if core1 is in WFE
-        ldr r1, =0x04000000
-        ldr r2, [r0]
-        and r1, r1, r2
-        cmp r1, #0x0
-        beq wait_for_wfe
-#endif
 
 	ldr r0, =0x4010010C @; STRAP_STATUS
 	ldr r1, [r0]
@@ -624,6 +624,7 @@ jumpcap:
 	LDR	R0,=0x10002200
 	LDR	R1,=0xBADBABE5
 	STR	R1,[R0]
+	SEV
 WAIT:
 	LDR	R1,[R0]
 	CMP	R1,#0

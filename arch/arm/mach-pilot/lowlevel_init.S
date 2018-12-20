@@ -191,6 +191,7 @@ REMAPD_irq:
 .global Enable_standbyfi_intr
 .global Wait_For_PLLock
 .global Switch_Clk_Pll
+.global v7_invalidate_l1
 
 TMP_STACK_PTR	=	LMEMSTART + (0xeFF0) @; Last 200 bytes of lmem is poison dont touch!!
 Power_On_Reset	=	1<<1         
@@ -497,8 +498,9 @@ skip_pre_a2_init:
 #endif
 	bl Switch_Clk_Pll
 	@;bl invalidate_caches
-	@;bl invalidate_icache_all
-	@;bl invalidate_dcache_all
+	bl invalidate_icache_all
+	bl invalidate_dcache_all
+	bl v7_invalidate_l1
 
 @Do clk switch for mac0 and mac1. This is required for both FPGA and ASIC
 	ldr	r0,=0x40100108
@@ -643,8 +645,10 @@ WAIT:
 
 noddrinit:
 	@;bl invalidate_caches
-	@;bl invalidate_icache_all
-	@;bl invalidate_dcache_all
+	bl invalidate_icache_all
+	bl invalidate_dcache_all
+	bl v7_invalidate_l1
+
 	bl  sw_reset_modules
 no_sw_reset:
 	@;ldr r13, =0x40100240
@@ -680,6 +684,10 @@ secondary_cpus_init_exp:
 no_secure_init:
 #endif
 	ldr r13, =0x10008100
+	bl invalidate_icache_all
+	bl invalidate_dcache_all
+	bl v7_invalidate_l1
+
 	BL	gic_ns_init
  
    @; Jump to the scratch pad area
@@ -740,6 +748,38 @@ Switch_Clk_Pll:
 	WFI				@added for cortex A9 by Vikram - Wait for Interrupt
 	
 	ldmfd  r13!,{r0-r1,r15}
+
+v7_invalidate_l1:
+	mov r0, #0
+	mcr p15, 2, r0, c0, c0, 0
+	mrc p15, 1, r0, c0, c0, 0
+
+	movw r1, #0x7fff
+	and r2, r1, r0, lsr #13
+
+	movw r1, #0x3ff
+
+	and r3, r1, r0, lsr #3 @ NumWays - 1
+	add r2, r2, #1 @ NumSets
+
+	and r0, r0, #0x7
+	add r0, r0, #4 @ SetShift
+
+	clz r1, r3 @ WayShift
+	add r4, r3, #1 @ NumWays
+1: 	sub r2, r2, #1 @ NumSets--
+	mov r3, r4 @ Temp = NumWays
+2: 	subs r3, r3, #1 @ Temp--
+	mov r5, r3, lsl r1
+	mov r6, r2, lsl r0
+	orr r5, r5, r6 @ Reg = (Temp<<WayShift)|(NumSets<<SetShift)
+	mcr p15, 0, r5, c7, c6, 2
+	bgt 2b
+	cmp r2, #0
+	bgt 1b
+	dsb st
+	isb
+	bx lr
 
 
 

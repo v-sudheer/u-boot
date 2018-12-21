@@ -80,6 +80,8 @@ mov r2,#1
 orr r0,r0,r2, LSL #18	//SMP
 orr r0,r0,r2, LSL #14	//
 orr r0,r0,r2, LSL #15	//
+orr r0,r0,r2, LSL #16
+orr r0,r0,r2, LSL #17
 orr r0,r0,r2, LSL #10	//
 orr r0,r0,r2, LSL #11	//
 mcr p15,0,r0,c1,c1,2
@@ -150,6 +152,8 @@ mov r2,#1
 orr r0,r0,r2, LSL #18
 orr r0,r0,r2, LSL #14
 orr r0,r0,r2, LSL #15
+orr r0,r0,r2, LSL #16
+orr r0,r0,r2, LSL #17
 orr r0,r0,r2, LSL #10
 orr r0,r0,r2, LSL #11
 mcr p15,0,r0,c1,c1,2

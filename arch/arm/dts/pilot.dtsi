@@ -33,16 +33,6 @@
 		};
 	};
 
-	memory {
-		device_type = "memory";
-		reg = <0x93000000 0xc000000>;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200n8 root=/dev/ram0 rw initrd=0x81A00000,32M mem=488M	enable_hub=1 earlyprintk";
-		stdout-path = "serial0:115200n8";
-	};
-
 	amba: amba {
 		compatible = "simple-bus";
 		#address-cells = <1>;

@@ -7,7 +7,7 @@
 .equ NS_STACK_SP1,0x10002100
 .equ MONSP0,0x1000C000
 .equ MONSP1,0x1000D000
-.equ MVBAR,0x80000000
+.equ MVBAR,0x9FF00000
 
 
 .macro printch, ch
@@ -59,7 +59,7 @@ primaryWait:
 MRS	R0,CPSR
 BIC	R0,R0,#(I_Bit|F_Bit)
 MSR	CPSR,R0
-ldr	r0, =0x80000000
+ldr	r0, =0x9FF00000
 mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
 
 /*Temperary stack*/
@@ -172,7 +172,7 @@ BL      join_smp
 BL      enable_maintenance_broadcast
 BL	enable_access
 
-	ldr	r0, =0x80000000
+	ldr	r0, =0x9FF00000
 	mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
 
 	printch 'H'

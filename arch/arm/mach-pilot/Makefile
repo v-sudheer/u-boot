@@ -87,6 +87,6 @@ obj-y   += Remap.o
 obj-y	+= MP_SCU.o 
 obj-y	+= GIC.o 
 obj-y	+= gic.o 
-obj-(CONFIG_PILOT_FAST_ERASE)   += 4byteaddressing.o  pilot_spi_flash.o
+obj-y   += 4byteaddressing.o  pilot_spi_flash.o
 obj-(CONFIG_BOMBER_PWM_WORKAROUND)	+= bomber_pwm.o
 obj-(CONFIG_USE_SSP_RESET)	+= ssp_reset_wa.o

@@ -32,14 +32,4 @@ config MAX_BOOT_SPI_BANKS
           Set the number of SPI devices connected to BOOT SPI Controller
 		Maximum value is 3
 
-config PILOT_FAST_ERASE
-        bool "Enable Pilot4 FAST erase command"
-	depends on ENABLE_PILOT_SPI
-	help
-	The spi framework of uboot sends 4K sector erase commands at times
-	when the erase sizes are in serveral 10s of MBs it takes a very long
-	time. This option enables an erase command into the uboot command
-	framework, that sendsout 64K erase commands instead of 4K. Hence the
-	erase is a lot faster compared to the 4K erase.
-
 endif

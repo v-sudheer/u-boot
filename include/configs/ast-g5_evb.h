@@ -16,13 +16,13 @@
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"console=ttyS4,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"update=tftp 80800000 ast2500.scr; so 80800000\0"\
-	"ramfs=setenv bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
-	"squashfs=setenv bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
+	"ramfs=setenv bootargs console=ttyS4,115200n8 root=/dev/ram rw init=/linuxrc\0"\
+	"squashfs=setenv bootargs console=ttyS4,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
 	""
 
 

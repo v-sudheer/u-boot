@@ -25,16 +25,16 @@
 #undef CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_IS_NOWHERE
 #endif
-#define CONFIG_BOOTARGS		"bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc"
+#define CONFIG_BOOTARGS		"bootargs console=ttyS4,115200n8 root=/dev/ram rw init=/linuxrc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=yes\0"\
 	"spi_dma=no\0"\
 	"mmcdev=1\0"\
 	"update=tftp 80800000 ast2500.scr; so 80800000\0"\
-	"ramfs=setenv bootargs console=ttyS0,115200n8 root=/dev/ram rw init=/linuxrc\0"\
-	"squashfs=setenv bootargs console=ttyS0,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
-	"ext2fs=setenv bootargs console=ttyS0,115200n8 root=/dev/mmcblk1p1 rw rootfstype=ext2 init=/linuxrc rootwait\0"\
+	"ramfs=setenv bootargs console=ttyS4,115200n8 root=/dev/ram rw init=/linuxrc\0"\
+	"squashfs=setenv bootargs console=ttyS4,115200n8 root=/dev/mtdblock4 rootfs=squashfs init=/linuxrc\0"\
+	"ext2fs=setenv bootargs console=ttyS4,115200n8 root=/dev/mmcblk1p1 rw rootfstype=ext2 init=/linuxrc rootwait\0"\
 	"mmc_boot=run ext2fs;mmc dev ${mmcdev};mmc read 80008000 1868 1800;mmc read 83000000 401 50;bootm 80008000 - 83000000\0"\
 	""
 

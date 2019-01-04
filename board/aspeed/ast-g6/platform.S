@@ -44,7 +44,6 @@
 #include <config.h>
 #include <version.h>
 #ifdef CONFIG_CPU_ARM1176
-#define ASTMMC_CPU_ARM11
 #define ASTMMC_DDR_DDR3
 #endif
 /******************************************************************************
@@ -250,7 +249,7 @@ init_dram:
     mov   r1, #0
     str   r1, [r0]
 
-#ifdef ASTMMC_CPU_ARM11
+#ifdef CONFIG_CPU_ARM1176
     /* Enable AXI_P */
 /*  ldr   r0, =0x00000016
     mrc   p15, 0, r1, c15, c2, 4
@@ -907,5 +906,29 @@ platform_exit:
 
 secondary_cpu_stop:
 	wfe
+	ldr r0, =0x1E6E2180
+	ldr r4, =0xABBAADDA
+	ldr r3, =0x1E6E2184
+	ldr r2,[r3]
+	cmp r2,r4
+	bne secondary_cpu_stop
+	LDR r1,=0x1e784000
+	MOV r2,#'['
+	STR r2,[r1]
+	MOV r2,#'1'
+	STR r2,[r1]
+	MOV r2,#'C'
+	STR r2,[r1]
+	MOV r2,#'P'
+	STR r2,[r1]
+	MOV r2,#'U'
+	STR r2,[r1]
+	MOV r2,#']'
+	STR r2,[r1]
+	MOV r2,#'\n'
+	STR r2,[r1]
+	MOV r2,#'\r'
+	STR r2,[r1]
+	ldr pc, [r0]
 	b secondary_cpu_stop
 

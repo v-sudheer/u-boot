@@ -32,7 +32,7 @@ config FPGA_ASPEED
 	bool "FPGA"
 
 config PALLADIUM
-	bool "Palladium sim"
+    bool "Build uboot for Palladium"
 
 config ASPEED_ESPI
 	bool "ESPI"
@@ -58,9 +58,10 @@ config ARM1176
 	bool "CPU ARM1176"
 
 config CORTEX_A7
-	select ARMV7_LPAE
 	select CPU_V7
 	select CPU_V7_HAS_NONSEC
+	select ARCH_SUPPORT_PSCI
+	select EXPERT
 	bool "CPU Cortex-A7"
 endif
 

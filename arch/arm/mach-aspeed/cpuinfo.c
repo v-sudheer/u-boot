@@ -30,7 +30,7 @@ int print_cpuinfo(void)
 	       strmhz(buf, aspeed_get_mpll_clk_rate()),
 	       ast_sdmc_get_ecc() ? "Enable" : "Disable");
 	if(ast_sdmc_get_ecc())
-		printf("recover %d, un-recover %d", ast_sdmc_get_ecc_recover_count(), ast_sdmc_get_ecc_unrecover_count());
+		printf("recover %d, un-recover %d, ", ast_sdmc_get_ecc_recover_count(), ast_sdmc_get_ecc_unrecover_count());
 	if(ast_sdmc_get_ecc())
 		printf("Size : %d MB, ", ast_sdmc_get_ecc_size()/1024/1024);
 

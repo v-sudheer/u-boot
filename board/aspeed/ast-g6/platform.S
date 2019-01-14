@@ -66,9 +66,6 @@
 
 #define ASTMMC_UART_BASE     0x1E784000
 
-//#define ASTMMC_DRAM_ECC
-#define ASTMMC_DRAM_ECC_SIZE 0x07FFFFFF          // ECC size = 96MB
-
 #define ASTMMC_REG_MCR10     0x00
 #define ASTMMC_REG_MCR14     0x04
 #define ASTMMC_REG_MCR18     0x08
@@ -94,10 +91,10 @@ TIME_TABLE_DDR4:
     .word   0x04451133       // MCR14
     .word   0x0E010200       // MCR18
     .word   0x00000140       // MCR1C
-    .word   0x03010100       // MCR20
+    .word   0x01010100       // MCR20
     .word   0x00000000       // MCR24
-    .word   0x04000000       // MCR28
-    .word   0x00000000       // MCR2C
+    .word   0x04400000       // MCR28
+    .word   0x00000050       // MCR2C
     .word   0x17263434       // MCRFC
 
 PATTERN_TABLE:
@@ -226,6 +223,10 @@ init_dram:
 
     /*Set Scratch register Bit 7 before initialize*/
     ldr   r0, =0x1e6e2000
+    ldr   r1, =0x1688a8a8
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e2010
     ldr   r1, =0x1688a8a8
     str   r1, [r0]
 
@@ -426,7 +427,7 @@ delay_0:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0054
-    ldr   r1, =ASTMMC_DRAM_ECC_SIZE
+    ldr   r1, =CONFIG_DRAM_ECC_SIZE
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0050
@@ -647,7 +648,7 @@ ddr4_check_dllrdy:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000003A3
+    ldr   r1, =0x000001A3
     str   r1, [r0]
 
     b     Calibration_End
@@ -869,7 +870,12 @@ set_scratch:
     orr   r1, r1, #0x41
     str   r1, [r0]
 */
-#ifdef ASTMMC_DRAM_ECC
+    ldr   r0, =0x1e6e0004                        // enable DQ scramble
+    ldr   r2, =0x00000100
+    ldr   r1, [r0]
+    orr   r1, r1, r2
+    str   r1, [r0]
+#ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0004
     ldr   r2, =0x00000280
     ldr   r1, [r0]

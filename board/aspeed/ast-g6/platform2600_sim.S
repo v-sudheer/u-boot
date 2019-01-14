@@ -270,6 +270,10 @@ PATTERN_TABLE:
 
 .globl lowlevel_init
 lowlevel_init:
+    /* Put secondary core to sleep */
+    mrc	p15, 0, r0, c0, c0, 5		@; Read CPU 	ID register
+    ands	r0, r0, #0x03			@; Mask off, leaving the CPU ID field
+    blne	secondary_cpu_stop
 
 init_dram:
     /* save lr */
@@ -943,4 +947,8 @@ platform_exit:
 
     /* back to arch calling code */
     mov   pc, lr
+
+secondary_cpu_stop:
+    wfe
+    b secondary_cpu_stop
 

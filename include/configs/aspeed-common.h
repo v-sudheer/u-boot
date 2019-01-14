@@ -40,6 +40,8 @@
 #define CONFIG_SYS_NS16550_REG_SIZE		(-4)
 #define CONFIG_SYS_NS16550_CLK			AST_UART_CLK
 #define CONFIG_SYS_NS16550_COM1			AST_UART0_BASE
+#define CONFIG_SYS_NS16550_COM2			AST_UART3_BASE
+#define CONFIG_SYS_NS16550_COM3			AST_UART4_BASE
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 #define CONFIG_SERIAL1					1
 #define CONFIG_CONS_INDEX				1
@@ -95,6 +97,7 @@
 
 #define CONFIG_MISC_INIT_R
 #define CONFIG_PHY_REALTEK
+#define CONFIG_PHY_BROADCOM
 #define CONFIG_PHY_GIGE
 /* ------------------------------------------------------------------------- */
 /* SD/MMC definition */

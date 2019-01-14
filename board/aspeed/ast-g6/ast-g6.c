@@ -40,9 +40,9 @@ int misc_init_r (void)
 		}
 	}
 
-#ifndef CONFIG_PALLADIUM
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
 	if (update) {
-		saveenv();	
+		saveenv();
 	}
 #endif
 

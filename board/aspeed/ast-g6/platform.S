@@ -426,9 +426,11 @@ delay_0:
     ldr   r1, =0x80000000
     str   r1, [r0]
 
+#ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0054
     ldr   r1, =CONFIG_DRAM_ECC_SIZE
     str   r1, [r0]
+#endif
 
     ldr   r0, =0x1e6e0050
     ldr   r1, =0x00000000

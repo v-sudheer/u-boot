@@ -88,7 +88,7 @@
 #define CONFIG_ENV_OVERWRITE
 
 #define PILOT_ENV_SETTINGS \
-        "fdt_high=0x81900000\0"  \
+        "fdt_high=0x8A000000\0"  \
         "initrd_high=0xFFFFFFFF\0" \
         ""
 

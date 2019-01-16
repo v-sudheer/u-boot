@@ -59,7 +59,7 @@ primaryWait:
 MRS	R0,CPSR
 BIC	R0,R0,#(I_Bit|F_Bit)
 MSR	CPSR,R0
-ldr	r0, =0x9FF00000
+ldr	r0, =MVBAR
 mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
 
 /*Temperary stack*/
@@ -103,7 +103,7 @@ BL	gic_init
 
 @; Install Secure Monitor
 @; -----------------------
-LDR     r0, =MVBAR              @; Get address of Monitor's vector table
+LDR     r0, =MVBAR	@; Get address of Monitor's vector table
 MCR     p15, 0, r0, c12, c0, 1       @; Write Monitor Vector Base Address Register
  
 @; Initialize the Monitor mode stack pointer
@@ -172,7 +172,7 @@ BL      join_smp
 BL      enable_maintenance_broadcast
 BL	enable_access
 
-	ldr	r0, =0x9FF00000
+	ldr	r0, =MVBAR
 	mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
 
 	printch 'H'
@@ -211,7 +211,7 @@ cp:
 POP	{r6}
 @; Install Secure Monitor
 @; -----------------------
-LDR     r0, =MVBAR             @; Get address of Monitor's vector table
+LDR     r0, =MVBAR	@; Get address of Monitor's vector table
 MCR     p15, 0, r0, c12, c0, 1       @; Write Monitor Vector Base Address Register
 @; Initialize the Monitor mode stack pointer
 CPS    #Mode_MON

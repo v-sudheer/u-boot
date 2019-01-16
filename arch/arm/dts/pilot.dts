@@ -19,7 +19,7 @@
 
 	memory {
 		device_type = "memory";
-		reg = <0x9F800000 0x800000>;
+		reg = <0x9F700000 0x800000>;
 	};
 
 	aliases {

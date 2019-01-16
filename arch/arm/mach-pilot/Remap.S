@@ -31,10 +31,10 @@ SMC_Handler:
 	ANDS    r0, r0, #0x03             @; Mask off, leaving the CPU ID field
 	BEQ	SMC_Handler0
 	LDR	R0,=0x40300084
-	LDR     R1,=0x80000001
-	STr	R1,[R0]
-	LDR     R1,=0x80001000
-	STr	R1,[R0,#4]
+	LDR     R1,=0x9FF00001
+	STR	R1,[R0]
+	LDR     R1,=0x9FF01000
+	STR	R1,[R0,#4]
 	B	SMC_Handler1
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

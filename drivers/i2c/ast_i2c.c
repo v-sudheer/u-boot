@@ -51,7 +51,7 @@ struct ast_i2c_timing_table {
 };
 
 static struct ast_i2c_timing_table i2c_timing_table[] = {
-#if defined(CONFIG_MACH_ASPEED_G5)
+#if defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G6)
 	/* Divisor : Base Clock : tCK High : tCK Low  */		
 	/* Divisor :	  [3:0]    :   [19:16]:   [15:12] */
 	{6, 		0x77700300 | (0x0) | (0x2<<16) | (0x2<<12) },
@@ -616,6 +616,16 @@ unsigned int i2c_get_base(int bus_no) {
 		case 13:
 			return AST_I2C_DEV13_BASE;
 			break;
+#ifdef AST_I2C_DEV14_BASE
+		case 14:
+			return AST_I2C_DEV14_BASE;
+			break;
+#endif		
+#ifdef AST_I2C_DEV15_BASE
+		case 15:
+			return AST_I2C_DEV15_BASE;
+			break;
+#endif		
 		default:
 			printf("i2c base error \n");
 			break;

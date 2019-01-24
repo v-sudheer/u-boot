@@ -43,6 +43,9 @@
 
 #include <config.h>
 #include <version.h>
+#include <asm/secure.h>
+#include <asm/armv7.h>
+
 #ifdef CONFIG_CPU_ARM1176
 #define ASTMMC_DDR_DDR3
 #endif
@@ -66,9 +69,6 @@
 
 #define ASTMMC_UART_BASE     0x1E784000
 
-//#define ASTMMC_DRAM_ECC
-#define ASTMMC_DRAM_ECC_SIZE 0x07FFFFFF          // ECC size = 96MB
-
 #define ASTMMC_REG_MCR10     0x00
 #define ASTMMC_REG_MCR14     0x04
 #define ASTMMC_REG_MCR18     0x08
@@ -84,7 +84,7 @@ TIME_TABLE_DDR3:
     .word   0x05021133       // MCR14
     .word   0x06010200       // MCR18
     .word   0x00000020       // MCR1C
-    .word   0x00401320       // MCR20
+    .word   0x00051320       // MCR20
     .word   0x00000200       // MCR24
     .word   0x00000000       // MCR28
     .word   0x00000000       // MCR2C
@@ -94,10 +94,10 @@ TIME_TABLE_DDR4:
     .word   0x04451133       // MCR14
     .word   0x0E010200       // MCR18
     .word   0x00000140       // MCR1C
-    .word   0x03010100       // MCR20
+    .word   0x01010100       // MCR20
     .word   0x00000000       // MCR24
-    .word   0x04000000       // MCR28
-    .word   0x00000000       // MCR2C
+    .word   0x04400000       // MCR28
+    .word   0x00000050       // MCR2C
     .word   0x17263434       // MCRFC
 
 PATTERN_TABLE:
@@ -229,6 +229,10 @@ init_dram:
     ldr   r1, =0x1688a8a8
     str   r1, [r0]
 
+    ldr   r0, =0x1e6e2010
+    ldr   r1, =0x1688a8a8
+    str   r1, [r0]
+
 /*  ldr   r0, =0x1e6e2040
     ldr   r1, [r0]
     orr   r1, r1, #0x80
@@ -293,13 +297,13 @@ check_pll_ld:
 #endif
 
     /* Check Scratch Register Bit 6 */
-/*  ldr   r0, =0x1e6e2040
+    ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     bic   r1, r1, #0xFFFFFFBF
     mov   r2, r1, lsr #6
     cmp   r2, #0x01
     beq   platform_exit
-*/
+
 ddr_init_start:
 
 /* Debug - UART console message */
@@ -425,9 +429,11 @@ delay_0:
     ldr   r1, =0x80000000
     str   r1, [r0]
 
+#ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0054
-    ldr   r1, =ASTMMC_DRAM_ECC_SIZE
+    ldr   r1, =CONFIG_DRAM_ECC_SIZE
     str   r1, [r0]
+#endif
 
     ldr   r0, =0x1e6e0050
     ldr   r1, =0x00000000
@@ -546,7 +552,7 @@ ddr3_check_dllrdy:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000003A3
+    ldr   r1, =0x000001A3
     str   r1, [r0]
 
     b     Calibration_End
@@ -647,7 +653,7 @@ ddr4_check_dllrdy:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000003A3
+    ldr   r1, =0x000001A3
     str   r1, [r0]
 
     b     Calibration_End
@@ -864,21 +870,16 @@ wait_print_1:
 
 set_scratch:
     /*Set Scratch register Bit 6 after ddr initial finished */
-/*  ldr   r0, =0x1e6e2040
+/*  ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x41
     str   r1, [r0]
 */
-#ifdef ASTMMC_DRAM_ECC
-    ldr   r0, =0x1e6e0004
-    ldr   r2, =0x00000280
+    ldr   r0, =0x1e6e0004                        // enable DQ scramble
+    ldr   r2, =0x00000100
     ldr   r1, [r0]
     orr   r1, r1, r2
     str   r1, [r0]
-    ldr   r0, =0x1e6e0050
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-#endif
 
 /* Debug - UART console message */
     ldr   r0, =ASTMMC_UART_BASE
@@ -898,6 +899,41 @@ set_scratch:
 
 platform_exit:
 
+#ifdef CONFIG_DRAM_ECC
+    ldr   r0, =0x1e6e0004
+    ldr   r2, =0x00000280
+    ldr   r1, [r0]
+    orr   r1, r1, r2
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e007C
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+    ldr   r0, =0x1e6e0074
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0070
+    ldr   r1, =0x00000221
+    str   r1, [r0]
+
+    ldr   r2, =0x00001000
+ECC_Init_Flag:
+    ldr   r1, [r0]
+    tst   r1, r2                                 @ D[12] = 1, Done
+    beq   ECC_Init_Flag
+
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0050
+    ldr   r1, =0x80000000
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0050
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+#endif
+
     /* restore lr */
     mov   lr, r4
 
@@ -905,6 +941,7 @@ platform_exit:
     mov   pc, lr
 
 secondary_cpu_stop:
+/*	bl	armv7_init_nonsec*/
 	wfe
 	ldr r0, =0x1E6E2180
 	ldr r4, =0xABBAADDA
@@ -931,4 +968,3 @@ secondary_cpu_stop:
 	STR r2,[r1]
 	ldr pc, [r0]
 	b secondary_cpu_stop
-

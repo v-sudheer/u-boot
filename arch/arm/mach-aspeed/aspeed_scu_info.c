@@ -362,13 +362,14 @@ extern void
 aspeed_espi_mode(void)
 {
 	int espi_mode = 0;
+	int sio_disable = 0;
 	u32 sio_addr = 0x2e;
 
 #if defined(CONFIG_MACH_ASPEED_G6)
 	if(readl(ASPEED_HW_STRAP2) & BIT(6))
-		espi_mode = 1;
-	else
 		espi_mode = 0;
+	else
+		espi_mode = 1;
 #elif defined(CONFIG_MACH_ASPEED_G5)
 	if(readl(ASPEED_HW_STRAP1) & BIT(25))
 		espi_mode = 1;
@@ -386,10 +387,23 @@ aspeed_espi_mode(void)
 #else
 #endif
 
-	if(espi_mode)
-		printf("eSPI Mode : SuperIO-%02x\n", sio_addr);
-	else
-		printf("LPC Mode : SuperIO-%02x\n", sio_addr);
+#if defined(CONFIG_MACH_ASPEED_G6)
+	if(readl(ASPEED_HW_STRAP2) & BIT(3))
+		sio_disable = 1;
+#elif defined(CONFIG_MACH_ASPEED_G5)
+	if(readl(ASPEED_HW_STRAP1) & BIT(20))
+		sio_disable = 1;
+#else
+#endif
 
+	if(espi_mode)
+		printf("eSPI Mode : SIO:%s ",  sio_disable ? "Disable" : "Enable");
+	else
+		printf("LPC Mode : SIO:%s ",  sio_disable ? "Disable" : "Enable");
+
+	if(!sio_disable)
+		printf(": SuperIO-%02x\n",  sio_addr);
+	else
+		printf("\n");
 }
 

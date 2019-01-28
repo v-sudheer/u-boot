@@ -39,7 +39,6 @@
 #define AST_SCU_SYS_CTRL			0x3C		/*	System reset contrl/status register*/
 #define AST_SCU_SOC_SCRATCH0		0x40		/*	SOC scratch 0~31 register */
 #define AST_SCU_SOC_SCRATCH1		0x44		/*	SOC scratch 32~63 register */
-#define AST_SCU_VGA0				0x40		/*	VGA fuction handshake register */
 #define AST_SCU_VGA1				0x44		/*	VGA fuction handshake register */
 #define AST_SCU_MAC_CLK				0x48		/*	MAC interface clock delay setting register */
 #define AST_SCU_MISC2_CTRL			0x4C		/*	Misc. 2 Control register */
@@ -405,26 +404,8 @@
 #define SCU_PCI_CLASS_CODE(x)			(x << 8)
 #define SCU_PCI_REVISION_ID(x)			(x)
 
-/*	AST_SCU_SYS_CTRL	0x3C		System reset contrl/status register*/
-#if defined(CONFIG_ARCH_AST1010)
-#define SCU_SYS_WDT_FULL_FLAG			(0x1 << 2)
-#define SCU_SYS_WDT_SOC_RESET			(0x1 << 1)
-#elif defined(CONFIG_MACH_ASPEED_G5)
-#define SCU_SYS_WDT3_RESET_FLAG			(0x1 << 4)
-#define SCU_SYS_WDT2_RESET_FLAG			(0x1 << 3)
-#define SCU_SYS_WDT1_RESET_FLAG			(0x1 << 2)
-#define SCU_SYS_EXT_RESET_FLAG			(0x1 << 1)
-#else
-#define SCU_SYS_EXT_SOC_RESET_EN		(0x1 << 3)
-#define SCU_SYS_EXT_RESET_FLAG			(0x1 << 2)
-#define SCU_SYS_WDT1_RESET_FLAG			(0x1 << 1)
-#endif
-#define SCU_SYS_PWR_RESET_FLAG			(0x1 << 0)
 
 /*	AST_SCU_SOC_SCRATCH0	0x40		SOC scratch 0~31 register */
-
-
-
 
 /*	AST_SCU_SOC_SCRATCH1	0x44		SOC scratch 32~63 register */
 
@@ -443,8 +424,6 @@
 
 #define SCU_VGA_ASPEED_DEF(x)			(x << 8)
 #define SCU_VGA_ASPEED_DEF_MASK			(0xf << 8)
-
-#define SCU_VGA_DRAM_INIT_MASK(x)		((x >> 7) & 0x1)
 
 /*	AST_SCU_VGA1		0x44		VGA fuction handshake register */
 

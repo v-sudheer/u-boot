@@ -20,7 +20,7 @@ int print_cpuinfo(void)
 
 	aspeed_get_revision_id();
 
-	ast_scu_sys_rest_info();
+	aspeed_sys_reset_info();
 
 	aspeed_security_info();
 
@@ -37,7 +37,7 @@ int print_cpuinfo(void)
 #if defined(CONFIG_MACH_ASPEED_G5)
 	printf("Cache: %s ",ast_sdmc_get_cache() ? "Enable" : "Disable");
 #endif
-	ast_scu_get_who_init_dram();
+	aspeed_who_init_dram();
 
 	size = ast_sdmc_get_vram_size();
 
@@ -48,14 +48,9 @@ int print_cpuinfo(void)
 	puts("Total DRAM : ");
 	print_size(size, "\n");
 
-	if(ast_scu_2nd_wdt_mode()) {
-		puts("2nd Boot : Enable\n");
-	}
+	aspeed_2nd_wdt_mode();
 
-	if(ast_scu_espi_mode())
-		printf("eSPI Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
-	else
-		printf("LPC Mode : SuperIO-%02x\n", ast_scu_get_superio_addr_config());
+	aspeed_espi_mode();
 
 	puts("Eth :    ");
 	for(i = 0; i < ASPEED_MAC_COUNT; i++) {

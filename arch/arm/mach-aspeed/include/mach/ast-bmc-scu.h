@@ -22,14 +22,6 @@
 #ifndef __AST_SCU_H_INCLUDED
 #define __AST_SCU_H_INCLUDED
 
-//information
-extern void ast_scu_sys_rest_info(void);
-extern u32 ast_scu_revision_id(void);
-extern void ast_scu_get_who_init_dram(void);
-extern int ast_scu_espi_mode(void);
-extern int ast_scu_2nd_wdt_mode(void);
-extern u8 ast_scu_get_superio_addr_config(void);
-
 //CLK 
 extern void ast_scu_uart_div(void);
 extern u32 ast_get_clk_source(void);

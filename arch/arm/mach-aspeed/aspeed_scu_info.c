@@ -113,7 +113,7 @@ extern void
 aspeed_security_info(void)
 {
 #if defined(CONFIG_MACH_ASPEED_G6)
-	if(readl(ASPEED_HW_STRAP2) & BIT(8))
+	if(readl(ASPEED_HW_STRAP1) & BIT(1))
 		printf("Security Boot \n");
 #elif defined(CONFIG_MACH_ASPEED_G5)
 	switch((readl(ASPEED_HW_STRAP2) >> 18) & 0x3) {
@@ -359,6 +359,33 @@ aspeed_2nd_wdt_mode(void)
 }
 
 extern void
+aspeed_spi_strap_mode(void)
+{
+	int four_byte_addr = 0;
+	int addr_auto_detect = 0;
+#if defined(CONFIG_MACH_ASPEED_G6)
+	if(readl(ASPEED_HW_STRAP2) & BIT(10))
+		addr_auto_detect = 0;
+	else
+		addr_auto_detect = 1;
+#elif defined(CONFIG_MACH_ASPEED_G5)	
+	addr_auto_detect = 1;
+#elif defined(CONFIG_MACH_ASPEED_G4)
+	addr_auto_detect = 0;
+	if(readl(ASPEED_HW_STRAP1) & BIT(4))
+		four_byte_addr = 1;
+#else
+#endif
+
+	if(!addr_auto_detect) {
+		if(four_byte_addr)
+			printf("SPI 4 byte mode address strap\n");
+		else
+			printf("SPI 3 byte mode address strap\n");
+	}
+}
+
+extern void
 aspeed_espi_mode(void)
 {
 	int espi_mode = 0;
@@ -381,7 +408,7 @@ aspeed_espi_mode(void)
 #if defined(CONFIG_MACH_ASPEED_G6)
 	if(readl(ASPEED_HW_STRAP2) & BIT(2))
 		sio_addr = 0x4e;
-#elif defined(CONFIG_MACH_ASPEED_G5)
+#elif defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G4)
 	if(readl(ASPEED_HW_STRAP1) & BIT(16))
 		sio_addr = 0x4e;
 #else
@@ -390,7 +417,7 @@ aspeed_espi_mode(void)
 #if defined(CONFIG_MACH_ASPEED_G6)
 	if(readl(ASPEED_HW_STRAP2) & BIT(3))
 		sio_disable = 1;
-#elif defined(CONFIG_MACH_ASPEED_G5)
+#elif defined(CONFIG_MACH_ASPEED_G5) || defined(CONFIG_MACH_ASPEED_G4)
 	if(readl(ASPEED_HW_STRAP1) & BIT(20))
 		sio_disable = 1;
 #else

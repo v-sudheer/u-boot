@@ -8,5 +8,6 @@ extern void aspeed_sys_reset_info(void);
 extern void aspeed_who_init_dram(void);
 extern void aspeed_2nd_wdt_mode(void);
 extern void aspeed_espi_mode(void);
+extern void aspeed_spi_strap_mode(void);
 
 #endif

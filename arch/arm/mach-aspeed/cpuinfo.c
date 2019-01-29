@@ -50,6 +50,8 @@ int print_cpuinfo(void)
 
 	aspeed_2nd_wdt_mode();
 
+	aspeed_spi_strap_mode();
+
 	aspeed_espi_mode();
 
 	puts("Eth :    ");

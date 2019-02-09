@@ -21,7 +21,7 @@ void board_init_f(ulong dummy)
 
 u32 spl_boot_device(void)
 {
-	return BOOT_DEVICE_MMC1;
+	return BOOT_DEVICE_RAM;
 }
 
 #ifdef CONFIG_SPL_MMC_SUPPORT

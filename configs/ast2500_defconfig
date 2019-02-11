@@ -163,7 +163,10 @@ CONFIG_ARCH_ASPEED=y
 # CONFIG_MACH_ASPEED_G4 is not set
 CONFIG_MACH_ASPEED_G5=y
 # CONFIG_MACH_ASPEED_G6 is not set
+# CONFIG_SLT_ASPEED is not set
 # CONFIG_FPGA_ASPEED is not set
+# CONFIG_PALLADIUM is not set
+# CONFIG_ASPEED_ESPI is not set
 # CONFIG_AST_CVIC is not set
 # CONFIG_AST_SCU_LOCK is not set
 # CONFIG_SPL_GPIO_SUPPORT is not set
@@ -193,6 +196,7 @@ CONFIG_MMC=y
 # ARM debug
 #
 # CONFIG_DEBUG_LL is not set
+CONFIG_SYS_TEXT_BASE=0x0
 # CONFIG_AHCI is not set
 
 #

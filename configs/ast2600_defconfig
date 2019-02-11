@@ -206,6 +206,7 @@ CONFIG_SPL_YMODEM_SUPPORT=y
 # ARM debug
 #
 # CONFIG_DEBUG_LL is not set
+CONFIG_SYS_TEXT_BASE=0x0
 
 #
 # General setup

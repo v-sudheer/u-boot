@@ -11,9 +11,6 @@
 /*#define DEBUG 1*/
 #include "aspeed-common.h"
 
-#ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE			0x0
-#endif
 #define CONFIG_SYS_UBOOT_BASE			CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_LOAD_ADDR	0x83000000	/* default load address */

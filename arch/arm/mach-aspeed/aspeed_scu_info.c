@@ -264,7 +264,7 @@ aspeed_sys_reset_info(void)
 	}
 	
 	if (rest & (SYS_PCI1_RESET | SYS_PCI2_RESET)) {
-		printf("PCI - RST : ");
+		printf("PCI RST : ");
 		if (rest & SYS_PCI1_RESET) {
 			printf("#1 ");
 			writel(SYS_PCI1_RESET, ASPEED_SYS_RESET_CTRL);		

@@ -65,4 +65,7 @@ config CORTEX_A7
 	bool "CPU Cortex-A7"
 endif
 
+config ASPEED_NONSECUR_MODE
+    bool "Boot to Non-SECURE mode"
+
 endif

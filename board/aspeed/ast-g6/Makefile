@@ -32,3 +32,4 @@ obj-y   += platform.o
 endif
 
 obj-$(CONFIG_SPL_BUILD)         += spl.o
+obj-$(CONFIG_ASPEED_NONSECUR_MODE)	+= remap.o start_secure.o

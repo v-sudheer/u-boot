@@ -536,7 +536,7 @@ ddr3_init_param:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0100
-    ldr   r1, =0x00000026
+    ldr   r1, =0x0000000E
     str   r1, [r0]
 
     /* Delay about 500us */

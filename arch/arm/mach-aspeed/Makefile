@@ -13,5 +13,6 @@
 
 obj-y += reset.o cpuinfo.o ast-ahbc.o ast-bmc-scu.o board.o aspeed-reset.o clk_aspeed.o pinctrl_aspeed.o aspeed_scu_info.o
 
+obj-$(CONFIG_ASPEED_NONSECUR_MODE) += gic_init.o
 obj-$(CONFIG_USE_IRQ) += interrupts.o
 obj-$(CONFIG_ARCH_AST1070)	+= ast1070-scu.o

@@ -203,8 +203,33 @@ lowlevel_init:
 	/* Put secondary core to sleep */
 	mrc	p15, 0, r0, c0, c0, 5		@; Read CPU 	ID register
 	ands	r0, r0, #0x03			@; Mask off, leaving the CPU ID field
-	blne	secondary_cpu_stop
+#ifdef CONFIG_ASPEED_NONSECUR_MODE
+	blne	secondary_cpu_init
+#else
+	blne    wait_for_kickup
 #endif
+#endif
+
+    /*Initialize the Debug UART here*/
+    ldr   r0, =(ASTMMC_UART_BASE | 0x0c)
+    mov   r1, #0x83
+    str   r1, [r0]
+
+    ldr   r0, =(ASTMMC_UART_BASE | 0x00)
+    mov   r1, #0x01
+    str   r1, [r0]
+
+    ldr   r0, =(ASTMMC_UART_BASE | 0x04)
+    mov   r1, #0x00
+    str   r1, [r0]
+
+    ldr   r0, =(ASTMMC_UART_BASE | 0x0c)
+    mov   r1, #0x03
+    str   r1, [r0]
+
+    ldr   r0, =(ASTMMC_UART_BASE | 0x08)
+    mov   r1, #0x07
+    str   r1, [r0]
 
 init_dram:
     /* save lr */
@@ -307,26 +332,6 @@ check_pll_ld:
 ddr_init_start:
 
 /* Debug - UART console message */
-    ldr   r0, =(ASTMMC_UART_BASE | 0x0c)
-    mov   r1, #0x83
-    str   r1, [r0]
-
-    ldr   r0, =(ASTMMC_UART_BASE | 0x00)
-    mov   r1, #0x01
-    str   r1, [r0]
-
-    ldr   r0, =(ASTMMC_UART_BASE | 0x04)
-    mov   r1, #0x00
-    str   r1, [r0]
-
-    ldr   r0, =(ASTMMC_UART_BASE | 0x0c)
-    mov   r1, #0x03
-    str   r1, [r0]
-
-    ldr   r0, =(ASTMMC_UART_BASE | 0x08)
-    mov   r1, #0x07
-    str   r1, [r0]
-
     ldr   r0, =ASTMMC_UART_BASE
     mov   r1, #'\r'                              // '\r'
     str   r1, [r0]
@@ -940,15 +945,19 @@ ECC_Init_Flag:
     /* back to arch calling code */
     mov   pc, lr
 
-secondary_cpu_stop:
-/*	bl	armv7_init_nonsec*/
+secondary_cpu_init:
+#if CONFIG_ASPEED_NONSECUR_MODE
+    mov   r6,pc
+	bl    start_sec
+#endif
+wait_for_kickup:
 	wfe
 	ldr r0, =0x1E6E2180
 	ldr r4, =0xABBAADDA
 	ldr r3, =0x1E6E2184
 	ldr r2,[r3]
 	cmp r2,r4
-	bne secondary_cpu_stop
+	bne wait_for_kickup
 	LDR r1,=0x1e784000
 	MOV r2,#'['
 	STR r2,[r1]
@@ -967,4 +976,5 @@ secondary_cpu_stop:
 	MOV r2,#'\r'
 	STR r2,[r1]
 	ldr pc, [r0]
-	b secondary_cpu_stop
+	ldr pc, [r0]
+	b wait_for_kickup

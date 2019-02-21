@@ -15,8 +15,8 @@
  * ASPEED Technology Inc.
  * AST26x0 DDR3/DDR4 SDRAM controller initialization sequence for FPGA
  *
- * Version     : 0
- * Release date: 2018.06.26
+ * Version     : 2
+ * Release date: 2019.02.19
  *
  * Priority of fix item:
  * [P1] = critical
@@ -32,12 +32,8 @@
  *    ASTMMC_DRAM_ECC_SIZE        // define the ECC protected memory size
  * 2. UART5 message output        //
  *    ASTMMC_UART_BASE            // select UART port base
- *    ASTMMC_UART_38400           // set the UART baud rate to 38400, default is 115200
- *    ASTMMC_UART_TO_UART1        // route UART5 to UART port1
  * 3. DRAM Type
  *    ASTMMC_DDR4_8GX8            // DDR4 (16Gb) 8Gbit X8 stacked part
- * 4. Firmware 2nd boot flash
- *    ASTMMC_FIRMWARE_2ND_BOOT    (Removed)
  ******************************************************************************
  */
 
@@ -48,14 +44,17 @@
 
 #ifdef CONFIG_CPU_ARM1176
 #define ASTMMC_DDR_DDR3
+#else
+#define ASTMMC_READ_TRAINING
 #endif
+
 /******************************************************************************
  Calibration Macro Start
  Usable registers:
   r0, r1, r2, r3, r5, r6, r7, r8, r9, r10, r11
  ******************************************************************************/
-#define ASTMMC_INIT_VER      0x00                // 8bit verison number
-#define ASTMMC_INIT_DATE     0x20180626          // Release date
+#define ASTMMC_INIT_VER      0x02                // 8bit verison number
+#define ASTMMC_INIT_DATE     0x20190219          // Release date
 
 /* PATTERN_TABLE,
    init_delay_timer,
@@ -68,6 +67,13 @@
    are for DRAM calibration */
 
 #define ASTMMC_UART_BASE     0x1E784000
+
+#ifdef CONFIG_DRAM_ECC
+#define ASTMMC_DRAM_ECC
+#define ASTMMC_DRAM_ECC_SIZE CONFIG_DRAM_ECC_SIZE
+#else
+#define ASTMMC_DRAM_ECC_SIZE 0x0
+#endif
 
 #define ASTMMC_REG_MCR10     0x00
 #define ASTMMC_REG_MCR14     0x04
@@ -84,7 +90,7 @@ TIME_TABLE_DDR3:
     .word   0x05021133       // MCR14
     .word   0x06010200       // MCR18
     .word   0x00000020       // MCR1C
-    .word   0x00051320       // MCR20
+    .word   0x00071320       // MCR20
     .word   0x00000200       // MCR24
     .word   0x00000000       // MCR28
     .word   0x00000000       // MCR2C
@@ -94,9 +100,9 @@ TIME_TABLE_DDR4:
     .word   0x04451133       // MCR14
     .word   0x0E010200       // MCR18
     .word   0x00000140       // MCR1C
-    .word   0x01010100       // MCR20
+    .word   0x03010100       // MCR20
     .word   0x00000000       // MCR24
-    .word   0x04400000       // MCR28
+    .word   0x04C00000       // MCR28
     .word   0x00000050       // MCR2C
     .word   0x17263434       // MCRFC
 
@@ -199,14 +205,15 @@ PATTERN_TABLE:
 
 .globl lowlevel_init
 lowlevel_init:
+
 #ifndef CONFIG_CPU_ARM1176
-	/* Put secondary core to sleep */
-	mrc	p15, 0, r0, c0, c0, 5		@; Read CPU 	ID register
-	ands	r0, r0, #0x03			@; Mask off, leaving the CPU ID field
+  /* Put secondary core to sleep */
+  mrc     p15, 0, r0, c0, c0, 5                  @; Read CPU ID register
+  ands    r0, r0, #0x03                          @; Mask off, leaving the CPU ID field
 #ifdef CONFIG_ASPEED_NONSECUR_MODE
-	blne	secondary_cpu_init
+  blne	secondary_cpu_init
 #else
-	blne    wait_for_kickup
+  blne    wait_for_kickup
 #endif
 #endif
 
@@ -253,12 +260,10 @@ init_dram:
     ldr   r0, =0x1e6e2000
     ldr   r1, =0x1688a8a8
     str   r1, [r0]
-
     ldr   r0, =0x1e6e2010
-    ldr   r1, =0x1688a8a8
     str   r1, [r0]
 
-/*  ldr   r0, =0x1e6e2040
+/*  ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x80
     str   r1, [r0]
@@ -274,8 +279,14 @@ init_dram:
     mov   r1, #0
     str   r1, [r0]
 
-    ldr   r0, =0x1e78504c
+    ldr   r0, =0x1e78500c
     mov   r1, #0
+    str   r1, [r0]
+    ldr   r0, =0x1e78504c
+    str   r1, [r0]
+    ldr   r0, =0x1e78508c
+    str   r1, [r0]
+    ldr   r0, =0x1e7850cc
     str   r1, [r0]
 
 #ifdef CONFIG_CPU_ARM1176
@@ -359,11 +370,8 @@ ddr_init_start:
     str   r1, [r0]
     mov   r1, #'V'                               // 'V'
     str   r1, [r0]
-    mov   r1, #ASTMMC_INIT_VER
-    mov   r1, r1, lsr #4
-    print_hex_char
-    mov   r1, #ASTMMC_INIT_VER
-    print_hex_char
+    mov   r2, #ASTMMC_INIT_VER
+    print_hex_byte
     ldr   r0, =(ASTMMC_UART_BASE | 0x14)
 wait_print:
     ldr   r1, [r0]
@@ -403,7 +411,7 @@ delay_0:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0008
-    ldr   r1, =0x00000000                        /* VGA */
+    ldr   r1, =0x0044000B                        /* VGA */
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0038
@@ -434,14 +442,8 @@ delay_0:
     ldr   r1, =0x80000000
     str   r1, [r0]
 
-#ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0054
-    ldr   r1, =CONFIG_DRAM_ECC_SIZE
-    str   r1, [r0]
-#endif
-
-    ldr   r0, =0x1e6e0050
-    ldr   r1, =0x00000000
+    ldr   r1, =ASTMMC_DRAM_ECC_SIZE
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0070
@@ -462,15 +464,28 @@ delay_0:
     ldr   r1, =0x00000000
     str   r1, [r0]
 
+    ldr   r0, =0x1e6e0100
+    ldr   r1, =0x000000FF
+    str   r1, [r0]
+
+    /* Delay about 500us */
+    ldr   r2, =0x000001F4                        // Set Timer3 Reload = 500 us
+    init_delay_timer
+ddr3_delay_poweron:
+    check_delay_timer
+    bne   ddr3_delay_poweron
+    clear_delay_timer
+    /* end delay 500us */
+
     /* Check DRAM Type by H/W Trapping */
-//  ldr   r0, =0x1e6e2070
-//  ldr   r1, [r0]
-//  ldr   r2, =0x01000000                        // bit[24]=1 => DDR4
-//  tst   r1, r2
 #ifdef ASTMMC_DDR_DDR3
     b     ddr3_init
 #else
-    b     ddr4_init
+    ldr   r0, =0x1e6e2500
+    ldr   r1, [r0]
+    tst   r1, #0x20                              // bit[5]=1 => DDR3
+    beq   ddr4_init
+    b     ddr3_init
 #endif
 .LTORG
 
@@ -507,11 +522,7 @@ ddr3_init_param:
     blt   ddr3_init_param
 
     ldr   r0, =0x1e6e0034                        // PWRCTL, first time enable CKE, wait at least 200 us
-    ldr   r1, =0x000000C0
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0100
-    ldr   r1, =0x00000026
+    ldr   r1, =0x000000C1
     str   r1, [r0]
 
     /* Delay about 500us */
@@ -522,10 +533,6 @@ ddr3_delay_cke_on:
     bne   ddr3_delay_cke_on
     clear_delay_timer
     /* end delay 500us */
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000000C1
-    str   r1, [r0]
 
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00000040
@@ -602,11 +609,7 @@ ddr4_init_param:
     blt   ddr4_init_param
 
     ldr   r0, =0x1e6e0034                        // PWRCTL, 1st enable CKE, wait at least 200 us
-    ldr   r1, =0x000000C0
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0100
-    ldr   r1, =0x00000026
+    ldr   r1, =0x000000C1
     str   r1, [r0]
 
     /* Delay about 500us */
@@ -617,10 +620,6 @@ ddr4_delay_cke_on:
     bne   ddr4_delay_cke_on
     clear_delay_timer
     /* end delay 500us */
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000000C1
-    str   r1, [r0]
 
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00000040
@@ -661,6 +660,20 @@ ddr4_check_dllrdy:
     ldr   r1, =0x000001A3
     str   r1, [r0]
 
+    /* Set DDR Vref */
+    ldr   r0, =0x1e6e002c
+    ldr   r2, [r0]
+    orr   r1, r2, #0x80
+    str   r1, [r0]
+    ldr   r0, =0x1e6e0030
+    mov   r1, #0x1d
+    str   r1, [r0]
+    ldr   r0, =0x1e6e002c
+    str   r2, [r0]
+    ldr   r0, =0x1e6e0030
+    mov   r1, #0x1d
+    str   r1, [r0]
+
     b     Calibration_End
 .LTORG
 /******************************************************************************
@@ -671,6 +684,269 @@ ddr4_check_dllrdy:
  Other features configuration
  *****************************************************************************/
 Calibration_End:
+
+    mov   r10,#0x0                               // jump indication
+
+#ifdef ASTMMC_READ_TRAINING
+    /***************************************
+     Finetune PLL to search the read window
+     Use register r0, r1, r2, r3, r6, r7, r8
+                  r9, r10,r11
+    ****************************************/
+    ldr   r0, =0x80000000
+    ldr   r1, =0x12345678
+    str   r1, [r0]
+    ldr   r0, =0x80000004
+    ldr   r1, =0xaabbccdd
+    str   r1, [r0]
+
+    mov   r9, #0x3                               // win
+    mov   r10,#0x0                               // gwin
+    mov   r11,#0x0                               // gwin PLL margin
+ddr_gate_win_main:
+    tst   r9, #0x80
+    bne   ddr_gate_win_end
+    ldr   r0, =0x1e6e0100
+    str   r9, [r0]
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    mov   r2, r9
+    print_hex_byte
+    mov   r1, #'-'                               // '-'
+    str   r1, [r0]
+/* Debug - UART console message */
+    b     search_read_bypass_head
+
+ddr_gate_win_next:
+    mov   r9, r9, lsl #1
+    cmp   r10,#0x0
+    beq   ddr_gate_win_main
+    cmp   r7, #0x0
+    bne   ddr_gate_win_main
+
+ddr_gate_win_end:
+    mov   r9, #0x7                               // big win
+    cmp   r10,#0x0
+    beq   ddr_gate_win_main
+    ldr   r0, =0x1e6e0100
+    str   r10,[r0]
+    mov   r2, r10
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    mov   r1, #'G'                               // 'G'
+    str   r1, [r0]
+    mov   r1, #'W'                               // 'W'
+    str   r1, [r0]
+    mov   r1, #'i'                               // 'i'
+    str   r1, [r0]
+    mov   r1, #'n'                               // 'n'
+    str   r1, [r0]
+    mov   r1, #'='                               // '='
+    str   r1, [r0]
+    print_hex_byte
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_6:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_6
+/* Debug - UART console message */
+
+    mov   r9, #0x0                               // jump indication
+
+search_read_bypass_head:
+    ldr   r0, =0x80000000
+    ldr   r1, [r0]
+    add   r0, r0, #0x4
+    ldr   r2, [r0]
+    add   r2, r1, r2
+    ldr   r1, =0xBCF02355
+    cmp   r1, r2
+    bne   search_read_bypass_end
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x303
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2004
+    ldr   r2, =0x00000100
+check_mpll_done_0:
+    ldr   r1, [r0]
+    tst   r1, r2
+    beq   check_mpll_done_0
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x103
+    str   r1, [r0]
+    b     search_read_bypass_head
+
+search_read_bypass_end:
+
+    ldr   r6, =0xFFF                             // PLL_min
+    ldr   r7, =0x0                               // PLL_max
+    ldr   r3, =0x0                               // pll counter
+search_read_main:
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x301
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2004
+    ldr   r2, =0x00000100
+check_mpll_done_1:
+    ldr   r1, [r0]
+    tst   r1, r2
+    beq   check_mpll_done_1
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x101
+    str   r1, [r0]
+
+    add   r3, r3, #0x1
+    ldr   r0, =0x80000000
+    ldr   r1, [r0]
+    add   r0, r0, #0x4
+    ldr   r2, [r0]
+    add   r2, r1, r2
+    ldr   r1, =0xBCF02355
+    cmp   r1, r2
+    bne   search_read_main_fail
+    cmp   r6, r3
+    movgt r6, r3
+    cmp   r7, r3
+    movlt r7, r3
+/* Debug - UART console message */
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_3:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_3
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'*'                               // '*'
+    str   r1, [r0]
+/* Debug - UART console message */
+    b     search_read_main
+
+search_read_main_fail:
+    cmp   r9, #0x0
+    bne   search_read_main_fail_for_gatewin
+    cmp   r7, #0x0
+    beq   search_read_main
+    sub   r2, r7, r6
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'E'                               // 'E'
+    str   r1, [r0]
+    print_hex_byte
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+/* Debug - UART console message */
+    cmp   r2, #30
+    bgt   search_read_main_pass
+    ldr   r6, =0xFFF
+    ldr   r7, =0x0
+    b     search_read_main
+
+search_read_main_fail_for_gatewin:
+    add   r0, r7, #0xFF
+    cmp   r3, r0
+    bge   ddr_gate_win_next
+    cmp   r7, #0x0
+    beq   search_read_main
+    sub   r2, r7, r6
+    cmp   r2, r11
+    movgt r11,r2
+    movgt r10,r9
+    orreq r10,r9, r10
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'M'                               // 'M'
+    str   r1, [r0]
+    print_hex_byte
+/* Debug - UART console message */
+    b     ddr_gate_win_next
+
+search_read_main_pass:
+    sub   r8, r7, r6
+    mov   r8, r8, lsr #1
+
+    ldr   r6, =0xFFF                             // PLL_min
+    ldr   r7, =0x0                               // PLL_max
+    ldr   r3, =0x0                               // pll counter
+search_read_main2:
+    add   r1, r6, r8
+    cmp   r3, r1
+    bge   search_read_end
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x301
+    str   r1, [r0]
+    ldr   r0, =0x1e6e2004
+    ldr   r2, =0x00000100
+check_mpll_done_2:
+    ldr   r1, [r0]
+    tst   r1, r2
+    beq   check_mpll_done_2
+    ldr   r0, =0x1e6e2400
+    ldr   r1, =0x101
+    str   r1, [r0]
+
+    add   r3, r3, #0x1
+    ldr   r0, =0x80000000
+    ldr   r1, [r0]
+    add   r0, r0, #0x4
+    ldr   r2, [r0]
+    add   r2, r1, r2
+    ldr   r1, =0xBCF02355
+    cmp   r1, r2
+    bne   search_read_main2_fail
+    cmp   r6, r3
+    movgt r6, r3
+    cmp   r7, r3
+    movlt r7, r3
+/* Debug - UART console message */
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_4:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_4
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'#'                               // '#'
+    str   r1, [r0]
+/* Debug - UART console message */
+    b     search_read_main2
+
+search_read_main2_fail:
+    cmp   r7, #0x0
+    beq   search_read_main2
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'E'                               // 'E'
+    str   r1, [r0]
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+/* Debug - UART console message */
+    ldr   r6, =0xFFF
+    ldr   r7, =0x0
+    b     search_read_main2
+
+search_read_end:
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+/* Debug - UART console message */
+#endif
 
     /*******************************
      Check DRAM Size
@@ -756,21 +1032,88 @@ check_dram_size_end:
     str   r1, [r0]
     mov   r1, #'-'                               // '-'
     str   r1, [r0]
-    mov   r1, r3, lsr #4
-    print_hex_char
-    mov   r1, r3
-    print_hex_char
+    mov   r2, r3
+    print_hex_byte
     mov   r1, #'G'                               // 'G'
     str   r1, [r0]
     mov   r1, #'b'                               // 'b'
     str   r1, [r0]
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_2:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_2
+/* Debug - UART console message */
+
+    mov   r9, #0x1                               // jump indication
+    /***************************************
+     Search read gating window
+     Use r7, r8, r9
+    ****************************************/
+    mov   r7, #0x3                               // win
+    mov   r8, #0x0                               // gwin
+    mov   r9, #0x0                               // jump indication
+
+ddr_gate_train_main:
+    tst   r7, #0x80
+    bne   ddr_gate_train_end
+    ldr   r0, =0x1e6e0100
+    str   r7, [r0]
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r2, r7
+    print_hex_byte
     mov   r1, #'-'                               // '-'
     str   r1, [r0]
 /* Debug - UART console message */
+    b     ddr_test_start
+
+ddr_gate_train_pass:
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'P'                               // 'P'
+    str   r1, [r0]
+    mov   r1, #'a'                               // 'a'
+    str   r1, [r0]
+    mov   r1, #'s'                               // 's'
+    str   r1, [r0]
+    mov   r1, #'s'                               // 's'
+    str   r1, [r0]
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_5:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_5
+/* Debug - UART console message */
+    orr   r8, r7, r8
+    mov   r7, r7, lsl #1
+    b     ddr_gate_train_main
+
+ddr_gate_train_fail:
+    mov   r7, r7, lsl #1
+    cmp   r8, #0x0
+    beq   ddr_gate_train_main
+
+ddr_gate_train_end:
+    mov   r7, #0x7                               // big win
+    cmp   r8, #0x0
+    beq   ddr_gate_train_main
+    ldr   r0, =0x1e6e0100
+    str   r8, [r0]
 
     /********************************************
      DDRTest
+     Use r0, r1, r2, r3, r6, r11
     ********************************************/
+    mov   r9, #0x1                               // jump indication
 ddr_test_start:
     ldr   r0, =0x1e6e0074
     ldr   r1, =0x0000FFFF                        // test size = 64KB
@@ -848,6 +1191,9 @@ ddr_wait_engine_idle_1:
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
+
+    cmp   r9, #0x0
+    beq   ddr_gate_train_pass
     b     set_scratch                            // CBRTest() return(1)
 
 ddr_test_fail:
@@ -871,6 +1217,8 @@ wait_print_1:
     tst   r1, #0x40
     beq   wait_print_1
 /* Debug - UART console message */
+    cmp   r9, #0x0
+    beq   ddr_gate_train_fail
     b     ddr_init_start
 
 set_scratch:
@@ -880,11 +1228,6 @@ set_scratch:
     orr   r1, r1, #0x41
     str   r1, [r0]
 */
-    ldr   r0, =0x1e6e0004                        // enable DQ scramble
-    ldr   r2, =0x00000100
-    ldr   r1, [r0]
-    orr   r1, r1, r2
-    str   r1, [r0]
 
 /* Debug - UART console message */
     ldr   r0, =ASTMMC_UART_BASE
@@ -904,7 +1247,7 @@ set_scratch:
 
 platform_exit:
 
-#ifdef CONFIG_DRAM_ECC
+#ifdef ASTMMC_DRAM_ECC
     ldr   r0, =0x1e6e0004
     ldr   r2, =0x00000280
     ldr   r1, [r0]
@@ -935,7 +1278,7 @@ ECC_Init_Flag:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0050
-    ldr   r1, =0x00000000
+    ldr   r1, =0x40000000
     str   r1, [r0]
 #endif
 

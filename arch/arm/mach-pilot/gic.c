@@ -336,9 +336,9 @@ static void gic_dist_init(u32 cpu, unsigned int gic_irqs)
     for (i = 32; i < gic_irqs; i += 32)
         writel_relaxed(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
     
-        writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 0);
+        writel_relaxed(0xfffffbff, base + GIC_DIST_SECURE_SET + 0);
         writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 4);
-        writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 8);
+        writel_relaxed(0xf7ffffff, base + GIC_DIST_SECURE_SET + 8);
         writel_relaxed(0xffffffff, base + GIC_DIST_SECURE_SET + 0xc);
 
     writel_relaxed(1, base + GIC_DIST_CTRL);

@@ -3,6 +3,25 @@
  * Copyright (c) 2011-2014 ARM Ltd.  All rights reserved.
  * SPDX-License-Identifier:     GPL-2.0+
  */
+
+
+.equ WD,0
+
+.equ    SYS_CTRL_BASE,  0x40100800
+.equ    SYSRST_STATUS,  0xB0
+.equ    SYSWCR3,        0x90
+.equ    SYSWCR3_EN_BIT, 0
+.equ    SYSWCR3_TR_BIT, 23
+.equ    SYSWCFR3,       0x9C
+.equ    SYSWRERL3,      0x94
+.equ    SYSWRERH3,      0x98
+.equ    DEFAULT,        0x410C00
+.equ    WD_VAL,         0x08A0CF69      /*Pre=45Sec and Act=60Sec(Remmembe thing 2.261ms*val=Required Sec)*/
+//.equ  WD_VAL,         0x228D33D4      /*Pre=45Sec and Act=60Sec(Remmembe thing 2.261ms*val=Required Sec)*/
+.equ    RESET_MODL,     0x1             /*ARM processor*/
+.equ    RESET_MODH,     0x0             /**/
+
+
 .equ NS_STACK_SP0,0x10001100
 .equ NS_STACK_SP1,0x10002100
 .equ MONSP0,0x1000C000
@@ -100,6 +119,90 @@ BL      join_smp
 BL      enable_maintenance_broadcast
 BL	enable_access
 BL	gic_init
+.if WD
+/*Watch Dog Reset Enable*/
+        LDR     R0,=SYS_CTRL_BASE
+/*
+        LDR     R1,=0xFFFFFFFF
+        STR     R1,[R0,#SYSRST_STATUS]
+*/
+        LDR     R1,[R0,#SYSWCR3]
+        LDR     R2,=DEFAULT
+        ORR     R1,R1,R2
+        BIC     R1,R1,#(1<<SYSWCR3_EN_BIT)
+        STR     R1,[R0,#SYSWCR3]
+
+        LDR     R1,=WD_VAL
+        STR     R1,[R0,#SYSWCFR3]
+
+        bl enable_GIC @; MP_GIC.s
+        mov r10, #91
+doag1:
+        mov r0, r10 @; ID
+        bl enable_irq_id @; MP_GIC.s
+
+        mov r0, r10
+        mov r1, #0x08 @; Set the priority level for this interrupt
+        bl enable_processor_priority
+
+        mov r0, r10
+        mov r1, #0
+        bl  enable_gic_processor_target
+
+        add r10, r10, #1
+        cmp r10, #92
+        bne doag1
+
+
+        ldr r0, =0xFF @; Priority
+        bl      set_priority_mask@; MP_GIC.s
+
+        MOV     R0,#0x1B
+        bl enable_gic_processor_interface1 @; MP_GIC.s
+
+
+        LDR     R0,=SYS_CTRL_BASE
+
+
+
+        LDR     R1,=RESET_MODL
+        STR     R1,[R0,#SYSWRERL3]
+
+        LDR     R1,=RESET_MODH
+        STR     R1,[R0,#SYSWRERH3]
+
+
+        LDR     R1,[R0,#SYSWCR3]
+        ORR     R1,R1,#(1<<SYSWCR3_EN_BIT)
+        ORR     R1,R1,#(1<<SYSWCR3_TR_BIT)
+        STR     R1,[R0,#SYSWCR3]
+.else
+        bl enable_GIC @; MP_GIC.s
+        mov r10, #91
+doag1:
+        mov r0, r10 @; ID
+        bl enable_irq_id @; MP_GIC.s
+
+        mov r0, r10
+        mov r1, #0x08 @; Set the priority level for this interrupt
+        bl enable_processor_priority
+
+        mov r0, r10
+        mov r1, #0
+        bl  enable_gic_processor_target
+
+        add r10, r10, #1
+        cmp r10, #92
+        bne doag1
+
+
+        ldr r0, =0xFF @; Priority
+        bl      set_priority_mask@; MP_GIC.s
+
+        MOV     R0,#0x1B
+        bl enable_gic_processor_interface1 @; MP_GIC.s
+
+.endif
 
 @; Install Secure Monitor
 @; -----------------------
@@ -191,7 +294,6 @@ BL	enable_access
 	printch 's'
 
 BL	gic_init
-
 	LDR	R0,=remap_start_sec
 	LDR	R1,=MVBAR
 	LDR	R2,=remap_start_sec_end

@@ -18,6 +18,16 @@
 @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #define SECURE 1
+#define WD_FINGURE 0
+.equ    SYS_CTRL_BASE,  0x40100800
+.equ    SYSRST_STATUS,  0xB0
+.equ    SYSWCR3,        0x90
+.equ    SYSWCR3_EN_BIT, 0
+.equ    SYSWCR3_TR_BIT, 23
+.equ    SYSWCFR3,       0x9C
+.equ    SYSWRERL3,      0x94
+.equ    SYSWRERH3,      0x98
+
 #if 0
 .include  "buffer.equ"
 .include  "pilot.equ"
@@ -644,6 +654,22 @@ WAIT:
 	b no_sw_reset
 
 noddrinit:
+	
+	#if SECURE
+	LDR	R0,=0x10002200
+	LDR	R1,=0xBADBABE5
+	STR	R1,[R0]
+	SEV
+WAIT_WD:
+	LDR	R1,[R0]
+	CMP	R1,#0
+	BNE	WAIT_WD
+
+	MOV	R6,pc
+	B	start_sec
+#endif	
+
+
 	@;bl invalidate_caches
 	bl invalidate_icache_all
 	bl invalidate_dcache_all
@@ -673,15 +699,23 @@ secondary_cpus_init_exp:
    LDR	r2, [r0]
    STR	r2, [r1]
 #if SECURE
+.if WD_FINGURE
 	LDR	R0,=0x401008B0
 	LDR	R1,[R0]
 	AND	R2,R1,#(1<<1)
 	CMP	R2,#0
 	BNE	no_secure_init
+.endif
 	MOV R6,R15
 	b	start_sec
 
-no_secure_init:
+	LDR     R0,=SYS_CTRL_BASE
+        LDR     R1,=0x00070000
+        STR     R1,[R0,#SYSWCR3]
+
+.if WD_FINGURE
+	no_secure_init:
+.endif
 #endif
 	ldr r13, =0x10008100
 	bl invalidate_icache_all

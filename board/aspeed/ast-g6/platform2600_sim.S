@@ -297,14 +297,16 @@ init_dram:
     ldr   r0, =0x1e6e2000
     ldr   r1, =0x1688a8a8
     str   r1, [r0]
+    ldr   r0, =0x1e6e2010
+    str   r1, [r0]
 
-    ldr   r0, =0x1e6e2100
+/*  ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x80
     str   r1, [r0]
-
+*/
 /******************************************************************************
- Disable WDT3 for SPI Address mode detection function
+ Disable WDT for SPI Address mode detection function
  ******************************************************************************/
     ldr   r0, =0x1e620060
     mov   r1, #0
@@ -314,8 +316,14 @@ init_dram:
     mov   r1, #0
     str   r1, [r0]
 
-    ldr   r0, =0x1e78504c
+    ldr   r0, =0x1e78500c
     mov   r1, #0
+    str   r1, [r0]
+    ldr   r0, =0x1e78504c
+    str   r1, [r0]
+    ldr   r0, =0x1e78508c
+    str   r1, [r0]
+    ldr   r0, =0x1e7850cc
     str   r1, [r0]
 
     /* Check Scratch Register Bit 6 */
@@ -376,11 +384,8 @@ ddr_init_start:
     str   r1, [r0]
     mov   r1, #'V'                               // 'V'
     str   r1, [r0]
-    mov   r1, #ASTMMC_INIT_VER
-    mov   r1, r1, lsr #4
-    print_hex_char
-    mov   r1, #ASTMMC_INIT_VER
-    print_hex_char
+    mov   r2, #ASTMMC_INIT_VER
+    print_hex_byte
     ldr   r0, =(ASTMMC_UART_BASE | 0x14)
 wait_print:
     ldr   r1, [r0]
@@ -420,7 +425,7 @@ delay_0:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0008
-    ldr   r1, =0x00000000                        /* VGA */
+    ldr   r1, =0x0044000B                        /* VGA */
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0038
@@ -455,10 +460,6 @@ delay_0:
     ldr   r1, =ASTMMC_DRAM_ECC_SIZE
     str   r1, [r0]
 
-    ldr   r0, =0x1e6e0050
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
@@ -475,6 +476,10 @@ delay_0:
 
     ldr   r0, =0x1e6e0084
     ldr   r1, =0x00000000
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0100
+    ldr   r1, =0x000000FF
     str   r1, [r0]
 
     /* Check DRAM Type by H/W Trapping */
@@ -532,11 +537,7 @@ ddr3_init_param:
     blt   ddr3_init_param
 
     ldr   r0, =0x1e6e0034                        // PWRCTL, first time enable CKE, wait at least 200 us
-    ldr   r1, =0x000000C0
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0100
-    ldr   r1, =0x0000000E
+    ldr   r1, =0x000000C1
     str   r1, [r0]
 
     /* Delay about 500us */
@@ -547,10 +548,6 @@ ddr3_delay_cke_on:
     bne   ddr3_delay_cke_on
     clear_delay_timer
     /* end delay 500us */
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000000C1
-    str   r1, [r0]
 
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00000040
@@ -633,11 +630,7 @@ ddr4_init_param:
     blt   ddr4_init_param
 
     ldr   r0, =0x1e6e0034                        // PWRCTL, 1st enable CKE, wait at least 200 us
-    ldr   r1, =0x000000C0
-    str   r1, [r0]
-
-    ldr   r0, =0x1e6e0100
-    ldr   r1, =0x00000026
+    ldr   r1, =0x000000C1
     str   r1, [r0]
 
     /* Delay about 500us */
@@ -648,10 +641,6 @@ ddr4_delay_cke_on:
     bne   ddr4_delay_cke_on
     clear_delay_timer
     /* end delay 500us */
-
-    ldr   r0, =0x1e6e0034
-    ldr   r1, =0x000000C1
-    str   r1, [r0]
 
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00000040
@@ -702,6 +691,64 @@ ddr4_check_dllrdy:
  Other features configuration
  *****************************************************************************/
 Calibration_End:
+
+    /***************************************
+     Search read gating window
+     Use r7, r8, r9
+    ****************************************/
+    mov   r7, #0x3                               // win
+    mov   r8, #0x0                               // gwin
+    mov   r9, #0x0                               // jump indication
+
+ddr_gate_train_main:
+    tst   r7, #0x80
+    bne   ddr_gate_train_end
+    ldr   r0, =0x1e6e0100
+    str   r7, [r0]
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r2, r7
+    print_hex_byte
+    mov   r1, #'-'                               // '-'
+    str   r1, [r0]
+/* Debug - UART console message */
+    b     ddr_test_start
+
+ddr_gate_train_pass:
+/* Debug - UART console message */
+    ldr   r0, =ASTMMC_UART_BASE
+    mov   r1, #'P'                               // 'P'
+    str   r1, [r0]
+    mov   r1, #'a'                               // 'a'
+    str   r1, [r0]
+    mov   r1, #'s'                               // 's'
+    str   r1, [r0]
+    mov   r1, #'s'                               // 's'
+    str   r1, [r0]
+    mov   r1, #'\r'                              // '\r'
+    str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_5:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_5
+/* Debug - UART console message */
+    orr   r8, r7, r8
+    b     ddr_gate_train_end
+
+ddr_gate_train_fail:
+    mov   r7, r7, lsl #1
+    cmp   r8, #0x0
+    beq   ddr_gate_train_main
+
+ddr_gate_train_end:
+    mov   r7, #0x7                               // big win
+    cmp   r8, #0x0
+    beq   ddr_gate_train_main
+    ldr   r0, =0x1e6e0100
+    str   r8, [r0]
 
     /*******************************
      Check DRAM Size
@@ -789,24 +836,31 @@ check_dram_size_end:
     str   r1, [r0]
     mov   r1, #'-'                               // '-'
     str   r1, [r0]
-    mov   r1, r3, lsr #4
-    print_hex_char
-    mov   r1, r3
-    print_hex_char
+    mov   r2, r3
+    print_hex_byte
     mov   r1, #'G'                               // 'G'
     str   r1, [r0]
     mov   r1, #'b'                               // 'b'
     str   r1, [r0]
-    mov   r1, #'-'                               // '-'
+    mov   r1, #'\r'                              // '\r'
     str   r1, [r0]
+    mov   r1, #'\n'                              // '\n'
+    str   r1, [r0]
+    ldr   r0, =(ASTMMC_UART_BASE | 0x14)
+wait_print_2:
+    ldr   r1, [r0]
+    tst   r1, #0x40
+    beq   wait_print_2
 /* Debug - UART console message */
 
     /********************************************
      DDRTest
+     Use r0, r1, r2, r3, r6, r11
     ********************************************/
+    mov   r9, #0x1                               // jump indication
 ddr_test_start:
     ldr   r0, =0x1e6e0074
-    ldr   r1, =0x000003FF                        // test size = 16MB
+    ldr   r1, =0x000000FF                        // test size = 16MB
     str   r1, [r0]
     ldr   r0, =0x1e6e007c
     ldr   r1, =0xFF00FF00
@@ -881,6 +935,9 @@ ddr_wait_engine_idle_1:
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
+
+    cmp   r9, #0x0
+    beq   ddr_gate_train_pass
     b     set_scratch                            // CBRTest() return(1)
 
 ddr_test_fail:
@@ -904,25 +961,17 @@ wait_print_1:
     tst   r1, #0x40
     beq   wait_print_1
 /* Debug - UART console message */
+    cmp   r9, #0x0
+    beq   ddr_gate_train_fail
     b     ddr_init_start
 
 set_scratch:
     /*Set Scratch register Bit 6 after ddr initial finished */
-    ldr   r0, =0x1e6e2100
+/*  ldr   r0, =0x1e6e2100
     ldr   r1, [r0]
     orr   r1, r1, #0x41
     str   r1, [r0]
-
-#ifdef ASTMMC_DRAM_ECC
-    ldr   r0, =0x1e6e0004
-    ldr   r2, =0x00000280
-    ldr   r1, [r0]
-    orr   r1, r1, r2
-    str   r1, [r0]
-    ldr   r0, =0x1e6e0050
-    ldr   r1, =0x00000000
-    str   r1, [r0]
-#endif
+*/
 
 /* Debug - UART console message */
     ldr   r0, =ASTMMC_UART_BASE
@@ -941,6 +990,41 @@ set_scratch:
 /* Debug - UART console message */
 
 platform_exit:
+
+#ifdef ASTMMC_DRAM_ECC
+    ldr   r0, =0x1e6e0004
+    ldr   r2, =0x00000280
+    ldr   r1, [r0]
+    orr   r1, r1, r2
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e007C
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+    ldr   r0, =0x1e6e0074
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0070
+    ldr   r1, =0x00000221
+    str   r1, [r0]
+
+    ldr   r2, =0x00001000
+ECC_Init_Flag:
+    ldr   r1, [r0]
+    tst   r1, r2                                 @ D[12] = 1, Done
+    beq   ECC_Init_Flag
+
+    ldr   r1, =0x00000000
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0050
+    ldr   r1, =0x80000000
+    str   r1, [r0]
+
+    ldr   r0, =0x1e6e0050
+    ldr   r1, =0x40000000
+    str   r1, [r0]
+#endif
 
     /* restore lr */
     mov   lr, r4

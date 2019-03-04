@@ -208,14 +208,43 @@ lowlevel_init:
 
 #ifndef CONFIG_CPU_ARM1176
   /* Put secondary core to sleep */
-  mrc     p15, 0, r0, c0, c0, 5                  @; Read CPU ID register
-  ands    r0, r0, #0x03                          @; Mask off, leaving the CPU ID field
+  mrc   p15, 0, r0, c0, c0, 5                  @; Read CPU ID register
+  ands  r0, r0, #0x03                          @; Mask off, leaving the CPU ID field
 #ifdef CONFIG_ASPEED_NONSECUR_MODE
   blne	secondary_cpu_init
 #else
-  blne    wait_for_kickup
+  blne  relocate
+  @blne  wait_for_kickup
+  b     init_uart
+#endif
+
+#if 1
+relocate:
+    adrl  r0, wait_for_kickup
+    ldr   r1, =0x1e72f000     //  ; r1 = pointer to destination block
+    mov   r2, #0x20           //  ; r2 = number of words to copy
+wordcopy:
+    ldr   r3, [r0], #4         // ; load a word from the source and
+    str   r3, [r1], #4         // ; store it to the destination
+    subs  r2, r2, #1           // ; decrement the counter
+    bne   wordcopy             //1 ; ... copy more
+
+   	ldr r0, =0x1E6E2180
+	LDR r1, =0x1e784000   	
+	ldr r4, =0xABBAADDA
+	ldr r3, =0x1E6E2184
+
+   	ldr   r5, =0x1e720000
+   	ldr   r6, =0x1e72f000
+   	str   r6, [r5]
+	mov   lr, r6
+	mov   pc, lr
 #endif
 #endif
+
+init_uart:
+    /* save lr */
+    mov   r4, lr
 
     /*Initialize the Debug UART here*/
     ldr   r0, =(ASTMMC_UART_BASE | 0x0c)
@@ -239,8 +268,6 @@ lowlevel_init:
     str   r1, [r0]
 
 init_dram:
-    /* save lr */
-    mov   r4, lr
 
 /* Test - DRAM initial time */
     ldr   r0, =0x1e78203c
@@ -1295,13 +1322,10 @@ secondary_cpu_init:
 #endif
 wait_for_kickup:
 	wfe
-	ldr r0, =0x1E6E2180
-	ldr r4, =0xABBAADDA
-	ldr r3, =0x1E6E2184
 	ldr r2,[r3]
 	cmp r2,r4
 	bne wait_for_kickup
-	LDR r1,=0x1e784000
+
 	MOV r2,#'['
 	STR r2,[r1]
 	MOV r2,#'1'

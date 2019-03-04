@@ -1,9 +1,8 @@
 /*
- * SPDX-License-Identifier:     GPL-2.0+
- * Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
- * Copyright (C) 2018 Shivah Shankar <shivahshankar.shankarnarayanrao@aspeedtech.com>
+ *Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
+ *Copyright (c) 2019, Aspeed Technologies Inc.
+ *SPDX-License-Identifier:     GPL-2.0+
  */
-
 .equ T1TCR,0x40411808
 
 .equ	S_FRAME_SIZE, 72

@@ -1,4 +1,6 @@
 /*
+ *Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
+ *Copyright (c) 2019, Aspeed Technologies Inc.
  *SPDX-License-Identifier:     GPL-2.0+
  */
 

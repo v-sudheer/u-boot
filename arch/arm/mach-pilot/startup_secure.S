@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
- * Copyright (c) 2011-2014 ARM Ltd.  All rights reserved.
+ * Copyright (c) 2019, Aspeed Technologies Inc.
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
@@ -232,6 +232,7 @@ STR     r1, [r0]                     @; Save a pointer to the top of the Normal 
 	printch '\n'
 	printch '\r'
 
+.arch_extension sec
 SMC #0
 
 @; ------------------------------------------------------------
@@ -324,4 +325,5 @@ LDR	  r0,=NS_STACK_SP1
 MOV	  r1,r6
 STR     r1, [r0]                     @; Save a pointer to the top of the Normal world context
 
+.arch_extension sec
 SMC #0

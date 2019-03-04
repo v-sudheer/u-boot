@@ -1,11 +1,8 @@
 /*
-    Copyright (C) 2018 Vishal Nigade <vishal.nigade@aspeedtech.com>
-    Copyright (C) 2018 Shivah Shankar <shivahshankar.shankarnarayanrao@aspeedtech.com>
-    Copyright (C) 2009-2011 American Megatrends Inc.
-    Copyright (c) 2009-2011, Intel Corporation.
-    Copyright (c) 2010-2014, Emulex Corporation.
-    SPDX-License-Identifier:     GPL-2.0+
-*/
+ *  (C) Copyright 2019 Vishal C Nigade (vishal.nigade@aspeedtech.com)
+ *  Copyright (c) 2019, Aspeed Technologies Inc.
+ *  SPDX-License-Identifier:     GPL-2.0+
+ */
 
 
 

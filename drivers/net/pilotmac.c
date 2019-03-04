@@ -1328,9 +1328,7 @@ int ast_eth_initialize(bd_t *bis, int base_addr)
 		printf("ASTMAC: Registering %s\n",dev->name);
 #endif
 		eth_register(dev);
-
-		//#if defined (CONFIG_MII) || (CONFIG_COMMANDS & CFG_CMD_MII)
-#if defined (CONFIG_MII) 
+#if defined (CONFIG_MII) || (CONFIG_CMD_MII)
 		/* register mii command access routines */
 		miiphy_register(dev->name, ast_miiphy_read, ast_miiphy_write);
 #endif

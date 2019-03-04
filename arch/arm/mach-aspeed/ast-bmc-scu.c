@@ -173,7 +173,6 @@ ast_scu_init_usb_port1(void)
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_USB20, AST_SCU_RESET);
 }
 
-
 extern void
 ast_scu_init_usb_port2(void)
 {
@@ -186,38 +185,6 @@ ast_scu_init_usb_port2(void)
 
 	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_USB_P1, AST_SCU_RESET);
 #endif
-}
-#endif
-
-#ifdef SCU_RESET_SD
-#define SCU_CLK_SD_DIV(x)			(x << 12)
-#define SCU_CLK_SD_MASK				(0x7 << 12)
-
-extern void
-ast_scu_init_sdhci(void)
-{
-	//SDHCI Host's Clock Enable and Reset
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) | SCU_RESET_SD, AST_SCU_RESET);
-	
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_STOP) & ~SCU_SDCLK_STOP_EN, AST_SCU_CLK_STOP);
-	mdelay(10);
-
-	ast_scu_write(ast_scu_read(AST_SCU_CLK_SEL) | SCU_CLK_SD_EN, AST_SCU_CLK_SEL);
-	mdelay(10);
-
-#ifdef CONFIG_ARCH_AST3200
-	// SDCLK = H-PLL / 12
-	ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_SD_MASK) | SCU_CLK_SD_DIV(7), 
-		AST_SCU_CLK_SEL);
-#else
-	// SDCLK = G4  H-PLL / 4, G5 = H-PLL /8
-	ast_scu_write((ast_scu_read(AST_SCU_CLK_SEL) & ~SCU_CLK_SD_MASK) | SCU_CLK_SD_DIV(1), 
-		AST_SCU_CLK_SEL);
-#endif 
-
-	mdelay(10);
-	
-	ast_scu_write(ast_scu_read(AST_SCU_RESET) & ~SCU_RESET_SD, AST_SCU_RESET);
 }
 #endif
 

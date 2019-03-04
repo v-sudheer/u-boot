@@ -164,9 +164,11 @@ static struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
 	{ "I2C12", ASPEED_SCU_BASE + 0x90, BIT(25), ASPEED_SCU_BASE + 0x90, BIT(0) },
 	{ "I2C13", ASPEED_SCU_BASE + 0x90, BIT(26), ASPEED_SCU_BASE + 0x90, BIT(0) },
 	{ "I2C14", ASPEED_SCU_BASE + 0x90, BIT(27), 0, 0 },
+	{ "SDIO1", ASPEED_SCU_BASE + 0x90, BIT(1), 0, 0 },	
+	{ "SDIO0", ASPEED_SCU_BASE + 0x90, BIT(0), 0, 0 },
 };
 #else
-#err "No define for clk enable"xx
+#err "No define for clk enable"
 #endif
 
 extern void aspeed_pinctrl_group_set(char *group_name)

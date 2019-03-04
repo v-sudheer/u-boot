@@ -130,13 +130,45 @@ int board_eth_init(bd_t *bd)
 
 int board_mmc_init(bd_t *bis)
 {
+	char *ctrl0_name, *clk_name;;
+
 	ulong mmc_base_address[CONFIG_SYS_MMC_NUM] = CONFIG_SYS_MMC_BASE;
 	u8 i;
 
-	ast_scu_init_sdhci();
-	ast_scu_multi_func_sdhc_slot(3);
+	//ast2600
+//	ctrl0_name = "emmc";
+//	ctrl1_name = "sdio";
+
+	//ast2500 
+	ctrl0_name = "SDIO";
+	clk_name = "SD";
+
+	aspeed_reset_assert(ctrl0_name);
+
+	aspeed_clk_enable(ctrl0_name);
+	mdelay(10);	
+	aspeed_clk_enable(clk_name);
+	
+	mdelay(10);
+	
+	aspeed_set_sd_clk_rate();
+	
+	mdelay(10);
+	
+	aspeed_reset_deassert(ctrl0_name);
 
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
+		switch(i) {
+			case 0:
+				ctrl0_name = "SDIO0";
+				aspeed_pinctrl_group_set(ctrl0_name);
+				break;
+			case 1:
+				ctrl0_name = "SDIO1";
+				aspeed_pinctrl_group_set(ctrl0_name);
+				break;
+		};
+		
 		if (ast_sdhi_init(mmc_base_address[i], aspeed_get_sd_clk_rate(), 100000))
 			return 1;
 	}

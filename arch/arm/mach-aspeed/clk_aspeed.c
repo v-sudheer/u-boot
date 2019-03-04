@@ -853,6 +853,20 @@ extern u32 aspeed_get_lpc_host_clk_rate(void)
 }
 #endif
 
+#define AST_SCU_CLK_SEL				0x08		/*	clock selection register	*/
+
+#define SCU_CLK_SD_DIV(x)			(x << 12)
+#define SCU_CLK_SD_MASK				(0x7 << 12)
+
+extern void aspeed_set_sd_clk_rate(void)
+{
+	// SDCLK = G4  H-PLL / 4, G5 = H-PLL /8
+	u32 rate = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
+	
+	writel((rate & ~SCU_CLK_SD_MASK) | SCU_CLK_SD_DIV(1), 
+			ASPEED_SCU_BASE + AST_SCU_CLK_SEL);
+}
+
 extern u32 aspeed_get_sd_clk_rate(void)
 {
 	u32 hpll = aspeed_get_hpll_clk_rate();
@@ -887,6 +901,9 @@ static struct aspeed_clock ast2600_clk[] = {
 static struct aspeed_clock ast2500_clk[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x0C, BIT(20), 0 },
 	{ "MAC2", ASPEED_SCU_BASE + 0x0C, BIT(21), 0 },
+	{ "SDIO", ASPEED_SCU_BASE + 0x0C, BIT(27), 0 },	
+	{ "SD", ASPEED_SCU_BASE + 0x08, BIT(15), 1 },
+	
 };
 #endif
 

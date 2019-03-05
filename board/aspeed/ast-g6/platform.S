@@ -1272,6 +1272,11 @@ set_scratch:
     str   r1, [r0]
 /* Debug - UART console message */
 
+#ifdef CONFIG_ASPEED_NONSECUR_MODE
+	mov   r6,pc
+	bl    start_sec
+#endif
+
 platform_exit:
 
 #ifdef ASTMMC_DRAM_ECC
@@ -1316,7 +1321,7 @@ ECC_Init_Flag:
     mov   pc, lr
 
 secondary_cpu_init:
-#if CONFIG_ASPEED_NONSECUR_MODE
+#ifdef CONFIG_ASPEED_NONSECUR_MODE
     mov   r6,pc
 	bl    start_sec
 #endif

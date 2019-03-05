@@ -215,6 +215,22 @@ lowlevel_init:
         mrc     p15, 0, r0, c0, c0, 5           @; Read CPU     ID register
         ands    r0, r0, #0x03                   @; Mask off, leaving the CPU ID field
         blne    secondary_cpus_init_exp
+	
+LDR	r0,=0x40100880
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
+LDR	r0,=0x40100890
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
+LDR	r0,=0x401008A0
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
 
 @; Here wait for core1 to enter WFE mode
 #if 1
@@ -709,9 +725,6 @@ secondary_cpus_init_exp:
 	MOV R6,R15
 	b	start_sec
 
-	LDR     R0,=SYS_CTRL_BASE
-        LDR     R1,=0x00070000
-        STR     R1,[R0,#SYSWCR3]
 
 .if WD_FINGURE
 	no_secure_init:

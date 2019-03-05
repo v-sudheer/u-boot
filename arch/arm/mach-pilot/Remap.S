@@ -26,6 +26,13 @@ undef:
 LDR     R0,=0x40430000
 MOV     R1,#'U'
 STR     R1,[R0]
+	MRC     p15, 0, r0, c0, c0, 5     @; Read CPU ID register
+	ANDS    r0, r0, #0x03             @; Mask off, leaving the CPU ID field
+	MOVEQ     R1,#'0'
+	MOVNE     R1,#'1'
+	LDR     R0,=0x40430000
+	STR     R1,[R0]
+	
 B	.
 
 
@@ -83,6 +90,22 @@ str     r6, [r8, #4]                    @ Save CPSR
 str     r0, [r8, #8]                    @ Save OLD_R0
 mov     r0, sp
 
+LDR	r0,=0x40100880
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
+LDR	r0,=0x40100890
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
+LDR	r0,=0x401008A0
+LDR	r2,[r0]
+ANDS	r3, r2, #(1<<18)
+ORRNE	r1, r2, #(1<<18)
+STRNE	r1,[r0]
+
 @; Acknowledge the interrupt
 BL      read_irq_ack
 MOV     r4, r2
@@ -91,17 +114,17 @@ BNE     SKIP_FIQ
         MOV     r0,r4
 
 LDR     R0,=0x40430000
-MOV     R1,#'i'
+MOV     R1,#'F'
 STR     R1,[R0]
-MOV     R1,#'t'
+MOV     R1,#'I'
 STR     R1,[R0]
-MOV     R1,#'''
-STR     R1,[R0]
-MOV     R1,#'s'
+MOV     R1,#'Q'
 STR     R1,[R0]
 MOV     R1,#' '
 STR     R1,[R0]
-
+/*MOV     r0, r4
+BL      write_end_of_irq
+*/
 
         WFE
         WFE
@@ -119,6 +142,7 @@ BNE     end
         MOV     R1,#0xF
         MOV     R2,#0x1
         BL      send_sgi
+	
 
 wait_for_wfe:
 ldr r0, =0x40100D00 @; The bit number 27 of this register tells if core1 is in WFE
@@ -129,33 +153,15 @@ cmp r1, #0x0
 beq wait_for_wfe
 
 LDR     R0,=0x40430000
-MOV     R1,#'W
+MOV     R1,#'W'
 STR     R1,[R0]
 MOV     R1,#'D'
 STR     R1,[R0]
 MOV     R1,#'T'
 STR     R1,[R0]
-MOV     R1,#'!'
-STR     R1,[R0]
-MOV     R1,#'n'
-STR     R1,[R0]
-MOV     R1,#'0'
-STR     R1,[R0]
-MOV     R1,#'w'
-STR     R1,[R0]
-MOV     R1,#' '
-STR     R1,[R0]
-MOV     R1,#'Z'
-STR     R1,[R0]
-MOV     R1,#'z'
-STR     R1,[R0]
-MOV     R1,#'z'
-STR     R1,[R0]
-MOV     R1,#'.'
-STR     R1,[R0]
-MOV     R1,#'.'
-STR     R1,[R0]
-
+/*MOV     r0, r4
+BL      write_end_of_irq
+*/
 WFE
 WFE
 
@@ -272,7 +278,7 @@ read_irq_ack:
 
   @; void write_end_of_irq(unsigned int ID)
   @; Writes ID to the End Of Interrupt register
-write_end_of_irq:
+
 
   @; Get base address of private perpherial space
   MOV     r1, r0                  @; Back up passed in ID value

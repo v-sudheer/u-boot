@@ -69,8 +69,10 @@
  * #define CONFIG_DDR3_8GSTACK     DDR3 8Gbit Stack die
  -------------------------------------------------------------------------*/
 /* SPL part */
-#ifdef CONFIG_SPL_BUILD
+#ifdef CONFIG_SPL
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_SKIP_LOWLEVEL_INIT_ONLY
+#endif
 #endif
 
 #define CONFIG_SPL_FRAMEWORK

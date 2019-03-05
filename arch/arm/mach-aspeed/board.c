@@ -125,12 +125,17 @@ int board_eth_init(bd_t *bd)
 
 #ifdef CONFIG_GENERIC_MMC
 
+#ifdef CONFIG_MACH_ASPEED_G6
+#define CONFIG_SYS_MMC_NUM		3
+#define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE, AST_EMMC_SLOT0_BASE}
+#else
 #define CONFIG_SYS_MMC_NUM		2
 #define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE}
+#endif
 
 int board_mmc_init(bd_t *bis)
 {
-	char *ctrl0_name, *clk_name;;
+	char *ctrl0_name, *clk_name, *pinctrl_name;
 
 	ulong mmc_base_address[CONFIG_SYS_MMC_NUM] = CONFIG_SYS_MMC_BASE;
 	u8 i;
@@ -141,31 +146,34 @@ int board_mmc_init(bd_t *bis)
 
 	//ast2500 
 	ctrl0_name = "SDIO";
-	clk_name = "SD";
-
 	aspeed_reset_assert(ctrl0_name);
 
-	aspeed_clk_enable(ctrl0_name);
+	clk_name = "SDIO";
+	aspeed_clk_enable(clk_name);
+
 	mdelay(10);	
+	clk_name = "SD";	
 	aspeed_clk_enable(clk_name);
 	
 	mdelay(10);
-	
 	aspeed_set_sd_clk_rate();
-	
+
 	mdelay(10);
-	
 	aspeed_reset_deassert(ctrl0_name);
 
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		switch(i) {
 			case 0:
-				ctrl0_name = "SDIO0";
-				aspeed_pinctrl_group_set(ctrl0_name);
+				pinctrl_name = "SDIO0";
+				aspeed_pinctrl_group_set(pinctrl_name);
 				break;
 			case 1:
-				ctrl0_name = "SDIO1";
-				aspeed_pinctrl_group_set(ctrl0_name);
+				pinctrl_name = "SDIO1";
+				aspeed_pinctrl_group_set(pinctrl_name);
+				break;
+			case 2:
+				pinctrl_name = "EMMC0";
+				aspeed_pinctrl_group_set(pinctrl_name);
 				break;
 		};
 		

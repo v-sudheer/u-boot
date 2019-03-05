@@ -127,7 +127,7 @@ int board_eth_init(bd_t *bd)
 
 #ifdef CONFIG_MACH_ASPEED_G6
 #define CONFIG_SYS_MMC_NUM		3
-#define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE, AST_EMMC_SLOT0_BASE}
+#define CONFIG_SYS_MMC_BASE		{AST_EMMC_SLOT0_BASE, AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE}
 #else
 #define CONFIG_SYS_MMC_NUM		2
 #define CONFIG_SYS_MMC_BASE		{AST_SDHCI_SLOT0_BASE, AST_SDHCI_SLOT1_BASE}
@@ -135,31 +135,46 @@ int board_eth_init(bd_t *bd)
 
 int board_mmc_init(bd_t *bis)
 {
-	char *ctrl0_name, *clk_name, *pinctrl_name;
+	char *ctrl_name, *clk_name, *pinctrl_name;
 
 	ulong mmc_base_address[CONFIG_SYS_MMC_NUM] = CONFIG_SYS_MMC_BASE;
 	u8 i;
 
-	//ast2600
-//	ctrl0_name = "emmc";
-//	ctrl1_name = "sdio";
 
 	//ast2500 
-	ctrl0_name = "SDIO";
-	aspeed_reset_assert(ctrl0_name);
+	ctrl_name = "SDIO";
+	aspeed_reset_assert(ctrl_name);
 
 	clk_name = "SDIO";
 	aspeed_clk_enable(clk_name);
 
 	mdelay(10);	
-	clk_name = "SD";	
+	clk_name = "SDCLK";	
 	aspeed_clk_enable(clk_name);
 	
 	mdelay(10);
 	aspeed_set_sd_clk_rate();
 
 	mdelay(10);
-	aspeed_reset_deassert(ctrl0_name);
+	aspeed_reset_deassert(ctrl_name);
+
+#ifdef CONFIG_MACH_ASPEED_G6
+	ctrl_name = "eMMC";
+	aspeed_reset_assert(ctrl_name);
+
+	clk_name = "eMMC";
+	aspeed_clk_enable(clk_name);
+
+	mdelay(10);	
+	clk_name = "eMMCCLK";	
+	aspeed_clk_enable(clk_name);
+
+	mdelay(10);
+	aspeed_set_sd_clk_rate();
+
+	mdelay(10);
+	aspeed_reset_deassert(ctrl_name);
+#endif
 
 	for (i = 0; i < CONFIG_SYS_MMC_NUM; i++) {
 		switch(i) {
@@ -176,7 +191,7 @@ int board_mmc_init(bd_t *bis)
 				aspeed_pinctrl_group_set(pinctrl_name);
 				break;
 		};
-		
+
 		if (ast_sdhi_init(mmc_base_address[i], aspeed_get_sd_clk_rate(), 100000))
 			return 1;
 	}

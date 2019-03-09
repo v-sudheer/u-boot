@@ -109,7 +109,7 @@ struct aspeed_reset_config {
 
 #ifdef CONFIG_MACH_ASPEED_G6
 static struct aspeed_reset_config ast2600_reset[] = {
-	{ "eMMC", ASPEED_SCU_BASE + 0x40, BIT(16) },
+	{ "EMMC", ASPEED_SCU_BASE + 0x40, BIT(16) },
 	{ "MAC1", ASPEED_SCU_BASE + 0x40, BIT(11) },
 	{ "MAC2", ASPEED_SCU_BASE + 0x40, BIT(12) },
 	{ "SDIO", ASPEED_SCU_BASE + 0x50, BIT(24) },	

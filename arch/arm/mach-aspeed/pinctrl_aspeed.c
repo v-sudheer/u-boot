@@ -145,6 +145,12 @@ static struct aspeed_pinctrl_group_config ast2600_pin_groups[] = {
 	{ "MDIO2", ASPEED_SCU_BASE + 0x410, BIT(14) | BIT(13) },
 	{ "MDIO3", ASPEED_SCU_BASE + 0x410, BIT(1) | BIT(0) },
 	{ "MDIO4", ASPEED_SCU_BASE + 0x410, BIT(3) | BIT(2) },	
+	
+	//8bit mode offset 0x414 (21~18) 0x450 bit0: sd0 bit1: sd1,  bit3: sd0 8bits	
+	//sdio1 414 (23~16) = 0, 4b4 (23~16) = 1, 450 bit1 = 1
+	{ "SDIO1", ASPEED_SCU_BASE + 0x4B4, GENMASK(23, 16), ASPEED_SCU_BASE + 0x450, BIT(1) },	
+	{ "SDIO0", ASPEED_SCU_BASE + 0x414, GENMASK(15, 8), ASPEED_SCU_BASE + 0x450, BIT(0) }, 
+	{ "EMMC0", ASPEED_SCU_BASE + 0x400, GENMASK(31, 24), ASPEED_SCU_BASE + 0x404, GENMASK(3, 0) },	
 };
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 static struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {

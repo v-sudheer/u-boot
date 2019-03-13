@@ -221,7 +221,7 @@ lowlevel_init:
 #if 1
 relocate:
     adrl  r0, wait_for_kickup
-    ldr   r1, =0x1e72f000     //  ; r1 = pointer to destination block
+    ldr   r1, =0x1000f000     //  ; r1 = pointer to destination block
     mov   r2, #0x20           //  ; r2 = number of words to copy
 wordcopy:
     ldr   r3, [r0], #4         // ; load a word from the source and
@@ -234,8 +234,8 @@ wordcopy:
 	ldr r4, =0xABBAADDA
 	ldr r3, =0x1E6E2184
 
-   	ldr   r5, =0x1e720000
-   	ldr   r6, =0x1e72f000
+   	ldr   r5, =0x10000000
+   	ldr   r6, =0x1000f000
    	str   r6, [r5]
 	mov   lr, r6
 	mov   pc, lr

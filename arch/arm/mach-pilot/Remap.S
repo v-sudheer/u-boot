@@ -3,11 +3,15 @@
  *Copyright (c) 2019, Aspeed Technologies Inc.
  *SPDX-License-Identifier:     GPL-2.0+
  */
-.equ T1TCR,0x40411808
+.equ CYPHER,0xB00B00D0
+.equ SYS_CLK_BASE, 0x40100800
+.equ SOFT_RST_REG1, 0x40100858
+.equ SOFT_RST_REG0, 0x40100854
+.equ SRST_CTRL_REG, 0x40100850
 
 .equ	S_FRAME_SIZE, 72
 .equ	S_PC,60
-
+.equ	DEBUG,0
 
 .global remap_start_sec
 remap_start_sec:
@@ -37,7 +41,22 @@ B	.
 
 
 
-SMC_Handler:	
+SMC_Handler:
+.if DEBUG
+	MOV	R2, R0
+	MRC     p15, 0, r0, c0, c0, 5     @; Read CPU ID register
+	ANDS	r0, r0, #0x03             @; Mask off, leaving the CPU ID field
+	MOVEQ   R1,#'0'
+	MOVNE   R1,#'1'
+	LDR     R0,=0x40430000
+	STR     R1,[R0]
+	
+	MOV	R0, R2
+.endif	
+	LDR	R1,=CYPHER
+	CMP	R0, R1
+	BEQ	wait_for_storm
+
   	MRC     p15, 0, r0, c1, c1, 0        @; Read Secure Configuration Register data
   	TST     r0, #NS_BIT                  @; Is the NS bit set?
  	BNE	kick_out_to_ns
@@ -278,7 +297,7 @@ read_irq_ack:
 
   @; void write_end_of_irq(unsigned int ID)
   @; Writes ID to the End Of Interrupt register
-
+write_end_of_irq:
 
   @; Get base address of private perpherial space
   MOV     r1, r0                  @; Back up passed in ID value
@@ -287,6 +306,58 @@ read_irq_ack:
   STR     r1, [r0, #0x0110]       @; Write ID to the End of Interrupt register (ICCEOIR)
 
   BX      lr
+
+wait_for_storm:
+	LDR     R0,=0x40430000
+	MOV     R1,#'S'
+	STR     R1,[R0]
+	MOV     R1,#'O'
+	STR     R1,[R0]
+	MOV     R1,#'F'
+	STR     R1,[R0]
+	MOV     R1,#'T'
+	STR     R1,[R0]
+	MOV     R1,#' '
+	STR     R1,[R0]
+
+	MOV	R0, #10
+	MOV	R1, #0xF
+	MOV	R2, #0x1
+	BL	send_sgi
+
+wait_for_other:
+ldr r0, =0x40100D00 @; The bit number 27 of this register tells if core1 is in WFE
+ldr r1, =0x04000000
+ldr r2, [r0]
+and r1, r1, r2
+cmp r1, #0x0
+beq wait_for_other
+
+
+	LDR	R0,=SYS_CLK_BASE
+	LDR	R1,=0xFFFFFFFC
+	STR	R1,[R0]
+
+	LDR	R0,=SOFT_RST_REG1
+	MOV	R1,#0x0
+	STR	R1,[R0]
+
+	LDR	R0,=SOFT_RST_REG0
+	MOV	R1,#0x3
+	STR	R1,[R0]
+
+	LDR	R0,=SRST_CTRL_REG
+	LDR	R1,=0xD01
+	STR	R1,[R0]
+
+	WFE
+	WFE
+
+	LDR     R0,=0x40430000
+	MOV     R1,#'&'
+	STR     R1,[R0]
+
+	B	.
 
 @; ------------------------------------------------------------
 @; SGI

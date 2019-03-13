@@ -31,6 +31,7 @@ int dram_init(void)
 #define SYSSRERL2               0x854
 #define SYSSRERH2               0x858
 #define SYSRCR2         0x850
+#define wfe()     __asm__ __volatile__ ("wfe" : : : "memory")
 void reset_cpu(ulong addr)
 {
 	*(volatile unsigned int *)(SW_RESET_BASE  + SYSSRERL2) = 0x3;
@@ -39,7 +40,7 @@ void reset_cpu(ulong addr)
 
 	printf("resetting CPI\n");
 
-	while(1) {;}
+	while(1) {wfe();}
 }
 
 

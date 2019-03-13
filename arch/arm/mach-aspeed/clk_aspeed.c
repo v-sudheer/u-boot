@@ -867,21 +867,50 @@ extern void aspeed_set_sd_clk_rate(void)
 			ASPEED_SCU_BASE + AST_SCU_CLK_SEL);
 }
 
+#ifdef CONFIG_MACH_ASPEED_G6
+extern u32 aspeed_get_emmc_clk_rate(void)
+{
+#ifdef CONFIG_FPGA_ASPEED
+	return 100000000;
+#else
+	u32 hpll = aspeed_get_hpll_clk_rate();
+	u32 clk_sel = readl(ASPEED_SCU_BASE + 0x300);
+	u32 sd_div = (clk_sel >> 12) & 0x7;
+
+	sd_div = (sd_div + 1) << 2;
+
+	return (hpll / sd_div);
+#endif	
+}
+#endif
+
+#ifdef CONFIG_FPGA_ASPEED
+extern u32 aspeed_get_sd_clk_rate(void)
+{
+	return 50000000;
+}
+#else
 extern u32 aspeed_get_sd_clk_rate(void)
 {
 	u32 hpll = aspeed_get_hpll_clk_rate();
+#ifdef CONFIG_MACH_ASPEED_G6
+	u32 clk_sel = readl(ASPEED_SCU_BASE + 0x310);
+	u32 sd_div = (clk_sel >> 28) & 0x7;
+	sd_div = (sd_div + 1) << 2;
+#else
 	u32 clk_sel = readl(ASPEED_SCU_BASE + ASPEED_CLK_SELECT);
 	u32 sd_div = (clk_sel >> 12) & 0x7;
 
-#if defined(CONFIG_MACH_ASPEED_G6) || defined(CONFIG_MACH_ASPEED_G5)
+#ifdef CONFIG_MACH_ASPEED_G5
 	sd_div = (sd_div + 1) << 2;
-#elif defined(CONFIG_MACH_ASPEED_G4)
-	sd_div = (sd_div + 1) << 1;
 #else
-#err "No define for sd clk"
+	sd_div = (sd_div + 1) << 1;
+#endif
+
 #endif
 	return (hpll / sd_div);
 }
+#endif
 
 struct aspeed_clock {
 	char *ctrl_name;
@@ -895,15 +924,18 @@ static struct aspeed_clock ast2600_clk[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x84, BIT(20), 1 },
 	{ "MAC2", ASPEED_SCU_BASE + 0x84, BIT(21), 1 },
 	{ "MAC3", ASPEED_SCU_BASE + 0x94, BIT(20), 1 },
-	{ "MAC4", ASPEED_SCU_BASE + 0x94, BIT(21), 1 },	
+	{ "MAC4", ASPEED_SCU_BASE + 0x94, BIT(21), 1 },
+	{ "eMMC", ASPEED_SCU_BASE + 0x84, BIT(27), 1 },
+	{ "eMMCCLK", ASPEED_SCU_BASE + 0x300, BIT(15), 1 },
+	{ "SDIO", ASPEED_SCU_BASE + 0x94, BIT(4), 1 },
+	{ "SDCLK", ASPEED_SCU_BASE + 0x310, BIT(31), 1 },
 };
 #elif defined(CONFIG_MACH_ASPEED_G4) || defined(CONFIG_MACH_ASPEED_G5)
 static struct aspeed_clock ast2500_clk[] = {
 	{ "MAC1", ASPEED_SCU_BASE + 0x0C, BIT(20), 0 },
 	{ "MAC2", ASPEED_SCU_BASE + 0x0C, BIT(21), 0 },
-	{ "SDIO", ASPEED_SCU_BASE + 0x0C, BIT(27), 0 },	
-	{ "SD", ASPEED_SCU_BASE + 0x08, BIT(15), 1 },
-	
+	{ "SDIO", ASPEED_SCU_BASE + 0x0C, BIT(27), 0 },
+	{ "SDCLK", ASPEED_SCU_BASE + 0x08, BIT(15), 1 },
 };
 #endif
 

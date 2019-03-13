@@ -105,6 +105,9 @@
 #define AST_SDHCI_BASE					0x1E740000	/* SD General Info */
 #define AST_SDHCI_SLOT0_BASE			0x1E740100	/* SD Slot 0*/
 #define AST_SDHCI_SLOT1_BASE			0x1E740200	/* SD Slot 1*/
+#define AST_EMMC_BASE				0x1E750000	/* MMC General Info */
+#define AST_EMMC_SLOT0_BASE			0x1E750100	/* MMC Slot 0*/
+
 #define AST_2D_BASE						0x1E760000	/* 2D */
 #define AST_GPIO_BASE					0x1E780000	/* GPIO */
 #define AST_SGPIO_BASE					0x1E780200	/* SGPIO */

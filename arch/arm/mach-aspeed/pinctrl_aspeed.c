@@ -129,8 +129,10 @@ U_BOOT_DRIVER(pinctrl_ast2500) = {
 #else
 struct aspeed_pinctrl_group_config {
 	char *group_name;
-	u32 reg;
-	u32 bit_mask;
+	u32 reg0;
+	u32 bit_mask0;
+	u32 reg1;
+	u32 bit_mask1;
 	u32 reg_unmask;
 	u32 bit_unmask;
 };
@@ -148,7 +150,7 @@ static struct aspeed_pinctrl_group_config ast2600_pin_groups[] = {
 	
 	//8bit mode offset 0x414 (21~18) 0x450 bit0: sd0 bit1: sd1,  bit3: sd0 8bits	
 	//sdio1 414 (23~16) = 0, 4b4 (23~16) = 1, 450 bit1 = 1
-	{ "SDIO1", ASPEED_SCU_BASE + 0x4B4, GENMASK(23, 16), ASPEED_SCU_BASE + 0x450, BIT(1) },	
+	{ "SDIO1", ASPEED_SCU_BASE + 0x4B4, GENMASK(23, 16), ASPEED_SCU_BASE + 0x450, BIT(1), ASPEED_SCU_BASE + 0x414, GENMASK(23, 16)},	
 	{ "SDIO0", ASPEED_SCU_BASE + 0x414, GENMASK(15, 8), ASPEED_SCU_BASE + 0x450, BIT(0) }, 
 	{ "EMMC0", ASPEED_SCU_BASE + 0x400, GENMASK(31, 24), ASPEED_SCU_BASE + 0x404, GENMASK(3, 0) },	
 };
@@ -164,11 +166,11 @@ static struct aspeed_pinctrl_group_config ast2500_pin_groups[] = {
 	{ "I2C6", ASPEED_SCU_BASE + 0x90, BIT(19), 0, 0 },
 	{ "I2C7", ASPEED_SCU_BASE + 0x90, BIT(20), 0, 0 },
 	{ "I2C8", ASPEED_SCU_BASE + 0x90, BIT(21), 0, 0 },
-	{ "I2C9", ASPEED_SCU_BASE + 0x90, BIT(22), ASPEED_SCU_BASE + 0x90, BIT(6) },
-	{ "I2C10", ASPEED_SCU_BASE + 0x90, BIT(23), ASPEED_SCU_BASE + 0x90, BIT(0) },
-	{ "I2C11", ASPEED_SCU_BASE + 0x90, BIT(24), ASPEED_SCU_BASE + 0x90, BIT(0) },
-	{ "I2C12", ASPEED_SCU_BASE + 0x90, BIT(25), ASPEED_SCU_BASE + 0x90, BIT(0) },
-	{ "I2C13", ASPEED_SCU_BASE + 0x90, BIT(26), ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C9", ASPEED_SCU_BASE + 0x90, BIT(22), 0, 0, ASPEED_SCU_BASE + 0x90, BIT(6) },
+	{ "I2C10", ASPEED_SCU_BASE + 0x90, BIT(23), 0, 0, ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C11", ASPEED_SCU_BASE + 0x90, BIT(24), 0, 0, ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C12", ASPEED_SCU_BASE + 0x90, BIT(25), 0, 0, ASPEED_SCU_BASE + 0x90, BIT(0) },
+	{ "I2C13", ASPEED_SCU_BASE + 0x90, BIT(26), 0, 0, ASPEED_SCU_BASE + 0x90, BIT(0) },
 	{ "I2C14", ASPEED_SCU_BASE + 0x90, BIT(27), 0, 0 },
 	{ "SDIO1", ASPEED_SCU_BASE + 0x90, BIT(1), 0, 0 },	
 	{ "SDIO0", ASPEED_SCU_BASE + 0x90, BIT(0), 0, 0 },
@@ -192,7 +194,9 @@ extern void aspeed_pinctrl_group_set(char *group_name)
 
 	for(i = 0; i < array_size; i++) {
 		if(!strcmp(group_name, pin_config[i].group_name )) {
-			writel(readl(pin_config[i].reg) | pin_config[i].bit_mask, pin_config[i].reg);
+			writel(readl(pin_config[i].reg0) | pin_config[i].bit_mask0, pin_config[i].reg0);
+			if(pin_config[i].reg1)
+				writel(readl(pin_config[i].reg1) | pin_config[i].bit_mask1, pin_config[i].reg1);
 			if(pin_config[i].reg_unmask) 
 				writel(readl(pin_config[i].reg_unmask) & ~pin_config[i].bit_unmask, pin_config[i].reg_unmask);
 			break;

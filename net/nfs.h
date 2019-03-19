@@ -79,7 +79,7 @@ struct rpc_t {
 			uint32_t data[NFS_READ_SIZE];
 		} reply;
 	} u;
-};
+}__attribute__((__packed__));
 void nfs_start(void);	/* Begin NFS */
 
 

@@ -12,13 +12,14 @@
 #include <spi.h>
 #include <flash.h>
 #include <spi_flash.h>
+#include "4byteaddressing.h"
 #define BOOTSPI_CTRLR_BASE 0x40200000
 #define MAX_BOOTSPI_SIZE_LIMIT 0xFC00000
 #define BMISC_REG 0x1C
 #define PILOT_SPI_BMISC_REG (BOOTSPI_CTRLR_BASE + BMISC_REG)
 #define PILOT_STRAP_STATUS_REG 0x4010010c
-flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];		/* FLASH chips info */
-struct spi_flash * pilot_spiflash_priv[CONFIG_SYS_MAX_FLASH_BANKS];
+flash_info_t flash_info[3];		/* FLASH chips info */
+struct spi_flash * pilot_spiflash_priv[3];
 // The SPI controller at Bank 0 is mapped to 3 chip selects. The BMISC register
 // gets programmed with address ranges for the 3 chip selects during flash_init.
 // Internally each bank represents one spi device. So to R/W to CS1, one has to
@@ -30,15 +31,28 @@ struct spi_flash * pilot_spiflash_priv[CONFIG_SYS_MAX_FLASH_BANKS];
 // 1000000 will be taken from this array and pilot3_boot_spi_transfer will program
 // the address register accordingly.
 
-ulong TOTAL_SIZE;
-
-
+extern void flash_bootspi_enumerate_chipselects(bool hspi, tU32 * flash_size, 
+					tU32 * cs_sizes, tU16 * cs_ids);
 // Since BootSPI size can be 252MB, it is possible that the address range of
 // all SPI put together can go beyond 0x10000000 which is LMEM address. Hence
 // splitting the SPI address ranges across 2 boundaries
 #define NONBOOTSPI_START        (0x10000000)
 #define NONBOOTSPI_BOUNDARY (0x20000000)
+#ifdef CONFIG_FLASH_CFI_MTD
+static uint flash_verbose=1;
+void flash_set_verbose(uint v)
+{
+flash_verbose = v;
+}
 
+unsigned long flash_sector_size(flash_info_t *info, flash_sect_t sect)
+{
+if (sect != (info->sector_count - 1))
+return info->start[sect + 1] - info->start[sect];
+else
+return info->start[0] + info->size - info->start[sect];
+}
+#endif
 void flash_priv_init(int index, struct spi_flash *flash, ulong totalsize)
 {
 	int j;
@@ -85,6 +99,42 @@ void flash_priv_init(int index, struct spi_flash *flash, ulong totalsize)
 	*/
 #endif
 }
+int flash_erase (flash_info_t * info, int s_first, int s_last)
+{
+	int prot;
+	flash_sect_t sect;
+	
+	if ((s_first < 0) || (s_first > s_last)) {
+		puts ("- no sectors to erase\n");
+		return 1;
+	}
+
+	prot = 0;
+	for (sect = s_first; sect <= s_last; ++sect) {
+		if (info->protect[sect]) {
+			prot++;
+		}
+	}
+	if (prot) {
+		printf ("- Warning: %d protected sectors will not be erased!\n", prot);
+		return -1;
+	} else {
+		putc ('\n');
+	}
+	/* Get the address and convert it to appropriate SPI's address
+	 * range and then call the erase function
+	 */
+	printf("Start is %x and end is %x\n", info->start[s_first], info->start[s_last]);
+	int index = 0;
+	while((info != flash_info + index)&& (index < 3))
+	{
+		index ++;
+	}
+	bootspi_init(index, false);
+	bootspi_sector_erase(info->start[s_first], info->start[s_last] - info->start[s_first], false);
+	bootspi_deinit(false);
+	return 0;
+}
 // Boot spi will be bus 0
 // Backup spi will be bus 1
 // Host spi will be bus 2
@@ -93,10 +143,19 @@ unsigned long flash_init (void)
 	unsigned int totalsize = 0;
 	int bank = -1, i;
 	int temp;
+	unsigned int start;
+	unsigned int sector;
 	unsigned char set4baccess = 0;
-	int cs_size[CONFIG_SYS_MAX_BOOT_SPI_BANKS] = {0};
+	unsigned int cs_sizes[3] = {0};
+	unsigned short cs_ids[3] = {FLASH_UNKNOWN};
+	if (((* (volatile unsigned int*)(PILOT_STRAP_STATUS_REG)) & 0x40)!=0x40){
+		printf("Please enable the 4Byte strap SW1.7\n");
+		while(1);
+	}
+	*(unsigned long*)(PILOT_SPI_BMISC_REG) |= ((0xC0000000) | (1 << 24));  // Make it no override
+	flash_bootspi_enumerate_chipselects(false, &totalsize, cs_sizes, cs_ids);
 
-	for (i =0; i < CONFIG_SYS_MAX_FLASH_BANKS; i++)
+	for (i =0; i < 3; i++)
 	{
 		memset(&(pilot_spiflash_priv[i]), 0, sizeof(struct spi_flash));
 		memset(&(flash_info[i]), 0, sizeof(flash_info_t));
@@ -105,6 +164,57 @@ unsigned long flash_init (void)
 		flash_info[i].size = 0;
 		flash_info[i].flash_id = FLASH_UNKNOWN;
 	}
+	flash_info[0].start[0] = 0;
+	flash_info[0].size = cs_sizes[0];
+	flash_info[0].flash_id = cs_ids[0];
+	flash_info[0].sector_count = flash_info[0].size/0x10000;
+	start = flash_info[0].start[0];
+	sector = 0;
+	for(i=0;i<flash_info[0].sector_count;i++)
+	{
+		flash_info[0].start[sector] = start;
+		start += 0x10000;
+		sector++;
+	}
+
+	flash_info[1].start[0] = cs_sizes[0];
+	flash_info[1].size = cs_sizes[1];
+	flash_info[1].flash_id = cs_ids[1];
+	flash_info[1].sector_count = flash_info[1].size/0x10000;
+	start = flash_info[1].start[0];
+	sector = 0;
+	for(i=0;i<flash_info[1].sector_count;i++)
+	{
+		flash_info[1].start[sector] = start;
+		start += 0x10000;
+		sector++;
+	}
+	flash_info[2].start[0] = cs_sizes[0] + cs_sizes[1];
+	flash_info[2].size = cs_sizes[2];
+	flash_info[2].flash_id = cs_ids[2];
+	flash_info[2].sector_count = flash_info[2].size/0x10000;
+	start = flash_info[2].start[0];
+	sector = 0;
+	for(i=0;i<flash_info[2].sector_count;i++)
+	{
+		flash_info[2].start[sector] = start;
+		start += 0x10000;
+		sector++;
+	}
+	
+	for (i =0; i < 3; i++)
+	{
+		flash_protect(FLAG_PROTECT_SET, flash_info[0].start[0],
+			flash_info[i].start[0] + flash_info[i].size-1, 
+							&flash_info[i]);
+	}
+#ifdef CONFIG_FLASH_CFI_MTD
+	cfi_mtd_init();
+#endif
+	printf("Size of flahs from flash_init %x = %x + %x + %x \n",(cs_sizes[0] + cs_sizes[1] + cs_sizes[2]),cs_sizes[0], cs_sizes[1], cs_sizes[2]);
+	printf("flash id %x  %x  %x \n",flash_info[0].flash_id, flash_info[1].flash_id , flash_info[2].flash_id);
+	return (cs_sizes[0] + cs_sizes[1] + cs_sizes[2]);
+#if 0
 	for (i = 0; i < CONFIG_MAX_BOOT_SPI_BANKS; i++)
 	{
 		bank++;
@@ -155,16 +265,25 @@ unsigned long flash_init (void)
 	return totalsize;
 err_end:
 	return -1;
+#endif
 }
+
 int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 {
+
+#if defined(DEBUG)
+	printf("data ptr : %x , addr ptr : %x , count : %x\n", src, addr, cnt);
+#endif
+	/*void bootspi_read_write(tU8 rd_wr, tU32 address, tU32 idx, tPVU8 data, tU32 len, bool hspi)*/
+	bootspi_read_write(0, addr, 0, src, cnt, false);
 	return (0);
 }
+
 void flash_print_info  (flash_info_t *info)
 {
 	int i;
-	printf("  Size: %ld MB in %d Sectors\n",
-				info->size >> 20, info->sector_count);
+	printf("  Size: %ld MB in %d Sectors %d id\n",
+				info->size >> 20, info->sector_count, info->flash_id);
 #if 0
 	printf("  Sector Start Addresses:");
 	for (i = 0; i < info->sector_count; i++)

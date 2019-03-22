@@ -218,26 +218,126 @@ void bootspi_reg_read_write(tU8 rd_wr, tU32 address, tU32 idx,
 	}
 
 }
+static void wait_for_spi_wr_ff_empty_ (bool hspi) {
+	if(hspi == 0)
+		return;
+	while(((*(tPVU8)(glob_spi_base + SPI_STS) ) & wr_fifo_empty) != wr_fifo_empty);
+	return;
+}
+
+
+void bootspi_read_write(tU8 rd_wr, tU32 address, tU32 idx, tPVU8 data, tU32 len, bool hspi){
+	int i,j;
+	tU32 nopgs;
+	nopgs = len/FLASH_PAGE_SiZE;
+	tU32 pagesize = 0, loopsize = 0, rdwr_ind = 0;
+	tU32 start_address = address;
+
+	
+	if(hspi == 0){
+		*(tPVU32)(spi_base + BOOTSPI_ADDR) = address < cs_addr[1] ? cs_addr[0] : cs_addr[1];
+#if defined(DEBUG)
+		printf("Addr in between %x\n",*(tPVU32)(spi_base + BOOTSPI_ADDR));
+#endif
+	}
+	
+
+	if(((id_table[bootspi_priv].flags & FBYTE_SUPPORT) == FBYTE_SUPPORT)){
+
+		/*This is the MAC0STNGCTL[16] this works only when BMISC[24] is set to 1*/
+		*(tPVU32) (glob_spi_base + BOOTSPI_MISC) |= 0x01000000;
+		*((tPVU32) (0x40100190)) |= 0x10000;
+
+		if((id_table[bootspi_priv].flags & SEND_WR_ENA) == (SEND_WR_ENA)){
+			/*Write enable command*/
+			bootspi_program_command(0xFFFFFFFF, 0x80001106, &bootspi_priv, hspi);
+		}
+		/*Enable 4-byte command*/
+		bootspi_program_command(0xFFFFFFFF, 0x800011b7, &bootspi_priv, hspi);
+	}
+
+
+	if((((id_table[idx].flags & REG_RW)) == REG_RW) && (rd_wr == 0))
+		return bootspi_reg_read_write(rd_wr, address, idx, data, len, hspi);
+
+	if ((len%FLASH_PAGE_SiZE) != 0)
+		nopgs = nopgs + 1;
+#if defined(DEBUG)
+	printf("rd_wr flg : %x, Number of pages : %x\n", rd_wr, nopgs);
+#endif
+	for(j=0; j<(nopgs); j++){//Loop for number of pages
+		if((rd_wr == 0) && ((id_table[idx].flags & SEND_WR_ENA) == SEND_WR_ENA))
+			//Write enable command
+			bootspi_program_command(0xFFFFFFFF, 0x80001106, &bootspi_priv, hspi);
+		//Write /Read Command
+		bootspi_program_command((address), ((rd_wr ==1) ? (((id_table[idx].flags & FBYTE_SUPPORT) == FBYTE_SUPPORT)? 0x80000503 : 0x80000403):
+					(((id_table[idx].flags & FBYTE_SUPPORT) == FBYTE_SUPPORT)? 0x80001502 : 0x80001402)),
+				&bootspi_priv, hspi);
+
+		if((rd_wr == 0) && (((j*FLASH_PAGE_SiZE) % PRINT_FREQ) == 0))
+			printf(".");
+		/* If address is not page aligned then first write data bytes of that page
+		 * and from then on the logic will take care of writing to aligned pages
+		 */
+		if((address % FLASH_PAGE_SiZE) != 0) {
+			pagesize =FLASH_PAGE_SiZE - (address & (FLASH_PAGE_SiZE - 1));
+			if(rd_wr == 0) {
+				nc_printf("Write to non aligned pg size adress %x pgsize %d\n",
+						address, pagesize);
+			}
+			rdwr_ind = address - start_address;
+			address = address + pagesize;
+			loopsize = pagesize;
+			if(pagesize >= len)
+				loopsize = len;
+		} else {
+			rdwr_ind = address - start_address;
+			loopsize = ((len>= FLASH_PAGE_SiZE)? FLASH_PAGE_SiZE:len);
+			address = address + FLASH_PAGE_SiZE;
+		}
+		for(i=0; i<loopsize; i++){
+			if(rd_wr){
+				wait_for_spi_rd_ff_notempty_(hspi);
+				*(((tPVU8)(data)) + rdwr_ind + i) = *(tPVU8) (glob_spi_base + BOOTSPI_RWDATA);
+			}else{
+				wait_for_spi_wr_ff_empty_(hspi);
+				*(tPVU8) (glob_spi_base + BOOTSPI_RWDATA) = *(((tPVU8)(data)) + rdwr_ind + i);
+
+			}
+		}
+		len -= (i-1);
+		//0x7 means check flag status
+		if(((id_table[bootspi_priv].flags & STS_FLAGS_REG) == STS_FLAGS_REG) && (rd_wr != 1)){
+			bootspi_check_status(0x7, 0x80000170, hspi);
+			//nc_printf("\n");
+		}
+		bootspi_check_status(0, 0x80002105, hspi);
+	}//For loop of pages
+	bootspi_deinit(false);
+}
+
+
+
 
 /*
-*	bootspi_unlock_all_sectors()		-	unlocks all the sectors
-*
-*	@hspi								-	True or False
-*											(False in our case)
-*/
+ *	bootspi_unlock_all_sectors()		-	unlocks all the sectors
+ *
+ *	@hspi								-	True or False
+ *											(False in our case)
+ */
 void bootspi_unlock_all_sectors(bool hspi){
 	tU8 data=0;
 	bootspi_program_command(0xFFFFFFFF, 0x80002105, &bootspi_priv, hspi);
 	data = (*(tPVU8) (glob_spi_base+ BOOTSPI_RWDATA));
 	data &= 0x63;/*Disable protect for all sectors bit 4,3,2 
-					and make these bits read writable*/
+		       and make these bits read writable*/
 
 
 	/*Just for testing*/
 	bootspi_program_command(0xFFFFFFFF, 0x80002105, &bootspi_priv, hspi);
 	data = (*(tPVU8) (glob_spi_base + BOOTSPI_RWDATA));
 	data &= 0x63;/*Disable protect for all sectors bit 4,3,2 
-					and make these bits read writable*/
+		       and make these bits read writable*/
 
 	/*Write enable*/
 	bootspi_program_command(0xFFFFFFFF, 0x80001106, &bootspi_priv, hspi);
@@ -428,6 +528,67 @@ void bootspi_enumerate_chipselects(bool hspi, tU32 * flash_size){
 	cs_addr[1] = cs_addr[0];
 	cs_addr[0] = 0x00;
 }
+void flash_bootspi_enumerate_chipselects(bool hspi, tU32 * flash_size, tU32 * cs_sizes, tU16 * cs_ids){
+	int i,j;
+	tU32 temp_data;
+	tU32 id_value;
+	tU8  cs_uaddr[3];
+	tU8 num = 1;
+	if(hspi)
+		num = 0;
+	bhspi_set_clkdiv(0x2, hspi);
+	for(j=num; j>= 0; j--){
+		if(hspi == false) {
+			id_value = *(tPVU32) (glob_spi_base + BOOTSPI_MISC);
+			id_value &= ~(0xC0000000);
+			/*Enable CS(0,1&2)*/
+			*(tPVU32) (glob_spi_base + BOOTSPI_MISC) = id_value| (j<<30);
+		}
+		id_value = bootspi_readid(hspi);
+		for(i=0; i<(sizeof(id_table)/sizeof(struct spi_dat)); i++){
+			if((id_value & 0xFF) == id_table[i].uc_MFRID){
+				if(((id_value & 0x0000FF00)>>8) == id_table[i].uc_MTYPE){
+					if(((id_value & 0x00FF0000)>>16) == id_table[i].uc_MCAP){
+						nc_printf("Part in CS-%x is %s \n", j, id_table[i].auc_name);
+						break;
+					}
+				}
+			}
+		}
+		if(i == (sizeof(id_table)/sizeof(struct spi_dat))){
+			nc_printf("ERR for CS%d ID is %x\n", j, ERR_NO_MATCH_ID);
+			if((id_value ==0x00) || (id_value == 0xFFFFFFFF)){
+                                /*No chip is populated*/
+                                cs_addr[j] = 0x00;
+                                cs_uaddr[j] = 0x00;
+                                continue;
+                        }
+                        /*Unsupported Chip*/
+			cs_addr[j] = id_table[i-1].size;
+			continue;
+		}
+		cs_addr[j] = id_table[i].size;
+		cs_sizes[j] = id_table[i].size;
+		cs_ids[j] = id_table[i].uc_MFRID;
+		cs_uaddr[j] = id_table[i].uc_UPADDR;
+	}
+	if(hspi) {
+		cs_addr[0] = 0x00;
+		*flash_size = id_table[i].size;
+		return;
+	}
+	temp_data = *(tPVU32) (glob_spi_base + BOOTSPI_MISC);
+	temp_data &= 0xFFE0E0E0;
+	*(tPVU32) (glob_spi_base + BOOTSPI_MISC) = temp_data | (cs_uaddr[0] |
+												((cs_uaddr[0] + cs_uaddr[1]) <<8)|
+												((cs_uaddr[0] + cs_uaddr[1]
+												+cs_uaddr[2]) << 16)); 
+	*(tPVU32) (glob_spi_base + BOOTSPI_MISC) &= ~(0xC0000000); /*By default CS-0 enabled after enumeration.*/
+	*(tPVU32) (glob_spi_base + BOOTSPI_MISC) |= (0xC0000000); /*Make it no override*/
+	cs_addr[2] = cs_addr[1]+cs_addr[0];
+	cs_addr[1] = cs_addr[0];
+	cs_addr[0] = 0x00;
+}
 /*
 *
 *	bootspi_init()					-		sets the respective cs for programming
@@ -504,24 +665,24 @@ tU32 bootspi_sector_erase(tU32 address, tU32 size, bool hspi){
 	int i;
 
 	if(size>(64*1024)){
-                erasesects=(size/(64*1024))+1;
-        }else{
-                erasesects=1;
+		erasesects=(size/(64*1024))+1;
+	}else{
+		erasesects=1;
 	}
-	for(i=0; i < erasesects; i++){
 
-	if((id_table[bootspi_priv].flags & SEND_WR_ENA) == (SEND_WR_ENA)){
-		/*Write enable command*/
-		bootspi_program_command(0xFFFFFFFF, 0x80001106, &bootspi_priv, hspi);
-	}
-	/*Sector Erase Command*/
-	bootspi_program_command((address+(i<<16)), ((id_table[bootspi_priv].flags & FBYTE_SUPPORT) != FBYTE_SUPPORT)? 0x800014D8: 0x800015D8, &bootspi_priv, hspi);
-	/*0x7 means check flag status*/
-	if((id_table[bootspi_priv].flags & STS_FLAGS_REG) == STS_FLAGS_REG){
-		bootspi_check_status(0x7, 0x80000170, hspi);
-	}
-	bootspi_check_status(0, 0x80002105, hspi);
-	nc_printf(".");
+	for(i=0; i < erasesects; i++){
+		if((id_table[bootspi_priv].flags & SEND_WR_ENA) == (SEND_WR_ENA)){
+			/*Write enable command*/
+			bootspi_program_command(0xFFFFFFFF, 0x80001106, &bootspi_priv, hspi);
+		}
+		/*Sector Erase Command*/
+		bootspi_program_command((address+(i<<16)), ((id_table[bootspi_priv].flags & FBYTE_SUPPORT) != FBYTE_SUPPORT)? 0x800014D8: 0x800015D8, &bootspi_priv, hspi);
+		/*0x7 means check flag status*/
+		if((id_table[bootspi_priv].flags & STS_FLAGS_REG) == STS_FLAGS_REG){
+			bootspi_check_status(0x7, 0x80000170, hspi);
+		}
+		bootspi_check_status(0, 0x80002105, hspi);
+		nc_printf(".");
 	}
 	nc_printf("\n");
 	return 0;

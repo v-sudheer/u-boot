@@ -40,15 +40,17 @@ static int bcm5461_config(struct phy_device *phydev)
 	phy_reset(phydev);
 
 	if(phydev->drv->uid == 0x03625d12) {
-		printf("bcm5461_config 0x03625d12\n");
+		mii_reg = phy_read(phydev, MDIO_DEVAD_NONE, 0x0) & ~BIT(10);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x0, mii_reg);
+
+		//disable skew
 		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54xx_AUXCNTL, 0x7007);
 		mii_reg = (phy_read(phydev, MDIO_DEVAD_NONE, MIIM_BCM54xx_AUXCNTL) & 0x0af0) | 0xf007;
-		printf("w reg 0x18 %x \n", mii_reg);
 		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54xx_AUXCNTL, mii_reg);
 
+		//disable delay
 		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_SHD, 0xc00);
 		mii_reg = 0x8c00;
-		printf("w reg 0x1C %x \n", mii_reg);		
 		phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_SHD, mii_reg);		
 	}
 

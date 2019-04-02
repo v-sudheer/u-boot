@@ -57,27 +57,27 @@ struct aspeed_mdio_regs {
 static int aspeed_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 {
 	struct aspeed_mdio_regs __iomem *mdio_regs = (struct aspeed_mdio_regs __iomem *)bus->priv;
-	int phycr;
+	u32 phycr;
 	int i;
-	
-	//Use New MDC and MDIO interface
+
 #if 1
 	phycr = FTGMAC100_PHYCR_NEW_FIRE | FTGMAC100_PHYCR_ST_22 | FTGMAC100_PHYCR_NEW_READ |
 			FTGMAC100_PHYCR_NEW_PHYAD(addr) | // 20141114
 			FTGMAC100_PHYCR_NEW_REGAD(reg); // 20141114
-	
+
 	writel(phycr, &mdio_regs->phycr);
-	
+	mb();
+
 	for (i = 0; i < 10; i++) {
 		phycr = readl(&mdio_regs->phycr);
-	
+
 		if ((phycr & FTGMAC100_PHYCR_NEW_FIRE) == 0) {
-			int data;
-	
+			u32 data;
+
 			data = readl(&mdio_regs->phydata);
 			return FTGMAC100_PHYDATA_NEW_MIIWDATA(data);
 		}
-	
+
 		mdelay(10);
 	}
 #else
@@ -152,18 +152,19 @@ static int aspeed_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 			FTGMAC100_PHYCR_NEW_WRITE |
 			FTGMAC100_PHYCR_NEW_PHYAD(addr) | // 20141114
 			FTGMAC100_PHYCR_NEW_REGAD(reg); // 20141114
-	
+
 	writel(phycr, &mdio_regs->phycr);
-	
+	mb();
+
 	for (i = 0; i < 10; i++) {
 		phycr = readl(&mdio_regs->phycr);
-	
+
 		if ((phycr & FTGMAC100_PHYCR_NEW_FIRE) == 0) {
 			debug("(phycr & FTGMAC100_PHYCR_MIIWR) == 0: " \
 				"phy_addr: %x\n", addr);
 			return 0;
 		}
-	
+
 		mdelay(10);
 	}
 #endif

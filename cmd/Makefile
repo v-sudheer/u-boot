@@ -85,8 +85,6 @@ obj-$(CONFIG_LOGBUFFER) += log.o
 obj-$(CONFIG_ID_EEPROM) += mac.o
 obj-$(CONFIG_CMD_MD5SUM) += md5sum.o
 obj-$(CONFIG_CMD_MEMORY) += mem.o
-obj-$(CONFIG_CMD_DRAMTEST) += dramtest.o
-obj-$(CONFIG_CMD_NETTEST) += cmd_nettest.o MACTEST.o DRAM_SPI.o IO.o LIB.o MAC.o NCSI.o PCI_SPI.o PHY.o PHYGPIO.o PHYSPECIAL.o SPIM.o LAN9303.o STDUBOOT.o
 obj-$(CONFIG_CMD_IO) += io.o
 obj-$(CONFIG_CMD_MFSL) += mfsl.o
 obj-$(CONFIG_CMD_MII) += mii.o
@@ -167,3 +165,7 @@ obj-$(CONFIG_CMD_BLOB) += blob.o
 obj-y += nvedit.o
 
 obj-$(CONFIG_ARCH_MVEBU) += mvebu/
+
+obj-$(CONFIG_CMD_NETTEST) += cmd_nettest.o MACTEST.o DRAM_SPI.o IO.o LIB.o MAC.o NCSI.o PCI_SPI.o PHY.o PHYGPIO.o PHYSPECIAL.o SPIM.o LAN9303.o STDUBOOT.o
+obj-$(CONFIG_CMD_DRAMTEST) += dramtest.o
+obj-$(CONFIG_CMD_USBTEST) += usbtest.o

@@ -305,10 +305,6 @@ endmenu
 
 menu "Memory commands"
 
-config CMD_DRAMTEST
-	bool "AST dram test"
-	default y
-
 config CMD_MEMORY
 	bool "md, mm, nm, mw, cp, cmp, base, loop"
 	default y
@@ -498,10 +494,6 @@ config CMD_SETEXPR
 endmenu
 
 menu "Network commands"
-
-config CMD_NETTEST
-	bool "nettest"
-	default n
 
 config CMD_NET
 	bool "bootp, tftpboot"
@@ -784,5 +776,20 @@ config CMD_UBI
 	  capabilities. Please, consult the MTD web site for more details
 	  (www.linux-mtd.infradead.org). Activate this option if you want
 	  to use U-Boot UBI commands.
+
+menu "Aspeed Test commands"
+config CMD_NETTEST
+        bool "ASPEED mac test"
+        default y
+
+config CMD_DRAMTEST
+        bool "ASPEED dram test"
+        default y
+
+config CMD_USBTEST
+        bool "ASPEED usb test"
+        default y
+
+endmenu
 
 endmenu

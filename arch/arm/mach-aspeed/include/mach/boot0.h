@@ -7,11 +7,14 @@
 #ifndef __BOOT0_H
 #define __BOOT0_H
 
-#define ARM_SOC_BOOT0_HOOK						\
-	.word	0x0;	/* Key location */	\
+#define ARM_SOC_BOOT0_HOOK				\
+	.word	0x0;	/* Key location */		\
 	.word	0x0;	/* start address of image */	\
-	.word	0x0;	/* image size */	\
+	.word	0x0;	/* image size */		\
 	.word	0x0;	/* signature address */ 	\
+	.word	0x0;	/* head revision ID low */ 	\
+	.word	0x0;	/* head revision ID high */ 	\
+	.word	0x0;	/* reserved */ 	\
 	.word	0x0;	/* checksum */			\
 	.word	_end - _start	/* size */		\
 

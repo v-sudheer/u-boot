@@ -728,23 +728,10 @@ Calibration_End:
      Search read gating window
      Use r7, r8, r9
     ****************************************/
-    mov   r7, #0x3                               // win
-    mov   r8, #0x0                               // gwin
-    mov   r9, #0x0                               // jump indication
+    mov   r7, #0xC                               // win
 
-ddr_gate_train_main:
-    tst   r7, #0x80
-    bne   ddr_gate_train_end
     ldr   r0, =0x1e6e0100
     str   r7, [r0]
-/* Debug - UART console message */
-    ldr   r0, =ASTMMC_UART_BASE
-    mov   r2, r7
-    print_hex_byte
-    mov   r1, #'-'                               // '-'
-    str   r1, [r0]
-/* Debug - UART console message */
-    b     ddr_test_start
 
 ddr_gate_train_pass:
 /* Debug - UART console message */
@@ -762,25 +749,6 @@ ddr_gate_train_pass:
     mov   r1, #'\n'                              // '\n'
     str   r1, [r0]
     ldr   r0, =(ASTMMC_UART_BASE | 0x14)
-wait_print_5:
-    ldr   r1, [r0]
-    tst   r1, #0x40
-    beq   wait_print_5
-/* Debug - UART console message */
-    orr   r8, r7, r8
-    b     ddr_gate_train_end
-
-ddr_gate_train_fail:
-    mov   r7, r7, lsl #1
-    cmp   r8, #0x0
-    beq   ddr_gate_train_main
-
-ddr_gate_train_end:
-    mov   r7, #0x7                               // big win
-    cmp   r8, #0x0
-    beq   ddr_gate_train_main
-    ldr   r0, =0x1e6e0100
-    str   r8, [r0]
 
     /*******************************
      Check DRAM Size
@@ -993,8 +961,6 @@ wait_print_1:
     tst   r1, #0x40
     beq   wait_print_1
 /* Debug - UART console message */
-    cmp   r9, #0x0
-    beq   ddr_gate_train_fail
     b     ddr_init_start
 
 set_scratch:

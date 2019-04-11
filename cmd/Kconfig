@@ -350,6 +350,10 @@ endmenu
 
 menu "Device access commands"
 
+config CMD_ASTOTP
+	bool "AST otp program"
+	default y
+
 config CMD_DM
 	bool "dm - Access to driver model information"
 	depends on DM

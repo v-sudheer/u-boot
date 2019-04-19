@@ -61,42 +61,60 @@ DECLARE_GLOBAL_DATA_PTR;
 #define OTPCFG30_OFFSEST 0xe0c
 #define OTPCFG31_OFFSEST 0xe0e
 
-static int otp_read_config(uint32_t offset, int dw_count)
+static int otp_read_data(uint32_t offset, uint32_t *data)
 {
-	int config_offset, ret, i;
+	writel(offset, 0x1e6f2010); //Read address
+	writel(0x23b1e361, 0x1e6f2004); //trigger read
+	udelay(2);
+	data[0] = readl(0x1e6f2020);
+	data[1] = readl(0x1e6f2024);
+	return 1;
+}
+
+static int otp_read_config(uint32_t offset, uint32_t *data)
+{
+	int config_offset;
+
+	config_offset = 0x800;
+	config_offset |= (offset / 8) * 0x200;
+	config_offset |= (offset % 8) * 0x2;
+
+	writel(config_offset, 0x1e6f2010);  //Read address
+	writel(0x23b1e361, 0x1e6f2004); //trigger read
+	udelay(2);
+	data[0] = readl(0x1e6f2020);
+
+	return 1;
+}
+
+static int otp_print_config(uint32_t offset, int dw_count)
+{
+	int i;
+	uint32_t ret[1];
+
 	if (offset + dw_count > 32)
 		return -1;
 	for (i = offset; i < offset + dw_count; i ++) {
-		config_offset = 0x800;
-		config_offset |= (i / 8) * 0x200;
-		config_offset |= (i % 8) * 0x2;
-
-		writel(config_offset, 0x1e6f2010); //Read address
-		writel(0x23b1e361, 0x1e6f2004); //trigger read
-		udelay(2);
-		ret = readl(0x1e6f2020);
-
-		printf("OTPCFG%d: %08X\n", i, ret);
+		otp_read_config(i, ret);
+		printf("OTPCFG%d: %08X\n", i, ret[0]);
 	}
 	printf("\n");
 	return 1;
 }
 
-static int otp_read_data(uint32_t offset, int dw_count)
+static int otp_print_data(uint32_t offset, int dw_count)
 {
-	int ret, ret1, i;
+	int i;
+	uint32_t ret[2];
+
 	if (offset + dw_count > 2048 || offset % 4 != 0)
 		return -1;
 	for (i = offset; i < offset + dw_count; i += 2) {
-		writel(i, 0x1e6f2010); //Read address
-		writel(0x23b1e361, 0x1e6f2004); //trigger read
-		udelay(2);
-		ret = readl(0x1e6f2020);
-		ret1 = readl(0x1e6f2024);
+		otp_read_data(i, ret);
 		if (i % 4 == 0)
-			printf("%03X: %08X %08X ", i * 4, ret, ret1);
+			printf("%03X: %08X %08X ", i * 4, ret[0], ret[1]);
 		else
-			printf("%08X %08X\n", ret, ret1);
+			printf("%08X %08X\n", ret[0], ret[1]);
 
 	}
 	printf("\n");
@@ -196,6 +214,22 @@ static int otp_prog_boot(uint32_t *buf, int otp_addr, int dw_count)
 	}
 	return 0;
 }
+
+// static int otp_prog_strap(uint32_t *buf, int otp_addr, int dw_count)
+// {
+// 	int i;
+// 	uint32_t OTPSTRAP[16];
+// 	for (i = 0; i < 16; i++)
+// 		otp_read_config(i + 16, &OTPSTRAP[i]);
+
+// 	for (i = 0; i < 32; i++) {
+// 		if ((OTPSTRAP[15] & (1 << i)) && (OTPSTRAP[15] & (1 << i))) {
+
+// 		}
+// 	}
+
+// }
+
 static int otp_prog_data(uint32_t *buf, int otp_addr, int dw_count)
 {
 	int i, j, k, bit_value;
@@ -210,6 +244,7 @@ static int otp_prog_data(uint32_t *buf, int otp_addr, int dw_count)
 		for (j = 0; j < 32; j++) {
 			bit_value = (buf[i] >> j) & 0x1;
 			if (prog_address % 2 == 0) {
+				prog_address |= 1 << 15;
 				if (bit_value)
 					prog_bit = ~(0x1 << j);
 				else
@@ -270,7 +305,7 @@ static int do_otp_prog(int mode, int addr, int otp_addr, int dw_count)
 	} else if (mode == 2) {
 		return otp_prog_data(buf, otp_addr, dw_count);
 	} else if (mode == 3) {
-		ret = otp_prog_data(&buf[32], 0, dw_count - 32);
+		ret = otp_prog_data(&buf[12], 0, dw_count - 32);
 		if (ret < 0)
 			return ret;
 		return otp_prog_boot(buf, 0, 32);
@@ -304,9 +339,9 @@ usage:
 		otp_addr = simple_strtoul(argv[3], NULL, 16);
 		dw_count = simple_strtoul(argv[4], NULL, 16);
 		if (mode == 1)
-			otp_read_config(otp_addr, dw_count);
+			otp_print_config(otp_addr, dw_count);
 		else
-			otp_read_data(otp_addr, dw_count);
+			otp_print_data(otp_addr, dw_count);
 	} else if (!strcmp(cmd, "prog")) {
 		if (!strcmp(argv[2], "conf"))
 			mode = 1;
